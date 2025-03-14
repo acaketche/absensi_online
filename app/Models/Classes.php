@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Classes extends Model
 {
     use HasFactory;
-
+    protected $primaryKey = 'class_id'; // Sesuaikan dengan nama kolom yang benar
+    public $incrementing = false;
     protected $fillable = ['class_name', 'id_employee'];
 
-    public function teacher()
+    public function employee()
     {
         return $this->belongsTo(Employee::class, 'id_employee');
     }

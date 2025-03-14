@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Student;
+use App\Models\Classes;
+use App\Models\AcademicYear;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class StudentController extends Controller
 {
@@ -11,13 +14,14 @@ class StudentController extends Controller
     public function index()
     {
         $students = Student::all();
-        return view('students.index', compact('students'));
+        $classes = Classes::all();
+        $academicYears = AcademicYear::all();
+        return view('students.index', compact('students','classes','academicYears'));
     }
-
-    // Menampilkan form untuk menambah siswa baru
-    public function create()
+    public function show($id)
     {
-        return view('students.create');
+        $student = Student::findOrFail($id);
+        return view('students.detail', compact('student'));
     }
 
     // Menyimpan siswa baru ke database
@@ -29,57 +33,85 @@ class StudentController extends Controller
             'class_id' => 'required|string|max:50',
             'parent_phonecell' => 'required|string|max:15',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'password' => 'required|string|min:6',
             'birth_place' => 'required|string|max:255',
             'birth_date' => 'required|date',
-            'gender' => 'required|in:Male,Female,Other',
+            'gender' => 'required|in:L,P',
         ]);
 
-        // Menyimpan data siswa baru
-        Student::create($request->all());
+        $data = $request->except('photo');
 
-        return redirect()->route('students.index')->with('success', 'Student created successfully.');
+        // Menyimpan file foto jika diunggah
+        if ($request->hasFile('photo')) {
+            $file = $request->file('photo');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->storeAs('public/photos', $filename);
+            $data['photo'] = $filename;
+        }
+
+        Student::create($data);
+
+        return redirect()->route('students.index')->with('success', 'Siswa berhasil ditambahkan.');
     }
 
-    // Menampilkan detail siswa
-    public function show($id)
-    {
-        $student = Student::findOrFail($id);
-        return view('students.show', compact('student'));
-    }
 
-    // Menampilkan form untuk mengedit siswa
     public function edit($id)
     {
         $student = Student::findOrFail($id);
-        return view('students.edit', compact('student'));
+        return response()->json($student);
     }
 
     // Memperbarui data siswa
     public function update(Request $request, $id)
     {
         $request->validate([
-            'fullname' => 'required|string|max:255',
-            'class_id' => 'required|string|max:255',
+            'id_student' => 'required|string|max:20',
+            'fullname' => 'required|string|max:100',
+            'class_id' => 'required|string|max:50',
             'parent_phonecell' => 'required|string|max:15',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'birth_place' => 'required|string|max:255',
             'birth_date' => 'required|date',
-            'gender' => 'required|in:Male,Female,Other',
+            'gender' => 'required|in:L,P',
         ]);
 
         $student = Student::findOrFail($id);
-        $student->update($request->all());
+        $data = $request->except('photo');
 
-        return redirect()->route('students.index')->with('success', 'Student updated successfully.');
+        // Cek apakah ada foto baru diunggah
+        if ($request->hasFile('photo')) {
+            // Hapus foto lama jika ada
+            if ($student->photo) {
+                Storage::delete('public/photos/' . $student->photo);
+            }
+
+            $file = $request->file('photo');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->storeAs('public/photos', $filename);
+            $data['photo'] = $filename;
+        }
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        } else {
+            unset($data['password']); // Hapus dari array update jika kosong
+        }
+
+        $student->update($data);
+
+        return redirect()->route('students.index')->with('success', 'Siswa berhasil diperbarui.');
     }
 
     // Menghapus siswa
     public function destroy($id)
     {
         $student = Student::findOrFail($id);
+
+        // Hapus foto dari penyimpanan jika ada
+        if ($student->photo) {
+            Storage::delete('public/photos/' . $student->photo);
+        }
+
         $student->delete();
 
-        return redirect()->route('students.index')->with('success', 'Student deleted successfully.');
+        return redirect()->route('students.index')->with('success', 'Siswa berhasil dihapus.');
     }
 }

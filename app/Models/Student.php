@@ -30,7 +30,11 @@ class Student extends Model
 
     public function class()
     {
-        return $this->belongsTo(Classes::class, 'class_id');
+        return $this->belongsTo(Classes::class, 'class_id'); // Sesuaikan nama model
+    }
+    public function academic_years()
+    {
+        return $this->belongsTo(academic_years::class, 'id'); // Sesuaikan nama model
     }
 
     // public function grades()

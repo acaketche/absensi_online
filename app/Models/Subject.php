@@ -9,5 +9,12 @@ class Subject extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['subject_name'];
+    protected $table = 'subjects'; // Nama tabel di database
+
+    protected $primaryKey = 'subject_id'; // Primary Key
+
+    public $timestamps = true; // Mengaktifkan timestamps (created_at, updated_at)
+
+    protected $fillable = ['subject_name']; // Kolom yang boleh diisi
+
 }
