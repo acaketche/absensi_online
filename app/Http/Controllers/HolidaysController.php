@@ -3,16 +3,32 @@
 namespace App\Http\Controllers;
 
 use App\Models\Holiday;
+use App\Models\AcademicYear;
 use Illuminate\Http\Request;
 
 class HolidaysController extends Controller
 {
     // Menampilkan daftar hari libur
-    public function index()
-    {
-        $holidays = Holiday::with('academicYear')->get();
-        return view('holidays.holidays', compact('holidays'));
-    }
+    public function index(Request $request)
+{
+    // Ambil Tahun Ajaran dan Bulan dari request
+    $academicYearId = $request->get('academic_year');
+    $bulan = $request->get('bulan');
+
+    // Query data hari libur dengan filter
+    $holidays = Holiday::when($academicYearId, function ($query) use ($academicYearId) {
+                            return $query->where('academic_year_id', $academicYearId);
+                        })
+                        ->when($bulan, function ($query) use ($bulan) {
+                            return $query->whereMonth('holiday_date', $bulan);
+                        })
+                        ->get();
+
+    // Ambil data Tahun Ajaran untuk dropdown
+    $academicYears = AcademicYear::all();
+
+    return view('holidays.holidays', compact('holidays', 'academicYears', 'academicYearId', 'bulan'));
+}
 
     // Menampilkan form tambah hari libur
     public function create()

@@ -9,5 +9,11 @@ class AttendanceStatus extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['status_name'];
+    protected $table = 'attendance_status';
+
+    protected $fillable = [
+        'status_name'
+    ];
+
+    public $timestamps = true;
 }

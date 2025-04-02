@@ -14,6 +14,21 @@ class Semester extends Model
     // Relasi ke Tahun Akademik
     public function academicYear()
     {
-        return $this->belongsTo(AcademicYear::class, 'academic_year_id');
+        return $this->belongsTo(AcademicYear::class, 'academic_year_id', 'id');
+    }
+
+    public function students()
+    {
+        return $this->hasMany(Student::class, 'semester_id');
+    }
+
+    // Scope untuk semester aktif
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', 1);
+    }
+    public function subjects()
+    {
+        return $this->hasMany(Subject::class, 'semester_id');
     }
 }

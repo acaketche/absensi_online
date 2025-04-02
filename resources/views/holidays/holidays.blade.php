@@ -3,74 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Data Hari Libur - E-School</title>
+  <title>E-School</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
   <style>
-      * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          font-family: Arial, sans-serif;
-      }
-
-      .container {
-          display: flex;
-          min-height: 100vh;
-      }
-
-      /* Sidebar Styles */
-      .sidebar {
-          width: 250px;
-          background-color: #4266B9;
-          color: white;
-          padding: 20px;
-      }
-
-      .logo {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 30px;
-      }
-
-      .logo-icon {
-          background: #ff6b35;
-          width: 35px;
-          height: 35px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 8px;
-          font-weight: bold;
-      }
-
-      .logo-text {
-          font-size: 20px;
-          font-weight: bold;
-      }
-
-      .nav-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 12px;
-          margin-bottom: 5px;
-          border-radius: 8px;
-          cursor: pointer;
-          text-decoration: none;
-          color: white;
-      }
-
-      .nav-item:hover {
-          background: rgba(255, 255, 255, 0.1);
-      }
-
-      .nav-item.active {
-          background: rgba(255, 255, 255, 0.2);
-      }
-
       /* Main Content Styles */
       .main-content {
           flex: 1;
@@ -132,14 +71,30 @@
 
       .holiday-national {
           background-color: #dc3545;
+          color: white;
       }
 
       .holiday-school {
           background-color: #ffc107;
+          color: black;
       }
 
       .holiday-religious {
           background-color: #28a745;
+          color: white;
+      }
+
+      .tab-content {
+          padding-top: 20px;
+      }
+
+      .nav-tabs .nav-link.active {
+          color: #4266B9;
+          font-weight: bold;
+      }
+
+      .nav-tabs .nav-link {
+          color: #495057;
       }
 
       @media (max-width: 768px) {
@@ -158,86 +113,47 @@
       }
   </style>
 </head>
+@if(Auth::guard('employee')->check())
 <body class="bg-light">
 <div class="d-flex">
   <!-- Sidebar -->
-  <div class="sidebar">
-      <div class="logo">
-          <div class="logo-icon">E</div>
-          <div class="logo-text">SCHOOL</div>
-      </div>
-      <nav>
-          <a href="#" class="nav-item text-white d-block mb-2">
-              <i class="fas fa-home me-2"></i>
-              <span class="nav-text">Dashboard</span>
-          </a>
-          <a href="#" class="nav-item text-white d-block mb-2">
-              <i class="fas fa-users me-2"></i>
-              <span class="nav-text">Data User</span>
-          </a>
-          <a href="#" class="nav-item text-white d-block mb-2">
-              <i class="fas fa-user-graduate me-2"></i>
-              <span class="nav-text">Data Siswa</span>
-          </a>
-          <a href="#" class="nav-item text-white d-block mb-2">
-              <i class="fas fa-chalkboard-teacher me-2"></i>
-              <span class="nav-text">Data Pegawai</span>
-          </a>
-          <a href="#" class="nav-item text-white d-block mb-2">
-              <i class="fas fa-calendar-check me-2"></i>
-              <span class="nav-text">Absensi</span>
-          </a>
-          <div class="ms-3">
-              <a href="#" class="nav-item text-white d-block mb-2">
-                  <i class="fas fa-user-check me-2"></i>
-                  <span class="nav-text">Absensi Siswa</span>
-              </a>
-              <a href="#" class="nav-item text-white d-block mb-2">
-                  <i class="fas fa-user-tie me-2"></i>
-                  <span class="nav-text">Absensi Pegawai</span>
-              </a>
-          </div>
-          <a href="#" class="nav-item text-white d-block mb-2 active">
-              <i class="fas fa-database me-2"></i>
-              <span class="nav-text">Master Data</span>
-          </a>
-          <div class="ms-3">
-              <a href="#" class="nav-item text-white d-block mb-2">
-                  <i class="fas fa-calendar-alt me-2"></i>
-                  <span class="nav-text">Tahun Ajaran & Semester</span>
-              </a>
-              <a href="#" class="nav-item text-white d-block mb-2">
-                  <i class="fas fa-school me-2"></i>
-                  <span class="nav-text">Kelas</span>
-              </a>
-              <a href="#" class="nav-item text-white d-block mb-2">
-                  <i class="fas fa-book me-2"></i>
-                  <span class="nav-text">Mata Pelajaran</span>
-              </a>
-              <a href="#" class="nav-item text-white d-block mb-2 active">
-                  <i class="fas fa-calendar-day me-2"></i>
-                  <span class="nav-text">Hari Libur</span>
-              </a>
-          </div>
-          <a href="#" class="nav-item text-white d-block mb-2">
-              <i class="fas fa-money-bill-wave me-2"></i>
-              <span class="nav-text">Data SPP</span>
-          </a>
-          <a href="#" class="nav-item text-white d-block mb-2">
-              <i class="fas fa-book-reader me-2"></i>
-              <span class="nav-text">Data Buku Paket</span>
-          </a>
-          <a href="#" class="nav-item text-white d-block mb-2">
-              <i class="fas fa-graduation-cap me-2"></i>
-              <span class="nav-text">Data Nilai</span>
-          </a>
-      </nav>
-  </div>
+  @include('components.sidebar')
 
   <!-- Main Content -->
   <main class="flex-grow-1 p-4">
+    <!-- Header dengan Profil Admin -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fs-4 fw-bold mb-0"></h2>
+    <div class="dropdown">
+        <div class="admin-profile d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
+            <div class="d-flex flex-column text-end me-2">
+                <span class="admin-name">{{ Auth::guard('employee')->user()->fullname }}</span>
+                <small class="admin-role text-muted">
+                    {{ Auth::guard('employee')->user()->role->role_name ?? 'Tidak ada role' }}
+                </small>
+            </div>
+            <div class="admin-avatar">
+                <img src="{{ Auth::guard('employee')->user()->photo ? asset('storage/' . Auth::guard('employee')->user()->photo) : 'https://via.placeholder.com/150' }}"
+                     alt="Admin Profile" class="w-100 h-100 object-fit-cover">
+            </div>
+            <i class="fas fa-chevron-down ms-2 text-muted"></i>
+        </div>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fas fa-key"></i> Ubah Password</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form id="logout-form" action="{{ route('logout.employee') }}" method="POST" style="display: none;">
+                    @csrf
+                </form>
+                <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
       <header class="d-flex justify-content-between align-items-center mb-4">
-          <h2 class="fs-4 fw-bold">Data Hari Libur</h2>
+          <h2 class="fs-4 fw-bold">Kalender Hari Libur</h2>
           <div class="d-flex align-items-center">
               <input type="text" placeholder="Cari hari libur" class="form-control me-3" style="width: 200px;" id="searchInput">
               <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addHolidayModal">
@@ -246,217 +162,104 @@
           </div>
       </header>
 
-      <!-- Filter Section -->
-      <div class="filter-section mb-4">
-          <h5 class="mb-3">Filter Data Hari Libur</h5>
-          <form id="filterForm" class="row g-3">
-              <div class="col-md-4">
-                  <label for="filterTahunAjaran" class="form-label">Tahun Ajaran</label>
-                  <select class="form-select" id="filterTahunAjaran" name="academic_year_id">
-                      <option value="">Semua Tahun Ajaran</option>
-                      <option value="1">2022-2023</option>
-                      <option value="2" selected>2023-2024</option>
-                      <option value="3">2024-2025</option>
-                  </select>
-              </div>
-              <div class="col-md-4">
-                  <label for="filterJenis" class="form-label">Jenis Libur</label>
-                  <select class="form-select" id="filterJenis" name="jenis">
-                      <option value="">Semua Jenis</option>
-                      <option value="nasional">Libur Nasional</option>
-                      <option value="sekolah">Libur Sekolah</option>
-                      <option value="keagamaan">Libur Keagamaan</option>
-                  </select>
-              </div>
-              <div class="col-md-4">
-                  <label for="filterBulan" class="form-label">Bulan</label>
-                  <select class="form-select" id="filterBulan" name="bulan">
-                      <option value="">Semua Bulan</option>
-                      <option value="1">Januari</option>
-                      <option value="2">Februari</option>
-                      <option value="3">Maret</option>
-                      <option value="4">April</option>
-                      <option value="5">Mei</option>
-                      <option value="6">Juni</option>
-                      <option value="7">Juli</option>
-                      <option value="8">Agustus</option>
-                      <option value="9">September</option>
-                      <option value="10">Oktober</option>
-                      <option value="11">November</option>
-                      <option value="12">Desember</option>
-                  </select>
-              </div>
-              <div class="col-12 mt-3">
-                  <button type="submit" class="btn btn-primary">
-                      <i class="fas fa-filter me-1"></i> Terapkan Filter
-                  </button>
-                  <button type="reset" class="btn btn-secondary ms-2">
-                      <i class="fas fa-sync-alt me-1"></i> Reset
-                  </button>
-              </div>
-          </form>
-      </div>
+     <!-- Filter Section -->
+<div class="filter-section mb-4">
+    <h5 class="mb-3">Filter Data Hari Libur</h5>
+    <form id="filterForm" method="GET" action="{{ route('holidays.index') }}" class="row g-3">
+        <div class="col-md-4">
+            <label for="filterTahunAjaran" class="form-label">Tahun Ajaran</label>
+            <select name="academic_year" id="filterTahunAjaran" class="form-control">
+                <option value="">-- Pilih Tahun --</option>
+                @foreach ($academicYears as $tahun)
+                    <option value="{{ $tahun->id }}"
+                        {{ request('academic_year') == $tahun->id ? 'selected' : '' }}>
+                        {{ $tahun->year_name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="filterBulan" class="form-label">Bulan</label>
+            <select class="form-select" id="filterBulan" name="bulan">
+                <option value="">Semua Bulan</option>
+                @for ($i = 1; $i <= 12; $i++)
+                    <option value="{{ $i }}"
+                        {{ request('bulan') == $i ? 'selected' : '' }}>
+                        {{ DateTime::createFromFormat('!m', $i)->format('F') }}
+                    </option>
+                @endfor
+            </select>
+        </div>
+        <div class="col-12 mt-3">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-filter me-1"></i> Terapkan Filter
+            </button>
+            <a href="{{ route('holidays.index') }}" class="btn btn-secondary ms-2">
+                <i class="fas fa-sync-alt me-1"></i> Reset
+            </a>
+        </div>
+    </form>
+</div>
 
-      <!-- Data Hari Libur -->
+      <!-- Table View -->
       <div class="card">
-          <div class="card-header bg-primary text-white">Daftar Hari Libur</div>
-          <div class="card-body">
-              <div id="loadingIndicator" class="text-center d-none">
-                  <div class="spinner-border text-primary" role="status">
-                      <span class="visually-hidden">Loading...</span>
-                  </div>
-                  <p class="mt-2">Memuat data...</p>
-              </div>
-              <div id="errorMessage" class="alert alert-danger d-none">
-                  Terjadi kesalahan saat memuat data. Silahkan coba lagi.
-              </div>
-              <div class="table-responsive">
-                  <table class="table table-bordered table-hover" id="holidayTable">
-                      <thead class="table-light">
-                          <tr>
-                              <th width="5%">No</th>
-                              <th width="10%">ID</th>
-                              <th width="15%">Tanggal</th>
-                              <th width="30%">Deskripsi</th>
-                              <th width="15%">Jenis</th>
-                              <th width="10%">Tahun Ajaran</th>
-                              <th width="15%">Aksi</th>
-                          </tr>
-                      </thead>
-                      <tbody>
-                          <!-- Hari Libur 1 -->
-                          <tr>
-                              <td>1</td>
-                              <td>1</td>
-                              <td>17 Agustus 2023</td>
-                              <td>Hari Kemerdekaan Republik Indonesia</td>
-                              <td><span class="badge holiday-badge holiday-national">Libur Nasional</span></td>
-                              <td>2023-2024</td>
-                              <td>
-                                  <div class="d-flex gap-1">
-                                      <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#viewHolidayModal" data-holiday-id="1" data-holiday-desc="Hari Kemerdekaan Republik Indonesia">
-                                          <i class="fas fa-eye me-1"></i> Lihat
-                                      </button>
-                                      <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editHolidayModal" data-holiday-id="1">
-                                          <i class="fas fa-edit me-1"></i> Edit
-                                      </button>
-                                      <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteHolidayModal" data-holiday-id="1" data-holiday-desc="Hari Kemerdekaan Republik Indonesia">
-                                          <i class="fas fa-trash me-1"></i>
-                                      </button>
-                                  </div>
-                              </td>
-                          </tr>
+        <div class="card-header bg-primary text-white">Daftar Hari Libur</div>
+        <div class="card-body">
+            @if(session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
 
-                          <!-- Hari Libur 2 -->
-                          <tr>
-                              <td>2</td>
-                              <td>2</td>
-                              <td>25 Desember 2023</td>
-                              <td>Hari Natal</td>
-                              <td><span class="badge holiday-badge holiday-religious">Libur Keagamaan</span></td>
-                              <td>2023-2024</td>
-                              <td>
-                                  <div class="d-flex gap-1">
-                                      <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#viewHolidayModal" data-holiday-id="2" data-holiday-desc="Hari Natal">
-                                          <i class="fas fa-eye me-1"></i> Lihat
-                                      </button>
-                                      <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editHolidayModal" data-holiday-id="2">
-                                          <i class="fas fa-edit me-1"></i> Edit
-                                      </button>
-                                      <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteHolidayModal" data-holiday-id="2" data-holiday-desc="Hari Natal">
-                                          <i class="fas fa-trash me-1"></i>
-                                      </button>
-                                  </div>
-                              </td>
-                          </tr>
-
-                          <!-- Hari Libur 3 -->
-                          <tr>
-                              <td>3</td>
-                              <td>3</td>
-                              <td>1 Januari 2024</td>
-                              <td>Tahun Baru 2024</td>
-                              <td><span class="badge holiday-badge holiday-national">Libur Nasional</span></td>
-                              <td>2023-2024</td>
-                              <td>
-                                  <div class="d-flex gap-1">
-                                      <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#viewHolidayModal" data-holiday-id="3" data-holiday-desc="Tahun Baru 2024">
-                                          <i class="fas fa-eye me-1"></i> Lihat
-                                      </button>
-                                      <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editHolidayModal" data-holiday-id="3">
-                                          <i class="fas fa-edit me-1"></i> Edit
-                                      </button>
-                                      <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteHolidayModal" data-holiday-id="3" data-holiday-desc="Tahun Baru 2024">
-                                          <i class="fas fa-trash me-1"></i>
-                                      </button>
-                                  </div>
-                              </td>
-                          </tr>
-
-                          <!-- Hari Libur 4 -->
-                          <tr>
-                              <td>4</td>
-                              <td>4</td>
-                              <td>22 Maret 2024</td>
-                              <td>Hari Raya Nyepi</td>
-                              <td><span class="badge holiday-badge holiday-religious">Libur Keagamaan</span></td>
-                              <td>2023-2024</td>
-                              <td>
-                                  <div class="d-flex gap-1">
-                                      <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#viewHolidayModal" data-holiday-id="4" data-holiday-desc="Hari Raya Nyepi">
-                                          <i class="fas fa-eye me-1"></i> Lihat
-                                      </button>
-                                      <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editHolidayModal" data-holiday-id="4">
-                                          <i class="fas fa-edit me-1"></i> Edit
-                                      </button>
-                                      <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteHolidayModal" data-holiday-id="4" data-holiday-desc="Hari Raya Nyepi">
-                                          <i class="fas fa-trash me-1"></i>
-                                      </button>
-                                  </div>
-                              </td>
-                          </tr>
-
-                          <!-- Hari Libur 5 -->
-                          <tr>
-                              <td>5</td>
-                              <td>5</td>
-                              <td>15 Juni 2024</td>
-                              <td>Libur Akhir Semester Genap</td>
-                              <td><span class="badge holiday-badge holiday-school">Libur Sekolah</span></td>
-                              <td>2023-2024</td>
-                              <td>
-                                  <div class="d-flex gap-1">
-                                      <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#viewHolidayModal" data-holiday-id="5" data-holiday-desc="Libur Akhir Semester Genap">
-                                          <i class="fas fa-eye me-1"></i> Lihat
-                                      </button>
-                                      <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editHolidayModal" data-holiday-id="5">
-                                          <i class="fas fa-edit me-1"></i> Edit
-                                      </button>
-                                      <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteHolidayModal" data-holiday-id="5" data-holiday-desc="Libur Akhir Semester Genap">
-                                          <i class="fas fa-trash me-1"></i>
-                                      </button>
-                                  </div>
-                              </td>
-                          </tr>
-                      </tbody>
-                  </table>
-              </div>
-
-              <!-- Pagination -->
-              <nav aria-label="Page navigation" class="mt-4">
-                  <ul class="pagination justify-content-center">
-                      <li class="page-item disabled">
-                          <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-                      </li>
-                      <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                      <li class="page-item"><a class="page-link" href="#">2</a></li>
-                      <li class="page-item"><a class="page-link" href="#">3</a></li>
-                      <li class="page-item">
-                          <a class="page-link" href="#">Next</a>
-                      </li>
-                  </ul>
-              </nav>
-          </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="holidayTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>No</th>
+                            <th>Tanggal</th>
+                            <th>Deskripsi</th>
+                            <th>Tahun Ajaran</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($holidays as $index => $holiday)
+                            <tr>
+                                <td>{{ $index + 1 }}</td>
+                                <td>{{ \Carbon\Carbon::parse($holiday->holiday_date)->format('d M Y') }}</td>
+                                <td>{{ $holiday->description }}</td>
+                                <td>{{ $holiday->academicYear->year_name ?? '-' }}</td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <button class="btn btn-sm btn-info"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#viewHolidayModal"
+                                                data-id="{{ $holiday->id }}">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-warning"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editHolidayModal"
+                                                data-id="{{ $holiday->id }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteHolidayModal"
+                                                data-id="{{ $holiday->id }}"
+                                                data-description="{{ $holiday->description }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="text-center">Tidak ada data</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
       </div>
   </main>
 </div>
@@ -481,21 +284,14 @@
                       <input type="text" class="form-control" id="description" name="description" required>
                   </div>
                   <div class="mb-3">
-                      <label for="jenis" class="form-label">Jenis Libur</label>
-                      <select class="form-select" id="jenis" name="jenis" required>
-                          <option value="">-- Pilih Jenis Libur --</option>
-                          <option value="nasional">Libur Nasional</option>
-                          <option value="sekolah">Libur Sekolah</option>
-                          <option value="keagamaan">Libur Keagamaan</option>
-                      </select>
-                  </div>
-                  <div class="mb-3">
                       <label for="academic_year_id" class="form-label">Tahun Ajaran</label>
                       <select class="form-select" id="academic_year_id" name="academic_year_id" required>
                           <option value="">-- Pilih Tahun Ajaran --</option>
-                          <option value="1">2022-2023</option>
-                          <option value="2" selected>2023-2024</option>
-                          <option value="3">2024-2025</option>
+                          @foreach ($academicYears as $tahun)
+                              <option value="{{ $tahun->id }}" {{ $tahun->is_active ? 'selected' : '' }}>
+                                  {{ $tahun->year_name }}
+                              </option>
+                          @endforeach
                       </select>
                   </div>
                   <div class="d-grid">
@@ -518,36 +314,35 @@
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-              <div class="mb-3">
-                  <h5 class="border-bottom pb-2">Informasi Hari Libur</h5>
-                  <div class="row mb-2">
-                      <div class="col-4 fw-bold">ID</div>
-                      <div class="col-8" id="view_holiday_id">1</div>
+              <div id="viewHolidayLoading" class="text-center">
+                  <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
                   </div>
-                  <div class="row mb-2">
-                      <div class="col-4 fw-bold">Tanggal</div>
-                      <div class="col-8" id="view_holiday_date">17 Agustus 2023</div>
+                  <p class="mt-2">Memuat data...</p>
+              </div>
+              <div id="viewHolidayContent" style="display: none;">
+                  <div class="mb-3">
+                      <h5 class="border-bottom pb-2">Informasi Hari Libur</h5>
+                      <div class="row mb-2">
+                          <div class="col-4 fw-bold">Tanggal</div>
+                          <div class="col-8" id="view_holiday_date">-</div>
+                      </div>
+                      <div class="row mb-2">
+                          <div class="col-4 fw-bold">Deskripsi</div>
+                          <div class="col-8" id="view_description">-</div>
+                      </div>
+                      <div class="row mb-2">
+                          <div class="col-4 fw-bold">Jenis</div>
+                          <div class="col-8" id="view_jenis">-</div>
+                      </div>
+                      <div class="row mb-2">
+                          <div class="col-4 fw-bold">Tahun Ajaran</div>
+                          <div class="col-8" id="view_academic_year">-</div>
+                      </div>
                   </div>
-                  <div class="row mb-2">
-                      <div class="col-4 fw-bold">Deskripsi</div>
-                      <div class="col-8" id="view_description">Hari Kemerdekaan Republik Indonesia</div>
-                  </div>
-                  <div class="row mb-2">
-                      <div class="col-4 fw-bold">Jenis</div>
-                      <div class="col-8" id="view_jenis">Libur Nasional</div>
-                  </div>
-                  <div class="row mb-2">
-                      <div class="col-4 fw-bold">Tahun Ajaran</div>
-                      <div class="col-8" id="view_academic_year">2023-2024</div>
-                  </div>
-                  <div class="row mb-2">
-                      <div class="col-4 fw-bold">Dibuat Pada</div>
-                      <div class="col-8" id="view_created_at">2023-07-01 10:00:00</div>
-                  </div>
-                  <div class="row mb-2">
-                      <div class="col-4 fw-bold">Diperbarui Pada</div>
-                      <div class="col-8" id="view_updated_at">2023-07-01 10:00:00</div>
-                  </div>
+              </div>
+              <div id="viewHolidayError" class="alert alert-danger" style="display: none;">
+                  Terjadi kesalahan saat memuat data. Silahkan coba lagi.
               </div>
           </div>
           <div class="modal-footer">
@@ -566,34 +361,33 @@
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-              <form id="editHolidayForm" action="{{ route('holidays.update', 1) }}" method="POST">
+              <div id="editHolidayLoading" class="text-center">
+                  <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                  </div>
+                  <p class="mt-2">Memuat data...</p>
+              </div>
+              <div id="editHolidayError" class="alert alert-danger" style="display: none;">
+                  Terjadi kesalahan saat memuat data. Silahkan coba lagi.
+              </div>
+              <form id="editHolidayForm" method="POST" style="display: none;">
                   @csrf
                   @method('PUT')
-                  <input type="hidden" id="edit_holiday_id" name="id" value="1">
                   <div class="mb-3">
                       <label for="edit_holiday_date" class="form-label">Tanggal Libur</label>
-                      <input type="date" class="form-control" id="edit_holiday_date" name="holiday_date" value="2023-08-17" required>
+                      <input type="date" class="form-control" id="edit_holiday_date" name="holiday_date" required>
                   </div>
                   <div class="mb-3">
                       <label for="edit_description" class="form-label">Deskripsi</label>
-                      <input type="text" class="form-control" id="edit_description" name="description" value="Hari Kemerdekaan Republik Indonesia" required>
-                  </div>
-                  <div class="mb-3">
-                      <label for="edit_jenis" class="form-label">Jenis Libur</label>
-                      <select class="form-select" id="edit_jenis" name="jenis" required>
-                          <option value="">-- Pilih Jenis Libur --</option>
-                          <option value="nasional" selected>Libur Nasional</option>
-                          <option value="sekolah">Libur Sekolah</option>
-                          <option value="keagamaan">Libur Keagamaan</option>
-                      </select>
+                      <input type="text" class="form-control" id="edit_description" name="description" required>
                   </div>
                   <div class="mb-3">
                       <label for="edit_academic_year_id" class="form-label">Tahun Ajaran</label>
                       <select class="form-select" id="edit_academic_year_id" name="academic_year_id" required>
                           <option value="">-- Pilih Tahun Ajaran --</option>
-                          <option value="1">2022-2023</option>
-                          <option value="2" selected>2023-2024</option>
-                          <option value="3">2024-2025</option>
+                          @foreach ($academicYears as $tahun)
+                              <option value="{{ $tahun->id }}">{{ $tahun->year_name }}</option>
+                          @endforeach
                       </select>
                   </div>
                   <div class="d-grid">
@@ -616,14 +410,13 @@
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-              <p>Apakah Anda yakin ingin menghapus hari libur <strong id="delete_holiday_desc">Hari Kemerdekaan Republik Indonesia</strong>?</p>
+              <p>Apakah Anda yakin ingin menghapus hari libur <strong id="delete_holiday_desc">-</strong>?</p>
               <p class="text-danger"><strong>Perhatian:</strong> Tindakan ini akan menghapus data hari libur secara permanen.</p>
           </div>
           <div class="modal-footer">
-              <form id="deleteHolidayForm" action="{{ route('holidays.destroy', 1) }}" method="POST">
+              <form id="deleteHolidayForm" method="POST">
                   @csrf
                   @method('DELETE')
-                  <input type="hidden" id="delete_holiday_id" name="id" value="1">
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                   <button type="submit" class="btn btn-danger">
                       <i class="fas fa-trash me-1"></i> Hapus
@@ -642,11 +435,11 @@ document.addEventListener('DOMContentLoaded', function() {
       const tableRows = document.querySelectorAll('#holidayTable tbody tr');
 
       tableRows.forEach(row => {
-          const holidayDate = row.cells[2].textContent.toLowerCase();
-          const description = row.cells[3].textContent.toLowerCase();
-          const jenis = row.cells[4].textContent.toLowerCase();
+          const holidayDate = row.cells[1].textContent.toLowerCase();
+          const description = row.cells[2].textContent.toLowerCase();
+          const academicYear = row.cells[3].textContent.toLowerCase();
 
-          if (holidayDate.includes(searchValue) || description.includes(searchValue) || jenis.includes(searchValue)) {
+          if (holidayDate.includes(searchValue) || description.includes(searchValue) || academicYear.includes(searchValue)) {
               row.style.display = '';
           } else {
               row.style.display = 'none';
@@ -654,127 +447,104 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   });
 
-  // Fungsi filter
-  document.getElementById('filterForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      const tahunAjaran = document.getElementById('filterTahunAjaran').value;
-      const jenis = document.getElementById('filterJenis').value;
-      const bulan = document.getElementById('filterBulan').value;
-
-      const tableRows = document.querySelectorAll('#holidayTable tbody tr');
-
-      tableRows.forEach(row => {
-          let showRow = true;
-
-          // Filter berdasarkan tahun ajaran
-          if (tahunAjaran && !row.cells[5].textContent.includes(tahunAjaran === '1' ? '2022-2023' : tahunAjaran === '2' ? '2023-2024' : '2024-2025')) {
-              showRow = false;
-          }
-
-          // Filter berdasarkan jenis
-          if (jenis && !row.cells[4].textContent.toLowerCase().includes(jenis)) {
-              showRow = false;
-          }
-
-          // Filter berdasarkan bulan
-          if (bulan) {
-              const monthNames = ['januari', 'februari', 'maret', 'april', 'mei', 'juni', 'juli', 'agustus', 'september', 'oktober', 'november', 'desember'];
-              const monthName = monthNames[parseInt(bulan) - 1];
-              if (!row.cells[2].textContent.toLowerCase().includes(monthName)) {
-                  showRow = false;
-              }
-          }
-
-          row.style.display = showRow ? '' : 'none';
-      });
-  });
-
-  // Reset filter
-  document.querySelector('#filterForm button[type="reset"]').addEventListener('click', function() {
-      const tableRows = document.querySelectorAll('#holidayTable tbody tr');
-      tableRows.forEach(row => {
-          row.style.display = '';
-      });
-  });
-
   // Fungsi untuk modal lihat hari libur
   const viewHolidayModal = document.getElementById('viewHolidayModal');
-  if (viewHolidayModal) {
-      viewHolidayModal.addEventListener('show.bs.modal', function(event) {
-          const button = event.relatedTarget;
-          const holidayId = button.getAttribute('data-holiday-id');
-          const holidayDesc = button.getAttribute('data-holiday-desc');
+    if (viewHolidayModal) {
+        viewHolidayModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            if (!button) return;
 
-          document.getElementById('view_holiday_id').textContent = holidayId;
-          document.getElementById('view_description').textContent = holidayDesc;
+            const holidayId = button.getAttribute('data-id');
+            if (!holidayId) {
+                console.error('ID hari libur tidak ditemukan');
+                return;
+            }
 
-          // Dalam implementasi nyata, di sini akan ada kode untuk mengambil data hari libur dari server
-          // dan mengisi detail hari libur dengan data tersebut
+            document.getElementById('viewHolidayLoading').style.display = 'block';
+            document.getElementById('viewHolidayContent').style.display = 'none';
+            document.getElementById('viewHolidayError').style.display = 'none';
 
-          // Untuk demo, kita gunakan data statis
-          if (holidayId === '1') {
-              document.getElementById('view_holiday_date').textContent = '17 Agustus 2023';
-              document.getElementById('view_jenis').textContent = 'Libur Nasional';
-              document.getElementById('view_academic_year').textContent = '2023-2024';
-              document.getElementById('view_created_at').textContent = '2023-07-01 10:00:00';
-              document.getElementById('view_updated_at').textContent = '2023-07-01 10:00:00';
-          } else if (holidayId === '2') {
-              document.getElementById('view_holiday_date').textContent = '25 Desember 2023';
-              document.getElementById('view_jenis').textContent = 'Libur Keagamaan';
-              document.getElementById('view_academic_year').textContent = '2023-2024';
-              document.getElementById('view_created_at').textContent = '2023-07-01 10:15:00';
-              document.getElementById('view_updated_at').textContent = '2023-07-01 10:15:00';
-          }
-      });
-  }
+            fetch(`/holidays/${holidayId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('viewHolidayLoading').style.display = 'none';
+                    document.getElementById('viewHolidayContent').style.display = 'block';
 
-  // Fungsi untuk modal edit hari libur
-  const editHolidayModal = document.getElementById('editHolidayModal');
-  if (editHolidayModal) {
-      editHolidayModal.addEventListener('show.bs.modal', function(event) {
-          const button = event.relatedTarget;
-          const holidayId = button.getAttribute('data-holiday-id');
+                    document.getElementById('view_holiday_date').textContent = new Date(data.holiday_date).toLocaleDateString('id-ID', {
+                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                    });
+                    document.getElementById('view_description').textContent = data.description;
+                    document.getElementById('view_jenis').textContent = data.jenis === 'nasional' ? 'Libur Nasional' :
+                        data.jenis === 'sekolah' ? 'Libur Sekolah' :
+                            data.jenis === 'keagamaan' ? 'Libur Keagamaan' : data.jenis;
+                    document.getElementById('view_academic_year').textContent = data.academic_year.year_name;
+                })
+                .catch(error => {
+                    console.error('Error fetching holiday data:', error);
+                    document.getElementById('viewHolidayLoading').style.display = 'none';
+                    document.getElementById('viewHolidayError').style.display = 'block';
+                });
+        });
+    }
 
-          document.getElementById('edit_holiday_id').value = holidayId;
+    // Modal Edit Hari Libur
+    const editHolidayModal = document.getElementById('editHolidayModal');
+    if (editHolidayModal) {
+        editHolidayModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            if (!button) return;
 
-          // Dalam implementasi nyata, di sini akan ada kode untuk mengambil data hari libur dari server
-          // dan mengisi form dengan data tersebut
+            const holidayId = button.getAttribute('data-id');
+            if (!holidayId) {
+                console.error('ID hari libur tidak ditemukan');
+                return;
+            }
 
-          // Untuk demo, kita gunakan data statis
-          if (holidayId === '1') {
-              document.getElementById('edit_holiday_date').value = '2023-08-17';
-              document.getElementById('edit_description').value = 'Hari Kemerdekaan Republik Indonesia';
-              document.getElementById('edit_jenis').value = 'nasional';
-              document.getElementById('edit_academic_year_id').value = '2';
-          } else if (holidayId === '2') {
-              document.getElementById('edit_holiday_date').value = '2023-12-25';
-              document.getElementById('edit_description').value = 'Hari Natal';
-              document.getElementById('edit_jenis').value = 'keagamaan';
-              document.getElementById('edit_academic_year_id').value = '2';
-          }
+            document.getElementById('editHolidayLoading').style.display = 'block';
+            document.getElementById('editHolidayForm').style.display = 'none';
+            document.getElementById('editHolidayError').style.display = 'none';
 
-          // Update action URL form
-          document.getElementById('editHolidayForm').action = `{{ route('holidays.update', '') }}/${holidayId}`;
-      });
-  }
+            document.getElementById('editHolidayForm').action = `/holidays/${holidayId}`;
+
+            fetch(`/holidays/${holidayId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('editHolidayLoading').style.display = 'none';
+                    document.getElementById('editHolidayForm').style.display = 'block';
+
+                    document.getElementById('edit_holiday_date').value = data.holiday_date;
+                    document.getElementById('edit_description').value = data.description;
+                    document.getElementById('edit_academic_year_id').value = data.academic_year_id;
+                })
+                .catch(error => {
+                    console.error('Error fetching holiday data for edit:', error);
+                    document.getElementById('editHolidayLoading').style.display = 'none';
+                    document.getElementById('editHolidayError').style.display = 'block';
+                });
+        });
+    }
 
   // Fungsi untuk modal hapus hari libur
   const deleteHolidayModal = document.getElementById('deleteHolidayModal');
   if (deleteHolidayModal) {
       deleteHolidayModal.addEventListener('show.bs.modal', function(event) {
           const button = event.relatedTarget;
-          const holidayId = button.getAttribute('data-holiday-id');
-          const holidayDesc = button.getAttribute('data-holiday-desc');
+          const holidayId = button.getAttribute('data-id');
+          const holidayDesc = button.getAttribute('data-description');
 
-          document.getElementById('delete_holiday_id').value = holidayId;
+          if (!holidayId) {
+              console.error('ID hari libur tidak ditemukan');
+              return;
+          }
+
           document.getElementById('delete_holiday_desc').textContent = holidayDesc;
 
           // Update action URL form
-          document.getElementById('deleteHolidayForm').action = `{{ route('holidays.destroy', '') }}/${holidayId}`;
+          document.getElementById('deleteHolidayForm').action = `/holidays/${holidayId}`;
       });
   }
 });
 </script>
 </body>
 </html>
+@endif

@@ -3,73 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Data Mata Pelajaran - E-School</title>
+  <title>E-School</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
   <style>
-      * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          font-family: Arial, sans-serif;
-      }
-
-      .container {
-          display: flex;
-          min-height: 100vh;
-      }
-
-      /* Sidebar Styles */
-      .sidebar {
-          width: 250px;
-          background-color: #4266B9;
-          color: white;
-          padding: 20px;
-      }
-
-      .logo {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 30px;
-      }
-
-      .logo-icon {
-          background: #ff6b35;
-          width: 35px;
-          height: 35px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 8px;
-          font-weight: bold;
-      }
-
-      .logo-text {
-          font-size: 20px;
-          font-weight: bold;
-      }
-
-      .nav-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 12px;
-          margin-bottom: 5px;
-          border-radius: 8px;
-          cursor: pointer;
-          text-decoration: none;
-          color: white;
-      }
-
-      .nav-item:hover {
-          background: rgba(255, 255, 255, 0.1);
-      }
-
-      .nav-item.active {
-          background: rgba(255, 255, 255, 0.2);
-      }
 
       /* Main Content Styles */
       .main-content {
@@ -141,81 +81,11 @@
       }
   </style>
 </head>
+@if(Auth::guard('employee')->check())
 <body class="bg-light">
 <div class="d-flex">
   <!-- Sidebar -->
-  <div class="sidebar">
-      <div class="logo">
-          <div class="logo-icon">E</div>
-          <div class="logo-text">SCHOOL</div>
-      </div>
-      <nav>
-          <a href="#" class="nav-item text-white d-block mb-2">
-              <i class="fas fa-home me-2"></i>
-              <span class="nav-text">Dashboard</span>
-          </a>
-          <a href="#" class="nav-item text-white d-block mb-2">
-              <i class="fas fa-users me-2"></i>
-              <span class="nav-text">Data User</span>
-          </a>
-          <a href="#" class="nav-item text-white d-block mb-2">
-              <i class="fas fa-user-graduate me-2"></i>
-              <span class="nav-text">Data Siswa</span>
-          </a>
-          <a href="#" class="nav-item text-white d-block mb-2">
-              <i class="fas fa-chalkboard-teacher me-2"></i>
-              <span class="nav-text">Data Pegawai</span>
-          </a>
-          <a href="#" class="nav-item text-white d-block mb-2">
-              <i class="fas fa-calendar-check me-2"></i>
-              <span class="nav-text">Absensi</span>
-          </a>
-          <div class="ms-3">
-              <a href="#" class="nav-item text-white d-block mb-2">
-                  <i class="fas fa-user-check me-2"></i>
-                  <span class="nav-text">Absensi Siswa</span>
-              </a>
-              <a href="#" class="nav-item text-white d-block mb-2">
-                  <i class="fas fa-user-tie me-2"></i>
-                  <span class="nav-text">Absensi Pegawai</span>
-              </a>
-          </div>
-          <a href="#" class="nav-item text-white d-block mb-2 active">
-              <i class="fas fa-database me-2"></i>
-              <span class="nav-text">Master Data</span>
-          </a>
-          <div class="ms-3">
-              <a href="#" class="nav-item text-white d-block mb-2">
-                  <i class="fas fa-calendar-alt me-2"></i>
-                  <span class="nav-text">Tahun Ajaran & Semester</span>
-              </a>
-              <a href="#" class="nav-item text-white d-block mb-2">
-                  <i class="fas fa-school me-2"></i>
-                  <span class="nav-text">Kelas</span>
-              </a>
-              <a href="#" class="nav-item text-white d-block mb-2 active">
-                  <i class="fas fa-book me-2"></i>
-                  <span class="nav-text">Mata Pelajaran</span>
-              </a>
-              <a href="#" class="nav-item text-white d-block mb-2">
-                  <i class="fas fa-calendar-day me-2"></i>
-                  <span class="nav-text">Hari Libur</span>
-              </a>
-          </div>
-          <a href="#" class="nav-item text-white d-block mb-2">
-              <i class="fas fa-money-bill-wave me-2"></i>
-              <span class="nav-text">Data SPP</span>
-          </a>
-          <a href="#" class="nav-item text-white d-block mb-2">
-              <i class="fas fa-book-reader me-2"></i>
-              <span class="nav-text">Data Buku Paket</span>
-          </a>
-          <a href="#" class="nav-item text-white d-block mb-2">
-              <i class="fas fa-graduation-cap me-2"></i>
-              <span class="nav-text">Data Nilai</span>
-          </a>
-      </nav>
-  </div>
+  @include('components.sidebar')
 
   <!-- Main Content -->
   <main class="flex-grow-1 p-4">
@@ -644,3 +514,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </body>
 </html>
+@endif

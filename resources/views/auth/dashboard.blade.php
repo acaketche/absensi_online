@@ -1,78 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Siswa</title>
+    <title>E-School</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-
-        .container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar Styles */
-        .sidebar {
-            width: 250px;
-            background-color: #4266B9;
-            color: white;
-            padding: 20px;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 30px;
-        }
-
-        .logo-icon {
-            background: #ff6b35;
-            width: 35px;
-            height: 35px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            font-weight: bold;
-        }
-
-        .logo-text {
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            margin-bottom: 5px;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            color: white;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-item.active {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Main Content Styles */
         .main-content {
             flex: 1;
             padding: 30px;
@@ -105,19 +40,6 @@
             color: #666;
         }
 
-        .profile {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .profile-pic {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #ddd;
-        }
-
         /* Metric Cards */
         .metrics {
             display: grid;
@@ -142,12 +64,12 @@
         .metric-icon {
             width: 45px;
             height: 45px;
-            background: rgba(75, 107, 251, 0.1);
+            background: rgba(66, 102, 185, 0.1);
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #4B6BFB;
+            color: #4266B9;
         }
 
         .metric-info h3 {
@@ -220,6 +142,37 @@
             border-top: 1px solid #eee;
         }
 
+        .dropdown-menu {
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid #eee;
+        }
+
+        .dropdown-item {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .dropdown-item i {
+            margin-right: 8px;
+            width: 16px;
+            text-align: center;
+        }
+
+        .btn-primary, .bg-primary {
+            background-color: #4266B9 !important;
+            border-color: #4266B9 !important;
+        }
+
+        .btn-primary:hover {
+            background-color: #365796 !important;
+            border-color: #365796 !important;
+        }
+
+        .text-primary {
+            color: #4266B9 !important;
+        }
+
         @media (max-width: 1024px) {
             .metrics {
                 grid-template-columns: repeat(2, 1fr);
@@ -244,112 +197,46 @@
                 padding: 20px;
             }
         }
-        .btn-primary, .bg-primary {
-            background-color: #4266B9 !important;
-            border-color: #4266B9 !important;
-        }
-
-        .btn-primary:hover {
-            background-color: #365796 !important;
-            border-color: #365796 !important;
-        }
-
-        .text-primary {
-            color: #4266B9 !important;
-        }
     </style>
 </head>
+@if(Auth::guard('employee')->check())
 <body class="bg-light">
     <div class="d-flex">
         <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo">
-                <div class="logo-icon">E</div>
-                <div class="logo-text">SCHOOL</div>
-            </div>
-            <nav>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-home me-2"></i>
-                    <span class="nav-text">Dashboard</span>
-                </a>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-users me-2"></i>
-                    <span class="nav-text">Data User</span>
-                </a>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-user-graduate me-2"></i>
-                    <span class="nav-text">Data Siswa</span>
-                </a>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-chalkboard-teacher me-2"></i>
-                    <span class="nav-text">Data Pegawai</span>
-                </a>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-calendar-check me-2"></i>
-                    <span class="nav-text">Absensi</span>
-                </a>
-                <div class="ms-3">
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-user-check me-2"></i>
-                        <span class="nav-text">Absensi Siswa</span>
-                    </a>
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-user-tie me-2"></i>
-                        <span class="nav-text">Absensi Pegawai</span>
-                    </a>
-                </div>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-database me-2"></i>
-                    <span class="nav-text">Master Data</span>
-                </a>
-                <div class="ms-3">
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-calendar-alt me-2"></i>
-                        <span class="nav-text">Tahun Ajaran</span>
-                    </a>
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-school me-2"></i>
-                        <span class="nav-text">Kelas</span>
-                    </a>
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-book me-2"></i>
-                        <span class="nav-text">Mata Pelajaran</span>
-                    </a>
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-calendar-day me-2"></i>
-                        <span class="nav-text">Hari Libur</span>
-                    </a>
-                </div>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-money-bill-wave me-2"></i>
-                    <span class="nav-text">Data SPP</span>
-                </a>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-book-reader me-2"></i>
-                    <span class="nav-text">Data Buku Paket</span>
-                </a>
-                <div class="ms-3">
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-book-open me-2"></i>
-                        <span class="nav-text">Peminjaman Buku Paket</span>
-                    </a>
-                </div>
-            </nav>
-        </div>
-          <!-- Main Content -->
-          <div class="main-content">
+        @include('components.sidebar')
+
+        <!-- Main Content -->
+        <div class="main-content">
             <div class="header">
                 <h1>Dashboard</h1>
-                <div class="right-section" style="display: flex; gap: 20px; align-items: center;">
-                    <div class="search-bar">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Search here...">
+                <div class="dropdown">
+                    <div class="admin-profile d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="d-flex flex-column text-end me-2">
+                            <span class="admin-name">{{ Auth::guard('employee')->user()->fullname }}</span>
+                            <small class="admin-role text-muted">
+                                {{ Auth::guard('employee')->user()->role->role_name ?? 'Tidak ada role' }}
+                            </small>
+                        </div>
+                        <div class="admin-avatar">
+                            <img src="{{ Auth::guard('employee')->user()->photo ? asset('storage/' . Auth::guard('employee')->user()->photo) : 'https://via.placeholder.com/150' }}"
+                                 alt="Admin Profile" class="w-100 h-100 object-fit-cover">
+                        </div>
+                        <i class="fas fa-chevron-down ms-2 text-muted"></i>
                     </div>
-                    <div class="profile">
-                        <div class="profile-pic"></div>
-                        <span>Admin</span>
-                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fas fa-key"></i> Ubah Password</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form id="logout-form" action="{{ route('logout.employee') }}" method="POST" style="display: none;">
+                                @csrf
+                            </form>
+                            <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </li>
+                    </ul>
                 </div>
+
             </div>
 
             <!-- Metric Cards -->
@@ -414,7 +301,7 @@
                     <div class="calendar-header">
                         <h2>School Calendar</h2>
                         <div class="month-selector">
-                            March 2021
+                            March 2025
                             <i class="fas fa-chevron-down"></i>
                         </div>
                     </div>
@@ -453,5 +340,42 @@
             </div>
         </div>
     </div>
-</body>
-</html>
+
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changePasswordModalLabel">Ubah Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="#" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Password Saat Ini</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password" required>
+                            @error('current_password')
+                                <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">Password Baru</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" required>
+                            @error('new_password')
+                                <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password_confirmation" class="form-label">Konfirmasi Password Baru</label>
+                            <input type="password" class="form-control" id="new_password_confirmation" name="new_password_confirmation" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Ubah Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @endif

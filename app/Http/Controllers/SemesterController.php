@@ -12,7 +12,8 @@ class SemesterController extends Controller
     public function index()
     {
         $semesters = Semester::with('academicYear')->get();
-        return view('academicyear.index', compact('semesters'));
+        $academicYears = AcademicYear::all(); // Tambahkan ini
+        return view('academicyear.index', compact('semesters', 'academicYears'));
     }
 
     // Menampilkan form tambah semester
@@ -79,12 +80,25 @@ class SemesterController extends Controller
         return redirect()->route('semesters.index')->with('success', 'Semester berhasil diperbarui.');
     }
 
-    // Menghapus semester
     public function destroy($id)
     {
         $semester = Semester::findOrFail($id);
-        $semester->delete();
+        $semester->delete(); // Semua data terkait semester ini akan ikut terhapus
 
-        return redirect()->route('academicyear.index')->with('success', 'Semester berhasil dihapus.');
+        return back()->with('success', 'Semester berhasil dihapus');
     }
+
+    public function activate($id)
+{
+    // Nonaktifkan semua semester sebelumnya dalam tahun ajaran yang sama
+    $semester = Semester::findOrFail($id);
+    Semester::where('academic_year_id', $semester->academic_year_id)
+        ->update(['is_active' => 0]);
+
+    // Aktifkan semester yang dipilih
+    $semester->is_active = 1;
+    $semester->save();
+
+    return back()->with('success', 'Semester berhasil diaktifkan');
+}
 }
