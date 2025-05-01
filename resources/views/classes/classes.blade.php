@@ -132,16 +132,12 @@
                         </td>
                         <td>
                             <div class="d-flex gap-1">
-                                <!-- Tombol Detail -->
-                                <button type="button" class="btn btn-info btn-sm view-class-btn"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#viewClassModal"
-                                        data-id="{{ $class->class_id }}">
+                                <a href="{{ route('classes.show', $class->class_id) }}" class="btn btn-info btn-sm">
                                     <i class="fas fa-eye me-1"></i>
-                                </button>
+                                </a>
 
                                 <!-- Tombol Edit -->
-                                <button class="btn btn-sm btn-primary"
+                                <button class="btn btn-sm btn-warning"
                                         data-bs-toggle="modal"
                                         data-bs-target="#editClassModal"
                                         data-class-id="{{ $class->class_id }}">
@@ -228,66 +224,6 @@
   </div>
 </div>
 
-<!-- Modal Lihat Kelas -->
-<div class="modal fade" id="viewClassModal" tabindex="-1" aria-labelledby="viewClassModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="viewClassModalLabel">Detail Kelas</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="viewClassLoading" class="text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2">Memuat data...</p>
-                </div>
-                <div id="viewClassContent" style="display: none;">
-                    <div class="mb-3">
-                        <div class="row mb-2">
-                            <div class="col-4 fw-bold">Nama Kelas</div>
-                            <div class="col-8" id="view_class_name">-</div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-4 fw-bold">Wali Kelas</div>
-                            <div class="col-8" id="view_employee_name">-</div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-4 fw-bold">NIP</div>
-                            <div class="col-8" id="view_employee_nip">-</div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <h5 class="border-bottom pb-2">Jumlah Siswa</h5>
-                        <div class="row mb-2">
-                            <div class="col-4 fw-bold">Total Siswa</div>
-                            <div class="col-8" id="view_student_count">- siswa</div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-4 fw-bold">Laki-laki</div>
-                            <div class="col-8" id="view_male_count">- siswa</div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-4 fw-bold">Perempuan</div>
-                            <div class="col-8" id="view_female_count">- siswa</div>
-                        </div>
-                    </div>
-                </div>
-                <div id="viewClassError" class="alert alert-danger" style="display: none;">
-                    Terjadi kesalahan saat memuat data. Silahkan coba lagi.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                <a href="#" class="btn btn-primary" id="view_student_list_btn">
-                    <i class="fas fa-users me-1"></i> Lihat Daftar Siswa
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Modal Edit Kelas -->
 <div class="modal fade" id="editClassModal" tabindex="-1" aria-labelledby="editClassModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -321,32 +257,6 @@
                           <i class="fas fa-save me-1"></i> Simpan Perubahan
                       </button>
                   </div>
-              </form>
-          </div>
-      </div>
-  </div>
-</div>
-
-<!-- Modal Hapus Kelas -->
-<div class="modal fade" id="deleteClassModal" tabindex="-1" aria-labelledby="deleteClassModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-      <div class="modal-content">
-          <div class="modal-header">
-              <h5 class="modal-title" id="deleteClassModalLabel">Konfirmasi Hapus Kelas</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-              <p>Apakah Anda yakin ingin menghapus kelas <strong id="delete_class_name">X IPA 1</strong>?</p>
-              <p class="text-danger"><strong>Perhatian:</strong> Tindakan ini akan menghapus data kelas secara permanen. Pastikan tidak ada siswa yang terdaftar di kelas ini sebelum menghapus.</p>
-          </div>
-          <div class="modal-footer">
-              <form id="deleteClassForm" method="POST">
-                  @csrf
-                  @method('DELETE')
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                  <button type="submit" class="btn btn-danger">
-                      <i class="fas fa-trash me-1"></i> Hapus
-                  </button>
               </form>
           </div>
       </div>
@@ -400,55 +310,6 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   });
 
-  // Fungsi untuk modal lihat kelas
-  const viewClassModal = document.getElementById('viewClassModal');
-  if (viewClassModal) {
-      viewClassModal.addEventListener('show.bs.modal', function(event) {
-          const button = event.relatedTarget;
-          const classId = button.getAttribute('data-id');
-
-          if (!classId) {
-              console.error('ID kelas tidak ditemukan');
-              return;
-          }
-
-          // Tampilkan loading dan sembunyikan konten dan error
-          document.getElementById('viewClassLoading').style.display = 'block';
-          document.getElementById('viewClassContent').style.display = 'none';
-          document.getElementById('viewClassError').style.display = 'none';
-
-          // Ambil data kelas dari server
-          fetch(`/classes/${classId}`)
-              .then(response => {
-                  if (!response.ok) {
-                      throw new Error('Network response was not ok');
-                  }
-                  return response.json();
-              })
-              .then(data => {
-                  // Sembunyikan loading dan tampilkan konten
-                  document.getElementById('viewClassLoading').style.display = 'none';
-                  document.getElementById('viewClassContent').style.display = 'block';
-
-                  // Isi data ke dalam modal
-                  document.getElementById('view_class_name').textContent = data.class_name;
-                  document.getElementById('view_employee_name').textContent = data.employee_name;
-                  document.getElementById('view_employee_nip').textContent = data.employee_nip;
-                  document.getElementById('view_student_count').textContent = data.student_count + ' siswa';
-                  document.getElementById('view_male_count').textContent = data.male_count + ' siswa';
-                  document.getElementById('view_female_count').textContent = data.female_count + ' siswa';
-
-                  // Update link untuk melihat daftar siswa
-                  document.getElementById('view_student_list_btn').href = `/classes/${classId}/students`;
-              })
-              .catch(error => {
-                  console.error('Error fetching class data:', error);
-                  document.getElementById('viewClassLoading').style.display = 'none';
-                  document.getElementById('viewClassError').style.display = 'block';
-              });
-      });
-  }
-
   // Fungsi untuk modal edit kelas
   const editClassModal = document.getElementById('editClassModal');
   if (editClassModal) {
@@ -494,30 +355,29 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Fungsi untuk modal hapus kelas
+  document.querySelectorAll(".delete-class").forEach(button => {
+      button.addEventListener("click", function () {
+          const classId = this.getAttribute("data-class-id");
+          const className = this.getAttribute("data-class-name");
+          const form = document.querySelector(`.delete-class-form[action$='${classId}']`);
 
-        document.querySelectorAll(".delete-class").forEach(button => {
-            button.addEventListener("click", function () {
-                const classId = this.getAttribute("data-class-id");
-                const className = this.getAttribute("data-class-name");
-                const form = document.querySelector(`.delete-class-form[action$='${classId}']`);
-
-                Swal.fire({
-                    title: "Apakah Anda yakin?",
-                    text: `Kelas "${className}" akan dihapus secara permanen!`,
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#d33",
-                    cancelButtonColor: "#3085d6",
-                    confirmButtonText: "Ya, hapus!",
-                    cancelButtonText: "Batal"
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                });
-            });
-        });
-    });
+          Swal.fire({
+              title: "Apakah Anda yakin?",
+              text: `Kelas "${className}" akan dihapus secara permanen!`,
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#d33",
+              cancelButtonColor: "#3085d6",
+              confirmButtonText: "Ya, hapus!",
+              cancelButtonText: "Batal"
+          }).then((result) => {
+              if (result.isConfirmed) {
+                  form.submit();
+              }
+          });
+      });
+  });
+});
 </script>
 </body>
 </html>

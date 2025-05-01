@@ -31,4 +31,8 @@ class Semester extends Model
     {
         return $this->hasMany(Subject::class, 'semester_id');
     }
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'semester_id');
+    }
 }

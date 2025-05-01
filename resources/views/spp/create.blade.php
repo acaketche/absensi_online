@@ -214,19 +214,23 @@
     </div>
 
         <!-- Search Bar -->
-        <div class="search-container">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" placeholder="Cari..." class="form-control">
-        </div>
+        <header class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fs-4 fw-bold mb-0">Tambah SPP</h2>
+            <div class="d-flex align-items-center ms-auto">
+                <input type="text" placeholder="Cari" class="form-control me-2" style="width: 200px;">
+                <a href="{{ url('/payment/create')}}" class="btn btn-primary" >+ Tambah Pembayaran</a>
+            </div>
+        </header>
 
         <!-- Filter Section -->
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">Pilih Kelas</div>
             <div class="card-body">
-                <form action="{{ route('students.index') }}" method="GET">
+                <form method="POST" action="{{url('/payment/create')}}">
                     <div class="row">
                         <!-- Pilih Tahun Ajaran -->
-                        <div class="col-md-4">
+                        @csrf
+                        <div class="col-md-6 p-2">
                             <label>Tahun Ajaran</label>
                             <select id="academicYearSelect" name="academic_year_id" class="form-control">
                                 <option value="">-- Pilih Tahun --</option>
@@ -240,7 +244,7 @@
                         </div>
 
                         <!-- Pilih Semester (Akan diubah otomatis dengan AJAX) -->
-                        <div class="col-md-4">
+                        <div class="col-md-6 p-2">
                             <label>Semester</label>
                             <select id="semesterSelect" name="semester_id" class="form-control">
                                 <option value="">-- Pilih Semester --</option>
@@ -254,7 +258,7 @@
                         </div>
 
                         <!-- Pilih Kelas -->
-                        <div class="col-md-4">
+                        <div class="col-md-6 p-2">
                             <label>Kelas</label>
                             <select name="class_id" class="form-control">
                                 <option value="">-- Pilih Kelas --</option>
@@ -266,101 +270,27 @@
                                 @endforeach
                             </select>
                         </div>
+
+                        <div class="col-md-6 p-2">
+                            <label>Nominal SPP</label>
+                            <input type="number" class="form-control" name="nominal">
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary mt-3">Tampilkan</button>
-                    <a href="{{ route('students.index') }}" class="btn btn-secondary mt-3">Reset</a>
+                    <button type="submit" id="simpan" name="simpan" class="btn btn-primary mt-3">Simpan</button>
+                    <a href="{{ route('payment.listdata') }}" class="btn btn-secondary mt-3">Kembali</a>
                 </form>
             </div>
         </div>
 
         <!-- Data Section -->
-        <div class="card">
-            <div class="card-header">Data Kelas</div>
-            <div class="card-body">
-                <!-- Class Info -->
-                <div class="info-row">
-                    <div class="info-label">Tahun Ajaran</div>
-                    <div class="info-value">: 2023/2024</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">Semester</div>
-                    <div class="info-value">: Ganjil</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">Kelas</div>
-                    <div class="info-value">: 10 IPA</div>
-                </div>
-
-                <!-- Student Table -->
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr class="text-center">
-                                <th style="width: 5%">No</th>
-                                <th style="width: 30%">Nama Siswa</th>
-                                <th style="width: 25%">NIS</th>
-                                <th style="width: 20%">Kelas</th>
-                                <th style="width: 20%">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="text-center">1</td>
-                                <td>Putri Adellia</td>
-                                <td class="text-center">211013012</td>
-                                <td class="text-center">10 MIPA</td>
-                                <td class="text-center">
-                                    <a href="update-payment-status.html" class="action-btn">Lihat SPP</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="text-center">2</td>
-                                <td>Ahmad Rizky</td>
-                                <td class="text-center">211013013</td>
-                                <td class="text-center">10 MIPA</td>
-                                <td class="text-center">
-                                    <a href="update-payment-status.html" class="action-btn">Lihat SPP</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="text-center">3</td>
-                                <td>Budi Santoso</td>
-                                <td class="text-center">211013014</td>
-                                <td class="text-center">10 MIPA</td>
-                                <td class="text-center">
-                                    <a href="update-payment-status.html" class="action-btn">Lihat SPP</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="text-center">4</td>
-                                <td>Citra Dewi</td>
-                                <td class="text-center">211013015</td>
-                                <td class="text-center">10 MIPA</td>
-                                <td class="text-center">
-                                    <a href="update-payment-status.html" class="action-btn">Lihat SPP</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="text-center">5</td>
-                                <td>Dian Purnama</td>
-                                <td class="text-center">211013016</td>
-                                <td class="text-center">10 MIPA</td>
-                                <td class="text-center">
-                                    <a href="update-payment-status.html" class="action-btn">Lihat SPP</a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Handle filter form submission
-            const filterButton = document.querySelector('.btn-primary');
+            const filterButton = document.querySelector('#tampilkan');
             filterButton.addEventListener('click', function() {
                 // In a real application, this would submit the form or fetch filtered data
                 // For this example, we'll just show an alert

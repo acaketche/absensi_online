@@ -32,16 +32,40 @@ Route::resource('holidays', HolidaysController::class);
 Route::resource('employees', EmployeesController::class);
 Route::resource('student-attendance', StudentAttendanceController::class);
 Route::resource('Rapor', RaporController::class);
-Route::resource('payment', PaymentController::class);
+Route::get('/payment/listdata', [PaymentController::class, 'listData'])->name('payment.listdata');
+Route::get('/payment/create', [PaymentController::class, 'create'])->name('payment.create');
+Route::post('/payment/create', [PaymentController::class, 'create'])->name('payment.store');
+Route::get('/payment/kelola/{id}', [PaymentController::class, 'kelola'])->name('payment.kelola');
+Route::post('/payment/bayar', [PaymentController::class, 'bayar'])->name('payment.bayar');
+Route::post('/payment/batalbayar', [PaymentController::class, 'batalbayar'])->name('payment.batalbayar');
+Route::put('/payment/update/{id}', [PaymentController::class, 'update'])->name('payment.update');
+Route::delete('/payment/destroy/{id}', [PaymentController::class, 'destroy'])->name('payment.destroy');
 
 // Mengubah status tahun ajaran & semester
 Route::post('/academic-year/toggle-status/{id}', [StatusController::class, 'toggleAcademicYearStatus']);
 Route::post('/semester/toggle-status/{id}', [StatusController::class, 'toggleSemesterStatus']);
 
-// Authentication routes
-//Route::get('/login', [AuthController::class, 'login'])->name('login');
-//Route::post('/login', [AuthController::class, 'authenticate']);
-//Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+use App\Http\Controllers\BookController;
+use App\Http\Controllers\BookLoanController;
+
+Route::resource('books', BookController::class);
+Route::resource('book-loans', BookLoanController::class);
+Route::get('/books/kelas-siswa', [BookLoanController::class, 'kelasSiswa'])->name('book-loans.kelas-siswa');
+
+Route::get('/api/class/{id}/students', function ($id) {
+    $class = \App\Models\Kelas::findOrFail($id);
+    $students = \App\Models\Student::where('class_id', $id)->get();
+    return response()->json([
+        'class_name' => $class->name,
+        'students' => $students
+    ]);
+});
+
+Route::get('/api/student/{id}/loans', function ($id) {
+    $loans = \App\Models\BookLoan::with('book')->where('id_student', $id)->get();
+    return response()->json($loans);
+});
+
 
     Route::resource('users', UserController::class);
     Route::get('/dashboard/admin', [DashboardController::class, 'admin'])->name('dashboard.admin');

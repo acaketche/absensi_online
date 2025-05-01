@@ -11,18 +11,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-
-        .container {
-            display: flex;
-            min-height: 100vh;
-        }
-
         /* Main Content Styles */
         .main-content {
             flex: 1;
@@ -35,25 +23,6 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
-        }
-
-        .search-bar {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .search-bar input {
-            padding: 10px 35px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            width: 300px;
-        }
-
-        .search-bar i {
-            position: absolute;
-            left: 10px;
-            color: #666;
         }
 
         .btn-primary, .bg-primary {
@@ -150,7 +119,6 @@
         <header class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fs-4 fw-bold">Data Tahun Ajaran & Semester</h2>
             <div class="d-flex align-items-center">
-                <input type="text" placeholder="Cari" class="form-control me-3" style="width: 200px;" id="searchInput">
                 <div class="dropdown">
                     <button class="btn btn-primary dropdown-toggle" type="button" id="addDataDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         + Tambah Data
@@ -216,7 +184,7 @@
                                 </button>
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editYearModal{{ $tahun->id }}">
+                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editYearModal{{ $tahun->id }}">
                                     <i class="fas fa-edit"></i>
                                 </button>
 

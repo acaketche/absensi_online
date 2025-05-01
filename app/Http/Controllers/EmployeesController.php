@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Employee;
+use App\Models\Position;
+use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
@@ -12,15 +14,30 @@ class EmployeesController extends Controller
     // Menampilkan daftar employee
     public function index()
     {
-        $employees = Employee::all();
-        return view('employee.index', compact('employees'));
+    $roles = Role::all();
+    $positions = Position::all(); // kalau ada posisi juga
+    $employees = Employee::all(); // misal untuk list pegawai
+    return view('employee.index', compact('roles', 'positions', 'employees'));
     }
 
-    // Menampilkan form tambah employee
+    // Menampilkan form tambah employee dengan daftar posisi
     public function create()
     {
-        return view('employees.create');
+        $roles = Role::all();
+        $positions = Position::all(); // Ambil semua posisi dari database
+        return view('employee.create', compact('positions','roles')); // Kirim data posisi ke view
     }
+
+    public function show($id)
+{
+    $employee = Employee::with(['role', 'position'])->where('id_employee', $id)->first();
+
+    if (!$employee) {
+        return response()->json(['error' => 'Pegawai tidak ditemukan'], 404);
+    }
+
+    return response()->json($employee);
+}
 
     // Menyimpan data employee baru
     public function store(Request $request)
@@ -33,7 +50,8 @@ class EmployeesController extends Controller
             'gender' => 'required|in:L,P',
             'phone_number' => 'required|string|max:20',
             'email' => 'required|email|unique:employees,email',
-            'role_id' => 'required|integer',
+            'role_id' => 'nullable|integer',
+            'position_id' => 'nullable|integer',
             'password' => 'required|min:6',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'qr_code' => 'nullable|image|mimes:png|max:1024'
@@ -51,6 +69,7 @@ class EmployeesController extends Controller
             'phone_number' => $request->phone_number,
             'email' => $request->email,
             'role_id' => $request->role_id,
+            'position_id' => $request->position_id, // Simpan position_id
             'password' => Hash::make($request->password),
             'photo' => $photoPath,
             'qr_code' => $qrPath
@@ -59,11 +78,13 @@ class EmployeesController extends Controller
         return redirect()->route('employees.index')->with('success', 'Employee added successfully');
     }
 
-    // Menampilkan form edit employee
+    // Menampilkan form edit employee dengan posisi yang sudah terpilih
     public function edit($id)
     {
+        $roles = Role::all();
         $employee = Employee::findOrFail($id);
-        return view('employees.edit', compact('employee'));
+        $positions = Position::all(); // Ambil semua posisi dari database
+        return view('employee.edit', compact('employee', 'positions','roles')); // Kirim data posisi ke view
     }
 
     // Mengupdate data employee
@@ -78,13 +99,14 @@ class EmployeesController extends Controller
             'gender' => 'required|in:L,P',
             'phone_number' => 'required|string|max:20',
             'email' => 'required|email|unique:employees,email,' . $id . ',id_employee',
-            'role_id' => 'required|integer',
+            'role_id' => 'nullable|integer',
+            'position_id' => 'nullable|integer', // Validasi untuk position_id
             'password' => 'nullable|min:6',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'qr_code' => 'nullable|image|mimes:png|max:1024'
         ]);
 
-        $data = $request->only(['fullname', 'birth_place', 'birth_date', 'gender', 'phone_number', 'email', 'role_id']);
+        $data = $request->only(['fullname', 'birth_place', 'birth_date', 'gender', 'phone_number', 'email', 'role_id', 'position_id']); // Tambahkan position_id
 
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);

@@ -10,7 +10,7 @@ class StudentLoginController extends Controller
 {
     public function showLoginForm()
     {
-        return view('auth.student-login');
+        return view('auth.loginsiswa');
     }
 
     public function login(Request $request)

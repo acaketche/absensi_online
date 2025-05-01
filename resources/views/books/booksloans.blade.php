@@ -1,1532 +1,1099 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peminjaman Buku Paket</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peminjaman Buku</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="{{ asset('css/styles.css') }}" rel="stylesheet">
+<style>
+    /* Main Content Styles */
+    .main-content {
+        flex: 1;
+        padding: 20px;
+        background: #f5f5f5;
+    }
 
-        .container {
-            display: flex;
-            min-height: 100vh;
-        }
+    .btn-primary, .bg-primary {
+        background-color: #4266B9 !important;
+        border-color: #4266B9 !important;
+    }
 
-        /* Sidebar Styles */
+    .btn-primary:hover {
+        background-color: #365796 !important;
+        border-color: #365796 !important;
+    }
+
+    .text-primary {
+        color: #4266B9 !important;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-borrowed {
+        background-color: #FEF3C7;
+        color: #D97706;
+    }
+
+    .status-returned {
+        background-color: #D1FAE5;
+        color: #059669;
+    }
+
+    .status-overdue {
+        background-color: #FEE2E2;
+        color: #DC2626;
+    }
+
+    .card {
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border: none;
+        margin-bottom: 20px;
+    }
+
+    .card-header {
+        background-color: #4266B9;
+        color: white;
+        font-weight: bold;
+        padding: 12px 20px;
+        border-radius: 10px 10px 0 0 !important;
+    }
+
+    .action-btn {
+        background-color: #4266B9;
+        color: white;
+        border: none;
+        padding: 5px 15px;
+        border-radius: 5px;
+        font-size: 14px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .action-btn:hover {
+        background-color: #365796;
+        color: white;
+        text-decoration: none;
+    }
+
+    .info-row {
+        display: flex;
+        margin-bottom: 10px;
+    }
+
+    .info-label {
+        width: 150px;
+        font-weight: 500;
+    }
+
+    .info-value {
+        flex: 1;
+    }
+
+    .modal-header {
+        background-color: #4266B9;
+        color: white;
+    }
+
+    .modal-header .btn-close {
+        color: white;
+        filter: brightness(0) invert(1);
+    }
+
+    @media (max-width: 768px) {
         .sidebar {
-            width: 250px;
-            background-color: #4266B9;
-            color: white;
-            padding: 20px;
+            width: 70px;
+            padding: 20px 10px;
         }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 30px;
+        .logo-text, .nav-text {
+            display: none;
         }
 
-        .logo-icon {
-            background: #ff6b35;
-            width: 35px;
-            height: 35px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            font-weight: bold;
+        .main-content {
+            padding: 15px;
         }
-
-        .logo-text {
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            margin-bottom: 5px;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            color: white;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-item.active {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Admin Profile Styles */
-        .admin-profile {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            padding: 8px 12px;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-        }
-
-        .admin-profile:hover {
-            background-color: #f0f0f0;
-        }
-
-        .admin-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: #E6E1F9;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .admin-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .admin-name {
-            font-weight: 600;
-            font-size: 14px;
-            margin: 0;
-        }
-
-        .admin-role {
-            font-size: 12px;
-            color: #666;
-            margin: 0;
-        }
-
-        .btn-primary, .bg-primary {
-            background-color: #4266B9 !important;
-            border-color: #4266B9 !important;
-        }
-
-        .btn-primary:hover {
-            background-color: #365796 !important;
-            border-color: #365796 !important;
-        }
-
-        .text-primary {
-            color: #4266B9 !important;
-        }
-
-        .dropdown-menu {
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border: 1px solid #eee;
-        }
-
-        .dropdown-item {
-            padding: 8px 16px;
-            font-size: 14px;
-        }
-
-        .dropdown-item i {
-            margin-right: 8px;
-            width: 16px;
-            text-align: center;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .status-dipinjam {
-            background-color: #FEF3C7;
-            color: #D97706;
-        }
-
-        .status-dikembalikan {
-            background-color: #D1FAE5;
-            color: #059669;
-        }
-
-        .status-terlambat {
-            background-color: #FEE2E2;
-            color: #DC2626;
-        }
-
-        .pdf-icon {
-            color: #DC2626;
-            font-size: 18px;
-        }
-
-        .book-cover {
-            width: 60px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 70px;
-                padding: 20px 10px;
-            }
-
-            .logo-text, .nav-text {
-                display: none;
-            }
-
-            .main-content {
-                padding: 20px;
-            }
-        }
-    </style>
+    }
+</style>
 </head>
-<body class="bg-light">
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo">
-                <div class="logo-icon">E</div>
-                <div class="logo-text">SCHOOL</div>
+<body>
+<div class="container">
+<!-- Sidebar -->
+@include('components.sidebar')
+<!-- Main Content -->
+<main class="flex-grow-1 p-4">
+    <!-- Header dengan Profil Admin -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fs-4 fw-bold mb-0"></h2>
+    <div class="dropdown">
+        <div class="admin-profile d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
+            <div class="d-flex flex-column text-end me-2">
+                <span class="admin-name">{{ Auth::guard('employee')->user()->fullname }}</span>
+                <small class="admin-role text-muted">
+                    {{ Auth::guard('employee')->user()->role->role_name ?? 'Tidak ada role' }}
+                </small>
             </div>
-            <nav>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-home me-2"></i>
-                    <span class="nav-text">Dashboard</span>
-                </a>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-users me-2"></i>
-                    <span class="nav-text">Data User</span>
-                </a>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-user-graduate me-2"></i>
-                    <span class="nav-text">Data Siswa</span>
-                </a>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-chalkboard-teacher me-2"></i>
-                    <span class="nav-text">Data Pegawai</span>
-                </a>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-calendar-check me-2"></i>
-                    <span class="nav-text">Absensi</span>
-                </a>
-                <div class="ms-3">
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-user-check me-2"></i>
-                        <span class="nav-text">Absensi Siswa</span>
-                    </a>
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-user-tie me-2"></i>
-                        <span class="nav-text">Absensi Pegawai</span>
-                    </a>
-                </div>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-database me-2"></i>
-                    <span class="nav-text">Master Data</span>
-                </a>
-                <div class="ms-3">
-                    <a href="" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-calendar-alt me-2"></i>
-                        <span class="nav-text">Tahun Ajaran</span>
-                    </a>
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-school me-2"></i>
-                        <span class="nav-text">Kelas</span>
-                    </a>
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-book me-2"></i>
-                        <span class="nav-text">Mata Pelajaran</span>
-                    </a>
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-calendar-day me-2"></i>
-                        <span class="nav-text">Hari Libur</span>
-                    </a>
-                </div>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-money-bill-wave me-2"></i>
-                    <span class="nav-text">Data SPP</span>
-                </a>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-book-reader me-2"></i>
-                    <span class="nav-text">Data Buku Paket</span>
-                </a>
-                <div class="ms-3">
-                    <a href="#" class="nav-item active text-white d-block mb-2">
-                        <i class="fas fa-book-open me-2"></i>
-                        <span class="nav-text">Peminjaman Buku Paket</span>
-                    </a>
-                </div>
-            </nav>
+            <div class="admin-avatar">
+                <img src="{{ Auth::guard('employee')->user()->photo ? asset('storage/' . Auth::guard('employee')->user()->photo) : 'https://via.placeholder.com/150' }}"
+                     alt="Admin Profile" class="w-100 h-100 object-fit-cover">
+            </div>
+            <i class="fas fa-chevron-down ms-2 text-muted"></i>
         </div>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fas fa-key"></i> Ubah Password</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form id="logout-form" action="{{ route('logout.employee') }}" method="POST" style="display: none;">
+                    @csrf
+                </form>
+                <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
 
-       <!-- Main Content -->
-        <main class="flex-grow-1 p-4">
-            <!-- Admin Profile Header -->
-            <div class="d-flex justify-content-end mb-4">
-                <div class="dropdown">
-                    <div class="admin-profile d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="d-flex flex-column text-end me-2">
-                            <span class="admin-name">Nama Admin</span>
-                            <small class="admin-role text-muted">Admin</small>
-                        </div>
-                        <div class="admin-avatar">
-                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/password-field-W2aCv47MBKPq1Z3HGzL9qVgMlruksc.tsx" alt="Admin Profile" class="w-100 h-100 object-fit-cover">
-                        </div>
-                        <i class="fas fa-chevron-down ms-2 text-muted"></i>
+    <header class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fs-4 fw-bold">Data Peminjaman Buku</h2>
+        <div class="d-flex gap-2">
+            <a href="{{ route('books.index') }}" class="btn btn-outline-primary me-2">
+                <i class="fas fa-book me-2"></i> Data Buku
+            </a>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLoanModal">
+                <i class="fas fa-plus-circle me-2"></i> Tambah Peminjaman
+            </button>
+        </div>
+    </header>
+
+    <!-- Alert for success message -->
+    <div class="alert alert-success alert-dismissible fade show d-none" role="alert" id="successAlert">
+        <span id="successMessage"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container mb-4">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" placeholder="Cari nama siswa atau judul buku..." class="form-control" id="searchInput">
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-filter me-2"></i> Filter Data
+        </div>
+        <div class="card-body p-4">
+            <form id="filterForm">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Status Peminjaman</label>
+                        <select class="form-select" id="filterStatus">
+                            <option value="">-- Semua Status --</option>
+                            <option value="borrowed">Dipinjam</option>
+                            <option value="returned">Dikembalikan</option>
+                            <option value="overdue">Terlambat</option>
+                        </select>
                     </div>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal"><i class="fas fa-user-edit"></i> Edit Profil</a></li>
-                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fas fa-key"></i> Ubah Password</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <header class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fs-4 fw-bold">Peminjaman Buku Paket</h2>
-                <div class="d-flex align-items-center">
-                    <input type="text" placeholder="Cari" class="form-control me-3" style="width: 200px;">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBorrowingModal">+ Tambah Peminjaman</button>
-                </div>
-            </header>
-
-            <!-- Filter Peminjaman -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">Filter Peminjaman</div>
-                <div class="card-body">
-                    <form action="" method="GET">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <label>Kelas</label>
-                                <select name="class" class="form-control">
-                                    <option value="">-- Semua Kelas --</option>
-                                    <option value="1A">Kelas 1A</option>
-                                    <option value="1B">Kelas 1B</option>
-                                    <option value="2A">Kelas 2A</option>
-                                    <option value="2B">Kelas 2B</option>
-                                    <option value="3A">Kelas 3A</option>
-                                    <option value="3B">Kelas 3B</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label>Status</label>
-                                <select name="status" class="form-control">
-                                    <option value="">-- Semua Status --</option>
-                                    <option value="dipinjam">Dipinjam</option>
-                                    <option value="dikembalikan">Dikembalikan</option>
-                                    <option value="terlambat">Terlambat</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label>Tanggal Mulai</label>
-                                <input type="date" name="start_date" class="form-control">
-                            </div>
-                            <div class="col-md-3">
-                                <label>Tanggal Akhir</label>
-                                <input type="date" name="end_date" class="form-control">
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <button type="submit" class="btn btn-primary">Tampilkan</button>
-                            <button type="button" class="btn btn-success ms-2" onclick="exportToPDF()">
-                                <i class="fas fa-file-pdf me-2"></i>Export PDF
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Data Peminjaman Buku -->
-            <div class="card">
-                <div class="card-header bg-primary text-white">Data Peminjaman Buku</div>
-                <div class="card-body">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>NO</th>
-                                <th>NIS</th>
-                                <th>Nama Siswa</th>
-                                <th>Kelas</th>
-                                <th>Buku</th>
-                                <th>Tanggal Pinjam</th>
-                                <th>Tanggal Kembali</th>
-                                <th>Status</th>
-                                <th>Bukti</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>S001</td>
-                                <td>Ahmad Rizky</td>
-                                <td>Kelas 1A</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <img src="/placeholder.svg?height=80&width=60" alt="Sampul Buku" class="book-cover me-2">
-                                        <div>
-                                            <p class="mb-0 fw-bold">Matematika Dasar</p>
-                                            <small class="text-muted">MTK-01</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>15-03-2025</td>
-                                <td>22-03-2025</td>
-                                <td><span class="status-badge status-dipinjam">Dipinjam</span></td>
-                                <td>
-                                    <a href="#" class="pdf-icon" data-bs-toggle="modal" data-bs-target="#viewPdfModal" data-pdf-title="Bukti Peminjaman - Ahmad Rizky">
-                                        <i class="fas fa-file-pdf"></i>
-                                    </a>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editBorrowingModal" data-id="1">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#returnBookModal" data-id="1" data-name="Ahmad Rizky" data-book="Matematika Dasar">
-                                        <i class="fas fa-undo"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBorrowingModal" data-id="1" data-name="Ahmad Rizky">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>S002</td>
-                                <td>Budi Santoso</td>
-                                <td>Kelas 1A</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <img src="/placeholder.svg?height=80&width=60" alt="Sampul Buku" class="book-cover me-2">
-                                        <div>
-                                            <p class="mb-0 fw-bold">Bahasa Indonesia</p>
-                                            <small class="text-muted">BIN-01</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>10-03-2025</td>
-                                <td>17-03-2025</td>
-                                <td><span class="status-badge status-terlambat">Terlambat</span></td>
-                                <td>
-                                    <a href="#" class="pdf-icon" data-bs-toggle="modal" data-bs-target="#viewPdfModal" data-pdf-title="Bukti Peminjaman - Budi Santoso">
-                                        <i class="fas fa-file-pdf"></i>
-                                    </a>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editBorrowingModal" data-id="2">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#returnBookModal" data-id="2" data-name="Budi Santoso" data-book="Bahasa Indonesia">
-                                        <i class="fas fa-undo"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBorrowingModal" data-id="2" data-name="Budi Santoso">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>S003</td>
-                                <td>Citra Dewi</td>
-                                <td>Kelas 1B</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <img src="/placeholder.svg?height=80&width=60" alt="Sampul Buku" class="book-cover me-2">
-                                        <div>
-                                            <p class="mb-0 fw-bold">Ilmu Pengetahuan Alam</p>
-                                            <small class="text-muted">IPA-01</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>05-03-2025</td>
-                                <td>12-03-2025</td>
-                                <td><span class="status-badge status-dikembalikan">Dikembalikan</span></td>
-                                <td>
-                                    <a href="#" class="pdf-icon" data-bs-toggle="modal" data-bs-target="#viewPdfModal" data-pdf-title="Bukti Peminjaman - Citra Dewi">
-                                        <i class="fas fa-file-pdf"></i>
-                                    </a>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editBorrowingModal" data-id="3">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#returnDetailModal" data-id="3" data-name="Citra Dewi" data-book="Ilmu Pengetahuan Alam">
-                                        <i class="fas fa-info-circle"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBorrowingModal" data-id="3" data-name="Citra Dewi">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>4</td>
-                                <td>S004</td>
-                                <td>Dian Purnama</td>
-                                <td>Kelas 1B</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <img src="/placeholder.svg?height=80&width=60" alt="Sampul Buku" class="book-cover me-2">
-                                        <div>
-                                            <p class="mb-0 fw-bold">Ilmu Pengetahuan Sosial</p>
-                                            <small class="text-muted">IPS-01</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>08-03-2025</td>
-                                <td>15-03-2025</td>
-                                <td><span class="status-badge status-dipinjam">Dipinjam</span></td>
-                                <td>
-                                    <a href="#" class="pdf-icon" data-bs-toggle="modal" data-bs-target="#viewPdfModal" data-pdf-title="Bukti Peminjaman - Dian Purnama">
-                                        <i class="fas fa-file-pdf"></i>
-                                    </a>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editBorrowingModal" data-id="4">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#returnBookModal" data-id="4" data-name="Dian Purnama" data-book="Ilmu Pengetahuan Sosial">
-                                        <i class="fas fa-undo"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBorrowingModal" data-id="4" data-name="Dian Purnama">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>5</td>
-                                <td>S005</td>
-                                <td>Eko Prasetyo</td>
-                                <td>Kelas 2A</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <img src="/placeholder.svg?height=80&width=60" alt="Sampul Buku" class="book-cover me-2">
-                                        <div>
-                                            <p class="mb-0 fw-bold">English for Beginners</p>
-                                            <small class="text-muted">BIG-01</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>01-03-2025</td>
-                                <td>08-03-2025</td>
-                                <td><span class="status-badge status-dikembalikan">Dikembalikan</span></td>
-                                <td>
-                                    <a href="#" class="pdf-icon" data-bs-toggle="modal" data-bs-target="#viewPdfModal" data-pdf-title="Bukti Peminjaman - Eko Prasetyo">
-                                        <i class="fas fa-file-pdf"></i>
-                                    </a>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editBorrowingModal" data-id="5">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#returnDetailModal" data-id="5" data-name="Eko Prasetyo" data-book="English for Beginners">
-                                        <i class="fas fa-info-circle"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBorrowingModal" data-id="5" data-name="Eko Prasetyo">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Modal Tambah Peminjaman -->
-    <div class="modal fade" id="addBorrowingModal" tabindex="-1" aria-labelledby="addBorrowingModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addBorrowingModalLabel">Tambah Peminjaman Buku</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addBorrowingForm" action="" method="POST" enctype="multipart/form-data">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="student_id" class="form-label">Siswa</label>
-                                    <select class="form-control" id="student_id" name="student_id" required>
-                                        <option value="">-- Pilih Siswa --</option>
-                                        <option value="S001">S001 - Ahmad Rizky (Kelas 1A)</option>
-                                        <option value="S002">S002 - Budi Santoso (Kelas 1A)</option>
-                                        <option value="S003">S003 - Citra Dewi (Kelas 1B)</option>
-                                        <option value="S004">S004 - Dian Purnama (Kelas 1B)</option>
-                                        <option value="S005">S005 - Eko Prasetyo (Kelas 2A)</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="book_id" class="form-label">Buku</label>
-                                    <select class="form-control" id="book_id" name="book_id" required>
-                                        <option value="">-- Pilih Buku --</option>
-                                        <option value="MTK-01">MTK-01 - Matematika Dasar (Kelas 1)</option>
-                                        <option value="BIN-01">BIN-01 - Bahasa Indonesia (Kelas 1)</option>
-                                        <option value="IPA-01">IPA-01 - Ilmu Pengetahuan Alam (Kelas 2)</option>
-                                        <option value="IPS-01">IPS-01 - Ilmu Pengetahuan Sosial (Kelas 2)</option>
-                                        <option value="BIG-01">BIG-01 - English for Beginners (Kelas 3)</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="borrow_date" class="form-label">Tanggal Pinjam</label>
-                                    <input type="date" class="form-control" id="borrow_date" name="borrow_date" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="return_date" class="form-label">Tanggal Kembali</label>
-                                    <input type="date" class="form-control" id="return_date" name="return_date" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="status" class="form-label">Status</label>
-                                    <select class="form-control" id="status" name="status" required>
-                                        <option value="dipinjam">Dipinjam</option>
-                                        <option value="dikembalikan">Dikembalikan</option>
-                                        <option value="terlambat">Terlambat</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="proof_document" class="form-label">Bukti Peminjaman (PDF)</label>
-                                    <input type="file" class="form-control" id="proof_document" name="proof_document" accept="application/pdf" require
-```I'll create all the requested pages with PDF functionality for CRUD operations. Let's start with each page:
-
-## 1. Data SPP (School Fee Data)
-
-```html project="School System" file="data-spp.html" type="html"
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data SPP</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-
-        .container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar Styles */
-        .sidebar {
-            width: 250px;
-            background-color: #4266B9;
-            color: white;
-            padding: 20px;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 30px;
-        }
-
-        .logo-icon {
-            background: #ff6b35;
-            width: 35px;
-            height: 35px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            font-weight: bold;
-        }
-
-        .logo-text {
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            margin-bottom: 5px;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            color: white;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-item.active {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Admin Profile Styles */
-        .admin-profile {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            padding: 8px 12px;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-        }
-
-        .admin-profile:hover {
-            background-color: #f0f0f0;
-        }
-
-        .admin-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: #E6E1F9;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .admin-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .admin-name {
-            font-weight: 600;
-            font-size: 14px;
-            margin: 0;
-        }
-
-        .admin-role {
-            font-size: 12px;
-            color: #666;
-            margin: 0;
-        }
-
-        .btn-primary, .bg-primary {
-            background-color: #4266B9 !important;
-            border-color: #4266B9 !important;
-        }
-
-        .btn-primary:hover {
-            background-color: #365796 !important;
-            border-color: #365796 !important;
-        }
-
-        .text-primary {
-            color: #4266B9 !important;
-        }
-
-        .dropdown-menu {
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border: 1px solid #eee;
-        }
-
-        .dropdown-item {
-            padding: 8px 16px;
-            font-size: 14px;
-        }
-
-        .dropdown-item i {
-            margin-right: 8px;
-            width: 16px;
-            text-align: center;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .status-lunas {
-            background-color: #D1FAE5;
-            color: #059669;
-        }
-
-        .status-belum {
-            background-color: #FEE2E2;
-            color: #DC2626;
-        }
-
-        .status-sebagian {
-            background-color: #FEF3C7;
-            color: #D97706;
-        }
-
-        .pdf-icon {
-            color: #DC2626;
-            font-size: 18px;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 70px;
-                padding: 20px 10px;
-            }
-
-            .logo-text, .nav-text {
-                display: none;
-            }
-
-            .main-content {
-                padding: 20px;
-            }
-        }
-    </style>
-</head>
-<body class="bg-light">
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo">
-                <div class="logo-icon">E</div>
-                <div class="logo-text">SCHOOL</div>
-            </div>
-            <nav>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-home me-2"></i>
-                    <span class="nav-text">Dashboard</span>
-                </a>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-users me-2"></i>
-                    <span class="nav-text">Data User</span>
-                </a>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-user-graduate me-2"></i>
-                    <span class="nav-text">Data Siswa</span>
-                </a>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-chalkboard-teacher me-2"></i>
-                    <span class="nav-text">Data Pegawai</span>
-                </a>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-calendar-check me-2"></i>
-                    <span class="nav-text">Absensi</span>
-                </a>
-                <div class="ms-3">
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-user-check me-2"></i>
-                        <span class="nav-text">Absensi Siswa</span>
-                    </a>
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-user-tie me-2"></i>
-                        <span class="nav-text">Absensi Pegawai</span>
-                    </a>
-                </div>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-database me-2"></i>
-                    <span class="nav-text">Master Data</span>
-                </a>
-                <div class="ms-3">
-                    <a href="" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-calendar-alt me-2"></i>
-                        <span class="nav-text">Tahun Ajaran</span>
-                    </a>
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-school me-2"></i>
-                        <span class="nav-text">Kelas</span>
-                    </a>
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-book me-2"></i>
-                        <span class="nav-text">Mata Pelajaran</span>
-                    </a>
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-calendar-day me-2"></i>
-                        <span class="nav-text">Hari Libur</span>
-                    </a>
-                </div>
-                <a href="#" class="nav-item active text-white d-block mb-2">
-                    <i class="fas fa-money-bill-wave me-2"></i>
-                    <span class="nav-text">Data SPP</span>
-                </a>
-                <a href="#" class="nav-item text-white d-block mb-2">
-                    <i class="fas fa-book-reader me-2"></i>
-                    <span class="nav-text">Data Buku Paket</span>
-                </a>
-                <div class="ms-3">
-                    <a href="#" class="nav-item text-white d-block mb-2">
-                        <i class="fas fa-book-open me-2"></i>
-                        <span class="nav-text">Peminjaman Buku Paket</span>
-                    </a>
-                </div>
-            </nav>
-        </div>
-
-       <!-- Main Content -->
-        <main class="flex-grow-1 p-4">
-            <!-- Admin Profile Header -->
-            <div class="d-flex justify-content-end mb-4">
-                <div class="dropdown">
-                    <div class="admin-profile d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="d-flex flex-column text-end me-2">
-                            <span class="admin-name">Nama Admin</span>
-                            <small class="admin-role text-muted">Admin</small>
-                        </div>
-                        <div class="admin-avatar">
-                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/password-field-W2aCv47MBKPq1Z3HGzL9qVgMlruksc.tsx" alt="Admin Profile" class="w-100 h-100 object-fit-cover">
-                        </div>
-                        <i class="fas fa-chevron-down ms-2 text-muted"></i>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Tahun Ajaran</label>
+                        <select class="form-select" id="filterAcademicYear">
+                            <option value="">-- Semua Tahun Ajaran --</option>
+                            <option value="1">2023/2024</option>
+                            <option value="2">2022/2023</option>
+                            <option value="3">2021/2022</option>
+                        </select>
                     </div>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal"><i class="fas fa-user-edit"></i> Edit Profil</a></li>
-                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fas fa-key"></i> Ubah Password</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <header class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fs-4 fw-bold">Data SPP</h2>
-                <div class="d-flex align-items-center">
-                    <input type="text" placeholder="Cari" class="form-control me-3" style="width: 200px;">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSppModal">+ Tambah Data SPP</button>
-                </div>
-            </header>
-
-            <!-- Pilih Tahun Ajaran dan Kelas -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">Filter Data SPP</div>
-                <div class="card-body">
-                    <form action="" method="GET">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <label>Tahun Ajaran</label>
-                                <select name="academic_year" class="form-control">
-                                    <option value="">-- Pilih Tahun --</option>
-                                    <option value="2024-2025">2024-2025</option>
-                                    <option value="2023-2024">2023-2024</option>
-                                    <option value="2022-2023">2022-2023</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label>Kelas</label>
-                                <select name="class_id" class="form-control">
-                                    <option value="">-- Pilih Kelas --</option>
-                                    <option value="1">Kelas 1A</option>
-                                    <option value="2">Kelas 1B</option>
-                                    <option value="3">Kelas 2A</option>
-                                    <option value="4">Kelas 2B</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label>Status Pembayaran</label>
-                                <select name="payment_status" class="form-control">
-                                    <option value="">-- Semua Status --</option>
-                                    <option value="lunas">Lunas</option>
-                                    <option value="belum">Belum Lunas</option>
-                                    <option value="sebagian">Sebagian</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary mt-3">Tampilkan</button>
-                        <button type="button" class="btn btn-success mt-3 ms-2" onclick="exportToPDF()">
-                            <i class="fas fa-file-pdf me-2"></i>Export PDF
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Data SPP -->
-            <div class="card">
-                <div class="card-header bg-primary text-white">Data SPP</div>
-                <div class="card-body">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>NO</th>
-                                <th>NIS</th>
-                                <th>Nama Siswa</th>
-                                <th>Kelas</th>
-                                <th>Tahun Ajaran</th>
-                                <th>Nominal SPP</th>
-                                <th>Status</th>
-                                <th>Bukti Pembayaran</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>S001</td>
-                                <td>Ahmad Rizky</td>
-                                <td>Kelas 1A</td>
-                                <td>2024-2025</td>
-                                <td>Rp 500.000</td>
-                                <td><span class="status-badge status-lunas">Lunas</span></td>
-                                <td>
-                                    <a href="#" class="pdf-icon" data-bs-toggle="modal" data-bs-target="#viewPdfModal" data-pdf-title="Bukti Pembayaran - Ahmad Rizky">
-                                        <i class="fas fa-file-pdf"></i>
-                                    </a>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editSppModal" data-id="1">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal" data-id="1" data-name="Ahmad Rizky">
-                                        <i class="fas fa-money-bill"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteSppModal" data-id="1" data-name="Ahmad Rizky">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>S002</td>
-                                <td>Budi Santoso</td>
-                                <td>Kelas 1A</td>
-                                <td>2024-2025</td>
-                                <td>Rp 500.000</td>
-                                <td><span class="status-badge status-belum">Belum Lunas</span></td>
-                                <td>
-                                    <span class="text-muted">-</span>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editSppModal" data-id="2">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal" data-id="2" data-name="Budi Santoso">
-                                        <i class="fas fa-money-bill"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteSppModal" data-id="2" data-name="Budi Santoso">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>S003</td>
-                                <td>Citra Dewi</td>
-                                <td>Kelas 1B</td>
-                                <td>2024-2025</td>
-                                <td>Rp 500.000</td>
-                                <td><span class="status-badge status-sebagian">Sebagian</span></td>
-                                <td>
-                                    <a href="#" class="pdf-icon" data-bs-toggle="modal" data-bs-target="#viewPdfModal" data-pdf-title="Bukti Pembayaran - Citra Dewi">
-                                        <i class="fas fa-file-pdf"></i>
-                                    </a>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editSppModal" data-id="3">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal" data-id="3" data-name="Citra Dewi">
-                                        <i class="fas fa-money-bill"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteSppModal" data-id="3" data-name="Citra Dewi">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>4</td>
-                                <td>S004</td>
-                                <td>Dian Purnama</td>
-                                <td>Kelas 1B</td>
-                                <td>2024-2025</td>
-                                <td>Rp 500.000</td>
-                                <td><span class="status-badge status-lunas">Lunas</span></td>
-                                <td>
-                                    <a href="#" class="pdf-icon" data-bs-toggle="modal" data-bs-target="#viewPdfModal" data-pdf-title="Bukti Pembayaran - Dian Purnama">
-                                        <i class="fas fa-file-pdf"></i>
-                                    </a>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editSppModal" data-id="4">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal" data-id="4" data-name="Dian Purnama">
-                                        <i class="fas fa-money-bill"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteSppModal" data-id="4" data-name="Dian Purnama">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>5</td>
-                                <td>S005</td>
-                                <td>Eko Prasetyo</td>
-                                <td>Kelas 2A</td>
-                                <td>2024-2025</td>
-                                <td>Rp 550.000</td>
-                                <td><span class="status-badge status-belum">Belum Lunas</span></td>
-                                <td>
-                                    <span class="text-muted">-</span>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editSppModal" data-id="5">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal" data-id="5" data-name="Eko Prasetyo">
-                                        <i class="fas fa-money-bill"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteSppModal" data-id="5" data-name="Eko Prasetyo">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Modal Tambah Data SPP -->
-    <div class="modal fade" id="addSppModal" tabindex="-1" aria-labelledby="addSppModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addSppModalLabel">Tambah Data SPP</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addSppForm" action="" method="POST" enctype="multipart/form-data">
-                        <div class="mb-3">
-                            <label for="student_id" class="form-label">Siswa</label>
-                            <select class="form-control" id="student_id" name="student_id" required>
-                                <option value="">-- Pilih Siswa --</option>
-                                <option value="S001">S001 - Ahmad Rizky</option>
-                                <option value="S002">S002 - Budi Santoso</option>
-                                <option value="S003">S003 - Citra Dewi</option>
-                                <option value="S004">S004 - Dian Purnama</option>
-                                <option value="S005">S005 - Eko Prasetyo</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="academic_year" class="form-label">Tahun Ajaran</label>
-                            <select class="form-control" id="academic_year" name="academic_year" required>
-                                <option value="">-- Pilih Tahun Ajaran --</option>
-                                <option value="2024-2025">2024-2025</option>
-                                <option value="2023-2024">2023-2024</option>
-                                <option value="2022-2023">2022-2023</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="amount" class="form-label">Nominal SPP</label>
-                            <div class="input-group">
-                                <span class="input-group-text">Rp</span>
-                                <input type="number" class="form-control" id="amount" name="amount" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="status" class="form-label">Status</label>
-                            <select class="form-control" id="status" name="status" required>
-                                <option value="belum">Belum Lunas</option>
-                                <option value="sebagian">Sebagian</option>
-                                <option value="lunas">Lunas</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="payment_proof" class="form-label">Bukti Pembayaran (PDF)</label>
-                            <input type="file" class="form-control" id="payment_proof" name="payment_proof" accept="application/pdf">
-                            <small class="text-muted">Upload file PDF bukti pembayaran (opsional)</small>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Simpan</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Edit Data SPP -->
-    <div class="modal fade" id="editSppModal" tabindex="-1" aria-labelledby="editSppModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editSppModalLabel">Edit Data SPP</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editSppForm" action="" method="POST" enctype="multipart/form-data">
-                        <input type="hidden" id="edit_spp_id" name="id">
-                        <div class="mb-3">
-                            <label for="edit_student_id" class="form-label">Siswa</label>
-                            <select class="form-control" id="edit_student_id" name="student_id" required>
-                                <option value="">-- Pilih Siswa --</option>
-                                <option value="S001">S001 - Ahmad Rizky</option>
-                                <option value="S002">S002 - Budi Santoso</option>
-                                <option value="S003">S003 - Citra Dewi</option>
-                                <option value="S004">S004 - Dian Purnama</option>
-                                <option value="S005">S005 - Eko Prasetyo</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_academic_year" class="form-label">Tahun Ajaran</label>
-                            <select class="form-control" id="edit_academic_year" name="academic_year" required>
-                                <option value="">-- Pilih Tahun Ajaran --</option>
-                                <option value="2024-2025">2024-2025</option>
-                                <option value="2023-2024">2023-2024</option>
-                                <option value="2022-2023">2022-2023</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_amount" class="form-label">Nominal SPP</label>
-                            <div class="input-group">
-                                <span class="input-group-text">Rp</span>
-                                <input type="number" class="form-control" id="edit_amount" name="amount" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_status" class="form-label">Status</label>
-                            <select class="form-control" id="edit_status" name="status" required>
-                                <option value="belum">Belum Lunas</option>
-                                <option value="sebagian">Sebagian</option>
-                                <option value="lunas">Lunas</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_payment_proof" class="form-label">Bukti Pembayaran (PDF)</label>
-                            <input type="file" class="form-control" id="edit_payment_proof" name="payment_proof" accept="application/pdf">
-                            <small class="text-muted">Upload file PDF bukti pembayaran baru (opsional)</small>
-                            <div id="current_proof_container" class="mt-2">
-                                <small class="text-muted">Bukti pembayaran saat ini:</small>
-                                <div class="d-flex align-items-center mt-1">
-                                    <i class="fas fa-file-pdf pdf-icon me-2"></i>
-                                    <span id="current_proof_name">bukti_pembayaran.pdf</span>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Pembayaran SPP -->
-    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="paymentModalLabel">Pembayaran SPP</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="paymentForm" action="" method="POST" enctype="multipart/form-data">
-                        <input type="hidden" id="payment_spp_id" name="id">
-                        <div class="mb-3">
-                            <label class="form-label">Siswa</label>
-                            <input type="text" class="form-control" id="payment_student_name" readonly>
-                        </div>
-                        <div class="mb-3">
-                            <label for="payment_amount" class="form-label">Jumlah Pembayaran</label>
-                            <div class="input-group">
-                                <span class="input-group-text">Rp</span>
-                                <input type="number" class="form-control" id="payment_amount" name="payment_amount" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="payment_date" class="form-label">Tanggal Pembayaran</label>
-                            <input type="date" class="form-control" id="payment_date" name="payment_date" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="payment_method" class="form-label">Metode Pembayaran</label>
-                            <select class="form-control" id="payment_method" name="payment_method" required>
-                                <option value="cash">Tunai</option>
-                                <option value="transfer">Transfer Bank</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="payment_proof_file" class="form-label">Bukti Pembayaran (PDF)</label>
-                            <input type="file" class="form-control" id="payment_proof_file" name="payment_proof_file" accept="application/pdf" required>
-                            <small class="text-muted">Upload file PDF bukti pembayaran</small>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Proses Pembayaran</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Hapus Data SPP -->
-    <div class="modal fade" id="deleteSppModal" tabindex="-1" aria-labelledby="deleteSppModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteSppModalLabel">Konfirmasi Hapus</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Apakah Anda yakin ingin menghapus data SPP ini?</p>
-                    <p class="fw-bold" id="delete_spp_name">Nama Siswa</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <form id="deleteSppForm" action="" method="POST">
-                        <input type="hidden" id="delete_spp_id" name="id">
-                        <button type="submit" class="btn btn-danger">Hapus</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Lihat PDF -->
-    <div class="modal fade" id="viewPdfModal" tabindex="-1" aria-labelledby="viewPdfModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="viewPdfModalLabel">Bukti Pembayaran</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="ratio ratio-16x9">
-                        <iframe id="pdfViewer" src="about:blank" allowfullscreen></iframe>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Semester</label>
+                        <select class="form-select" id="filterSemester">
+                            <option value="">-- Semua Semester --</option>
+                            <option value="1">Ganjil</option>
+                            <option value="2">Genap</option>
+                        </select>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="button" class="btn btn-primary" id="downloadPdf">
-                        <i class="fas fa-download me-2"></i>Download
+                <div class="d-flex gap-2">
+                    <button type="button" id="applyFilterBtn" class="btn btn-primary">
+                        <i class="fas fa-filter me-2"></i>Tampilkan
+                    </button>
+                    <button type="reset" id="resetFilterBtn" class="btn btn-secondary">
+                        <i class="fas fa-sync-alt me-2"></i>Reset
                     </button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 
-    <!-- Modal Edit Profil Admin -->
-    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editProfileModalLabel">Edit Profil Admin</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editProfileForm" action="{{ route('admin.profile.update') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        @method('PUT')
-                        <div class="text-center mb-4">
-                            <div class="position-relative d-inline-block">
-                                <div class="rounded-circle mx-auto mb-3" style="width: 100px; height: 100px; background-color: #E6E1F9; overflow: hidden;">
-                                    <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/password-field-W2aCv47MBKPq1Z3HGzL9qVgMlruksc.tsx" alt="Admin Profile" class="w-100 h-100 object-fit-cover" id="profilePreview">
-                                </div>
-                                <label for="profilePhoto" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 cursor-pointer">
-                                    <i class="fas fa-camera"></i>
-                                    <input type="file" id="profilePhoto" name="photo" class="d-none" onchange="previewImage(this)">
-                                </label>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="admin_name" class="form-label">Nama Lengkap</label>
-                            <input type="text" class="form-control" id="admin_name" name="name" value="Nama Admin" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="admin_email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="admin_email" name="email" value="admin@example.com" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="admin_phone" class="form-label">Nomor Telepon</label>
-                            <input type="text" class="form-control" id="admin_phone" name="phone" value="081234567890">
-                        </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                        </div>
-                    </form>
-                </div>
+    <!-- Data Table -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-table me-2"></i> Data Peminjaman Buku
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="py-3 px-4">No</th>
+                            <th class="py-3 px-4">Nama Siswa</th>
+                            <th class="py-3 px-4">Judul Buku</th>
+                            <th class="py-3 px-4">Tanggal Pinjam</th>
+                            <th class="py-3 px-4">Tanggal Kembali</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th class="py-3 px-4">Tahun Ajaran</th>
+                            <th class="py-3 px-4">Semester</th>
+                            <th class="py-3 px-4">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($loans as $index => $loan)
+                            <tr>
+                                <td class="py-2 px-4">{{ $index + 1 }}</td>
+                                <td class="py-2 px-4">{{ $loan->student->fullname ?? '-' }}</td>
+                                <td class="py-2 px-4">{{ $loan->book->title ?? '-' }}</td>
+                                <td class="py-2 px-4">{{ $loan->loan_date }}</td>
+                                <td class="py-2 px-4">{{ $loan->return_date ?? '-' }}</td>
+                                <td class="py-2 px-4">
+                                    <span class="badge bg-{{ $loan->status === 'Dipinjam' ? 'warning' : 'success' }}">
+                                        {{ $loan->status }}
+                                    </span>
+                                </td>
+                                <td class="py-2 px-4">{{ $loan->academicYear->tahun ?? '-' }}</td>
+                                <td class="py-2 px-4">{{ $loan->semester->nama ?? '-' }}</td>
+                                <td class="py-2 px-4">
+                                    <a href="#" class="btn btn-info btn-sm">Detail</a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+</main>
+</div>
 
-    <!-- Modal Ubah Password -->
-    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="changePasswordModalLabel">Ubah Password</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- Add Loan Modal -->
+<div class="modal fade" id="addLoanModal" tabindex="-1" aria-labelledby="addLoanModalLabel" aria-hidden="true">
+<div class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="addLoanModalLabel">Tambah Peminjaman Buku</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="addLoanForm">
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label for="id_student" class="form-label">Pilih Siswa</label>
+                        <select class="form-select" id="id_student" name="id_student" required>
+                            <option value="">-- Pilih Siswa --</option>
+                            <option value="1">Ahmad Rizky (S001) - Kelas 10 IPA</option>
+                            <option value="2">Budi Santoso (S002) - Kelas 10 IPA</option>
+                            <option value="3">Citra Dewi (S003) - Kelas 10 IPS</option>
+                            <option value="4">Dian Purnama (S004) - Kelas 11 IPA</option>
+                            <option value="5">Eko Prasetyo (S005) - Kelas 11 IPS</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="book_id" class="form-label">Pilih Buku</label>
+                        <select class="form-select" id="book_id" name="book_id" required>
+                            <option value="">-- Pilih Buku --</option>
+                            <option value="1">Matematika Kelas 10 Semester 1</option>
+                            <option value="2">Bahasa Indonesia Kelas 10</option>
+                            <option value="3">Fisika Kelas 11</option>
+                            <option value="4">Sejarah Indonesia Kelas 12</option>
+                            <option value="5">English for SMA Grade 11</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <form id="changePasswordForm" action="{{ route('admin.password.update') }}" method="POST">
-                        @csrf
-                        @method('PUT')
-                        <div class="mb-3">
-                            <label for="current_password" class="form-label">Password Saat Ini</label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="current_password" name="current_password" required>
-                                <button type="button" class="btn btn-outline-secondary toggle-password" data-target="current_password">
-                                    <i class="fas fa-eye-slash"></i>
-                                </button>
+
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label for="loan_date" class="form-label">Tanggal Peminjaman</label>
+                        <input type="date" class="form-control" id="loan_date" name="loan_date" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="due_date" class="form-label">Tanggal Pengembalian</label>
+                        <input type="date" class="form-control" id="due_date" name="due_date" required>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label for="academic_year_id" class="form-label">Tahun Ajaran</label>
+                        <select class="form-select" id="academic_year_id" name="academic_year_id" required>
+                            <option value="">-- Pilih Tahun Ajaran --</option>
+                            <option value="1">2023/2024</option>
+                            <option value="2">2022/2023</option>
+                            <option value="3">2021/2022</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="semester_id" class="form-label">Semester</label>
+                        <select class="form-select" id="semester_id" name="semester_id" required>
+                            <option value="">-- Pilih Semester --</option>
+                            <option value="1">Ganjil</option>
+                            <option value="2">Genap</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="button" class="btn btn-primary" id="saveLoanBtn">Simpan Peminjaman</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Edit Loan Modal -->
+<div class="modal fade" id="editLoanModal" tabindex="-1" aria-labelledby="editLoanModalLabel" aria-hidden="true">
+<div class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="editLoanModalLabel">Edit Peminjaman Buku</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="editLoanForm">
+                <input type="hidden" id="edit_loan_id">
+
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label for="edit_id_student" class="form-label">Siswa</label>
+                        <input type="text" class="form-control" id="edit_student_name" readonly>
+                        <input type="hidden" id="edit_id_student">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="edit_book_id" class="form-label">Buku</label>
+                        <input type="text" class="form-control" id="edit_book_title" readonly>
+                        <input type="hidden" id="edit_book_id">
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label for="edit_loan_date" class="form-label">Tanggal Peminjaman</label>
+                        <input type="date" class="form-control" id="edit_loan_date" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="edit_due_date" class="form-label">Tanggal Pengembalian</label>
+                        <input type="date" class="form-control" id="edit_due_date" required>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label for="edit_return_date" class="form-label">Tanggal Dikembalikan</label>
+                        <input type="date" class="form-control" id="edit_return_date">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="edit_status" class="form-label">Status</label>
+                        <select class="form-select" id="edit_status" required>
+                            <option value="borrowed">Dipinjam</option>
+                            <option value="returned">Dikembalikan</option>
+                            <option value="overdue">Terlambat</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label for="edit_academic_year_id" class="form-label">Tahun Ajaran</label>
+                        <select class="form-select" id="edit_academic_year_id" required>
+                            <option value="">-- Pilih Tahun Ajaran --</option>
+                            <option value="1">2023/2024</option>
+                            <option value="2">2022/2023</option>
+                            <option value="3">2021/2022</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="edit_semester_id" class="form-label">Semester</label>
+                        <select class="form-select" id="edit_semester_id" required>
+                            <option value="">-- Pilih Semester --</option>
+                            <option value="1">Ganjil</option>
+                            <option value="2">Genap</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="button" class="btn btn-primary" id="updateLoanBtn">Simpan Perubahan</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Detail Loan Modal -->
+<div class="modal fade" id="detailLoanModal" tabindex="-1" aria-labelledby="detailLoanModalLabel" aria-hidden="true">
+<div class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="detailLoanModalLabel">Detail Peminjaman Buku</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <!-- Student Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-user-graduate me-2"></i> Informasi Siswa
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-row">
+                                <div class="info-label">Nama Siswa</div>
+                                <div class="info-value" id="detail_student_name">: -</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Kelas</div>
+                                <div class="info-value" id="detail_student_class">: -</div>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="new_password" class="form-label">Password Baru</label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="new_password" name="new_password" required>
-                                <button type="button" class="btn btn-outline-secondary toggle-password" data-target="new_password">
-                                    <i class="fas fa-eye-slash"></i>
-                                </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Book Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-book me-2"></i> Informasi Buku
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-row">
+                                <div class="info-label">Judul Buku</div>
+                                <div class="info-value" id="detail_book_title">: -</div>
                             </div>
-                            <small class="text-muted">Password minimal 8 karakter</small>
-                        </div>
-                        <div class="mb-3">
-                            <label for="confirm_password" class="form-label">Konfirmasi Password Baru</label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                                <button type="button" class="btn btn-outline-secondary toggle-password" data-target="confirm_password">
-                                    <i class="fas fa-eye-slash"></i>
-                                </button>
+                            <div class="info-row">
+                                <div class="info-label">Penulis</div>
+                                <div class="info-value" id="detail_book_author">: -</div>
                             </div>
                         </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Ubah Password</button>
+                        <div class="col-md-6">
+                            <div class="info-row">
+                                <div class="info-label">Penerbit</div>
+                                <div class="info-value" id="detail_book_publisher">: -</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Tahun Terbit</div>
+                                <div class="info-value" id="detail_book_year">: -</div>
+                            </div>
                         </div>
-                    </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loan Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-exchange-alt me-2"></i> Informasi Peminjaman
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-row">
+                                <div class="info-label">Tanggal Pinjam</div>
+                                <div class="info-value" id="detail_loan_date">: -</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Tanggal Kembali</div>
+                                <div class="info-value" id="detail_due_date">: -</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Tanggal Dikembalikan</div>
+                                <div class="info-value" id="detail_return_date">: -</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-row">
+                                <div class="info-label">Status</div>
+                                <div class="info-value" id="detail_status">: -</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Tahun Ajaran</div>
+                                <div class="info-value" id="detail_academic_year">: -</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Semester</div>
+                                <div class="info-value" id="detail_semester">: -</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="info-label">Tanggal Dibuat:</div>
+                        <div class="p-3 bg-light rounded mt-2" id="detail_created_at">-</div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="info-label">Terakhir Diupdate:</div>
+                        <div class="p-3 bg-light rounded mt-2" id="detail_updated_at">-</div>
+                    </div>
                 </div>
             </div>
         </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-warning text-white me-2" id="editFromDetailBtn">
+                <i class="fas fa-edit me-2"></i> Edit
+            </button>
+            <button type="button" class="btn btn-success me-2" id="returnBookBtn">
+                <i class="fas fa-check-circle me-2"></i> Kembalikan Buku
+            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+        </div>
     </div>
+</div>
+</div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Toggle password visibility
-        document.querySelectorAll('.toggle-password').forEach(button => {
-            button.addEventListener('click', function() {
-                const targetId = this.getAttribute('data-target');
-                const passwordField = document.getElementById(targetId);
-                const icon = this.querySelector('i');
+document.addEventListener('DOMContentLoaded', function() {
+    // Sample data for books
+    const books = [
+        {
+            id: 1,
+            title: 'Matematika Kelas 10 Semester 1',
+            author: 'Dr. Budi Santoso',
+            publisher: 'Erlangga',
+            year_published: 2022,
+            stock: 45,
+            created_at: '2023-01-15 08:30:00',
+            updated_at: '2023-01-15 08:30:00'
+        },
+        {
+            id: 2,
+            title: 'Bahasa Indonesia Kelas 10',
+            author: 'Dra. Siti Rahayu',
+            publisher: 'Gramedia',
+            year_published: 2022,
+            stock: 50,
+            created_at: '2023-01-15 09:15:00',
+            updated_at: '2023-01-15 09:15:00'
+        },
+        {
+            id: 3,
+            title: 'Fisika Kelas 11',
+            author: 'Prof. Ahmad Wijaya',
+            publisher: 'Yudhistira',
+            year_published: 2021,
+            stock: 30,
+            created_at: '2023-01-16 10:20:00',
+            updated_at: '2023-01-16 10:20:00'
+        },
+        {
+            id: 4,
+            title: 'Sejarah Indonesia Kelas 12',
+            author: 'Dr. Hendra Gunawan',
+            publisher: 'Erlangga',
+            year_published: 2021,
+            stock: 25,
+            created_at: '2023-01-17 11:45:00',
+            updated_at: '2023-01-17 11:45:00'
+        },
+        {
+            id: 5,
+            title: 'English for SMA Grade 11',
+            author: 'Sarah Johnson',
+            publisher: 'Cambridge Press',
+            year_published: 2022,
+            stock: 10,
+            created_at: '2023-01-18 13:10:00',
+            updated_at: '2023-01-18 13:10:00'
+        }
+    ];
 
-                if (passwordField.type === 'password') {
-                    passwordField.type = 'text';
-                    icon.classList.remove('fa-eye-slash');
-                    icon.classList.add('fa-eye');
-                } else {
-                    passwordField.type = 'password';
-                    icon.classList.remove('fa-eye');
-                    icon.classList.add('fa-eye-slash');
-                }
+    // Sample data for students
+    const students = [
+        {
+            id: 1,
+            name: 'Ahmad Rizky',
+            nis: 'S001',
+            class: '10 IPA'
+        },
+        {
+            id: 2,
+            name: 'Budi Santoso',
+            nis: 'S002',
+            class: '10 IPA'
+        },
+        {
+            id: 3,
+            name: 'Citra Dewi',
+            nis: 'S003',
+            class: '10 IPS'
+        },
+        {
+            id: 4,
+            name: 'Dian Purnama',
+            nis: 'S004',
+            class: '11 IPA'
+        },
+        {
+            id: 5,
+            name: 'Eko Prasetyo',
+            nis: 'S005',
+            class: '11 IPS'
+        }
+    ];
+
+    // Sample data for academic years
+    const academicYears = [
+        { id: 1, name: '2023/2024' },
+        { id: 2, name: '2022/2023' },
+        { id: 3, name: '2021/2022' }
+    ];
+
+    // Sample data for semesters
+    const semesters = [
+        { id: 1, name: 'Ganjil' },
+        { id: 2, name: 'Genap' }
+    ];
+
+    // Sample data for book loans
+    const bookLoans = [
+        {
+            id: 1,
+            id_student: 1,
+            book_id: 1,
+            loan_date: '2023-08-01',
+            due_date: '2023-08-15',
+            return_date: null,
+            status: 'borrowed',
+            created_at: '2023-08-01 10:15:00',
+            updated_at: '2023-08-01 10:15:00',
+            academic_year_id: 1,
+            semester_id: 1
+        },
+        {
+            id: 2,
+            id_student: 2,
+            book_id: 2,
+            loan_date: '2023-07-15',
+            due_date: '2023-07-29',
+            return_date: '2023-07-28',
+            status: 'returned',
+            created_at: '2023-07-15 09:30:00',
+            updated_at: '2023-07-28 14:20:00',
+            academic_year_id: 1,
+            semester_id: 1
+        },
+        {
+            id: 3,
+            id_student: 3,
+            book_id: 3,
+            loan_date: '2023-07-10',
+            due_date: '2023-07-24',
+            return_date: null,
+            status: 'overdue',
+            created_at: '2023-07-10 11:45:00',
+            updated_at: '2023-07-25 08:10:00',
+            academic_year_id: 1,
+            semester_id: 1
+        },
+        {
+            id: 4,
+            id_student: 4,
+            book_id: 4,
+            loan_date: '2023-08-05',
+            due_date: '2023-08-19',
+            return_date: null,
+            status: 'borrowed',
+            created_at: '2023-08-05 13:20:00',
+            updated_at: '2023-08-05 13:20:00',
+            academic_year_id: 1,
+            semester_id: 1
+        },
+        {
+            id: 5,
+            id_student: 5,
+            book_id: 5,
+            loan_date: '2023-07-20',
+            due_date: '2023-08-03',
+            return_date: '2023-08-05',
+            status: 'returned',
+            created_at: '2023-07-20 10:30:00',
+            updated_at: '2023-08-05 15:45:00',
+            academic_year_id: 1,
+            semester_id: 1
+        }
+    ];
+
+    // Set today's date as default for loan dates
+    const today = new Date();
+    const formattedDate = today.toISOString().substr(0, 10);
+    document.getElementById('loan_date').value = formattedDate;
+
+    // Set default return date (today + 14 days)
+    const returnDate = new Date(today);
+    returnDate.setDate(returnDate.getDate() + 14);
+    const formattedReturnDate = returnDate.toISOString().substr(0, 10);
+    document.getElementById('due_date').value = formattedReturnDate;
+
+    // Populate loan table
+    function populateLoanTable(data) {
+        const tableBody = document.getElementById('loanTableBody');
+        tableBody.innerHTML = '';
+
+        if (data.length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td colspan="9" class="text-center py-4">Tidak ada data peminjaman</td>`;
+            tableBody.appendChild(row);
+            return;
+        }
+
+        data.forEach((loan, index) => {
+            const student = students.find(s => s.id === loan.id_student);
+            const book = books.find(b => b.id === loan.book_id);
+            const academicYear = academicYears.find(a => a.id === loan.academic_year_id);
+            const semester = semesters.find(s => s.id === loan.semester_id);
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="py-3 px-4">${index + 1}</td>
+                <td class="py-3 px-4">${student ? student.name : '-'}</td>
+                <td class="py-3 px-4">${book ? book.title : '-'}</td>
+                <td class="py-3 px-4">${formatDate(loan.loan_date)}</td>
+                <td class="py-3 px-4">${formatDate(loan.due_date)}</td>
+                <td class="py-3 px-4">
+                    <span class="status-badge status-${loan.status}">
+                        ${loan.status === 'borrowed' ? 'Dipinjam' : loan.status === 'returned' ? 'Dikembalikan' : 'Terlambat'}
+                    </span>
+                </td>
+                <td class="py-3 px-4">${academicYear ? academicYear.name : '-'}</td>
+                <td class="py-3 px-4">${semester ? semester.name : '-'}</td>
+                <td class="py-3 px-4">
+                    <button class="btn btn-sm btn-info text-white me-1 view-btn" data-id="${loan.id}">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-warning text-white me-1 edit-btn" data-id="${loan.id}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    ${loan.status !== 'returned' ?
+                    `<button class="btn btn-sm btn-success me-1 return-btn" data-id="${loan.id}">
+                        <i class="fas fa-check"></i>
+                    </button>` : ''}
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+        // Add event listeners to buttons
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const loanId = this.getAttribute('data-id');
+                showLoanDetails(loanId);
             });
         });
 
-        // Preview profile image before upload
-        window.previewImage = function(input) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-
-                reader.onload = function(e) {
-                    document.getElementById('profilePreview').src = e.target.result;
-                }
-
-                reader.readAsDataURL(input.files[0]);
-            }
-        };
-
-        // Handle edit SPP modal
-        var editSppModal = document.getElementById('editSppModal');
-        editSppModal.addEventListener('show.bs.modal', function(event) {
-            var button = event.relatedTarget;
-            var sppId = button.getAttribute('data-id');
-
-            // In a real application, you would fetch the SPP data from the server
-            // For this example, we'll use dummy data based on the SPP ID
-            let sppData = {
-                id: sppId,
-                student_id: 'S00' + sppId,
-                academic_year: '2024-2025',
-                amount: sppId <= 2 ? 500000 : 550000,
-                status: sppId % 2 === 1 ? 'lunas' : 'belum'
-            };
-
-            document.getElementById('edit_spp_id').value = sppData.id;
-            document.getElementById('edit_student_id').value = sppData.student_id;
-            document.getElementById('edit_academic_year').value = sppData.academic_year;
-            document.getElementById('edit_amount').value = sppData.amount;
-            document.getElementById('edit_status').value = sppData.status;
-
-            // Show/hide current proof container based on status
-            if (sppData.status === 'lunas' || sppData.status === 'sebagian') {
-                document.getElementById('current_proof_container').style.display = 'block';
-                document.getElementById('current_proof_name').textContent = 'bukti_pembayaran_' + sppData.student_id + '.pdf';
-            } else {
-                document.getElementById('current_proof_container').style.display = 'none';
-            }
-
-            document.getElementById('editSppForm').action = `/spp/${sppId}`;
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const loanId = this.getAttribute('data-id');
+                showEditLoanModal(loanId);
+            });
         });
 
-        // Handle payment modal
-        var paymentModal = document.getElementById('paymentModal');
-        paymentModal.addEventListener('show.bs.modal', function(event) {
-            var button = event.relatedTarget;
-            var sppId = button.getAttribute('data-id');
-            var studentName = button.getAttribute('data-name');
+        document.querySelectorAll('.return-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const loanId = this.getAttribute('data-id');
+                showReturnBookModal(loanId);
+            });
+        });
+    }
 
-            document.getElementById('payment_spp_id').value = sppId;
-            document.getElementById('payment_student_name').value = studentName;
-            document.getElementById('payment_date').valueAsDate = new Date();
+    // Format date from YYYY-MM-DD to DD/MM/YYYY
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        const parts = dateString.split('-');
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
 
-            document.getElementById('paymentForm').action = `/spp/payment/${sppId}`;
+    // Filter loans
+    function filterLoans() {
+        const status = document.getElementById('filterStatus').value;
+        const academicYearId = document.getElementById('filterAcademicYear').value;
+        const semesterId = document.getElementById('filterSemester').value;
+
+        let filteredLoans = [...bookLoans];
+
+        if (status) {
+            filteredLoans = filteredLoans.filter(loan =>
+                loan.status === status
+            );
+        }
+
+        if (academicYearId) {
+            filteredLoans = filteredLoans.filter(loan =>
+                loan.academic_year_id == academicYearId
+            );
+        }
+
+        if (semesterId) {
+            filteredLoans = filteredLoans.filter(loan =>
+                loan.semester_id == semesterId
+            );
+        }
+
+        populateLoanTable(filteredLoans);
+    }
+
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        const searchValue = this.value.toLowerCase();
+        let filteredLoans = bookLoans.filter(loan => {
+            const student = students.find(s => s.id === loan.id_student);
+            const book = books.find(b => b.id === loan.book_id);
+
+            return (student && student.name.toLowerCase().includes(searchValue)) ||
+                   (book && book.title.toLowerCase().includes(searchValue));
         });
 
-        // Handle delete SPP modal
-        var deleteSppModal = document.getElementById('deleteSppModal');
-        deleteSppModal.addEventListener('show.bs.modal', function(event) {
-            var button = event.relatedTarget;
-            var sppId = button.getAttribute('data-id');
-            var studentName = button.getAttribute('data-name');
-
-            document.getElementById('delete_spp_id').value = sppId;
-            document.getElementById('delete_spp_name').textContent = studentName;
-
-            document.getElementById('deleteSppForm').action = `/spp/${sppId}`;
-        });
-
-        // Handle PDF viewer modal
-        var viewPdfModal = document.getElementById('viewPdfModal');
-        viewPdfModal.addEventListener('show.bs.modal', function(event) {
-            var button = event.relatedTarget;
-            var pdfTitle = button.getAttribute('data-pdf-title');
-
-            // In a real application, you would set the actual PDF URL
-            // For this example, we'll use a sample PDF
-            var pdfUrl = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
-
-            document.getElementById('viewPdfModalLabel').textContent = pdfTitle;
-            document.getElementById('pdfViewer').src = pdfUrl;
-
-            // Set download button URL
-            document.getElementById('downloadPdf').onclick = function() {
-                window.open(pdfUrl, '_blank');
-            };
-        });
-
-        // Export to PDF function
-        window.exportToPDF = function() {
-            alert('Mengekspor data SPP ke PDF...');
-            // In a real application, this would trigger a server-side PDF generation
-        };
+        populateLoanTable(filteredLoans);
     });
-</script>
 
+    // Apply filter button
+    document.getElementById('applyFilterBtn').addEventListener('click', filterLoans);
+
+    // Reset filter button
+    document.getElementById('resetFilterBtn').addEventListener('click', function() {
+        document.getElementById('filterForm').reset();
+        populateLoanTable(bookLoans);
+    });
+
+    // Show loan details
+    function showLoanDetails(loanId) {
+        const loan = bookLoans.find(l => l.id == loanId);
+        if (!loan) return;
+
+        const student = students.find(s => s.id === loan.id_student);
+        const book = books.find(b => b.id === loan.book_id);
+        const academicYear = academicYears.find(a => a.id === loan.academic_year_id);
+        const semester = semesters.find(s => s.id === loan.semester_id);
+
+        // Populate student information
+        document.getElementById('detail_student_name').textContent = ': ' + (student ? student.name : '-');
+        document.getElementById('detail_student_class').textContent = ': ' + (student ? student.class : '-');
+
+        // Populate book information
+        document.getElementById('detail_book_title').textContent = ': ' + (book ? book.title : '-');
+        document.getElementById('detail_book_author').textContent = ': ' + (book ? book.author : '-');
+        document.getElementById('detail_book_publisher').textContent = ': ' + (book ? book.publisher : '-');
+        document.getElementById('detail_book_year').textContent = ': ' + (book ? book.year_published : '-');
+
+        // Populate loan information
+        document.getElementById('detail_loan_date').textContent = ': ' + formatDate(loan.loan_date);
+        document.getElementById('detail_due_date').textContent = ': ' + formatDate(loan.due_date);
+        document.getElementById('detail_return_date').textContent = ': ' + (loan.return_date ? formatDate(loan.return_date) : '-');
+
+        const statusText = loan.status === 'borrowed' ? 'Dipinjam' : loan.status === 'returned' ? 'Dikembalikan' : 'Terlambat';
+        const statusElement = document.getElementById('detail_status');
+        statusElement.innerHTML = ': <span class="status-badge status-' + loan.status + '">' + statusText + '</span>';
+
+        document.getElementById('detail_academic_year').textContent = ': ' + (academicYear ? academicYear.name : '-');
+        document.getElementById('detail_semester').textContent = ': ' + (semester ? semester.name : '-');
+        document.getElementById('detail_created_at').textContent = formatDate(loan.created_at.split(' ')[0]) + ' ' + loan.created_at.split(' ')[1];
+        document.getElementById('detail_updated_at').textContent = formatDate(loan.updated_at.split(' ')[0]) + ' ' + loan.updated_at.split(' ')[1];
+
+        // Set up edit button in detail modal
+        document.getElementById('editFromDetailBtn').setAttribute('data-id', loanId);
+        document.getElementById('editFromDetailBtn').addEventListener('click', function() {
+            const loanId = this.getAttribute('data-id');
+            // Close detail modal
+            const detailModal = bootstrap.Modal.getInstance(document.getElementById('detailLoanModal'));
+            detailModal.hide();
+            // Open edit modal
+            showEditLoanModal(loanId);
+        });
+
+        // Set up return book button
+        const returnBookBtn = document.getElementById('returnBookBtn');
+        if (loan.status === 'returned') {
+            returnBookBtn.style.display = 'none';
+        } else {
+            returnBookBtn.style.display = 'inline-block';
+            returnBookBtn.setAttribute('data-id', loanId);
+            returnBookBtn.addEventListener('click', function() {
+                const loanId = this.getAttribute('data-id');
+                // Close detail modal
+                const detailModal = bootstrap.Modal.getInstance(document.getElementById('detailLoanModal'));
+                detailModal.hide();
+                // Open return book modal
+                showReturnBookModal(loanId);
+            });
+        }
+
+        // Show the modal
+        const detailModal = new bootstrap.Modal(document.getElementById('detailLoanModal'));
+        detailModal.show();
+    }
+
+    // Show edit loan modal
+    function showEditLoanModal(loanId) {
+        const loan = bookLoans.find(l => l.id == loanId);
+        if (!loan) return;
+
+        const student = students.find(s => s.id === loan.id_student);
+        const book = books.find(b => b.id === loan.book_id);
+
+        // Populate form fields
+        document.getElementById('edit_loan_id').value = loan.id;
+        document.getElementById('edit_id_student').value = loan.id_student;
+        document.getElementById('edit_student_name').value = student ? student.name : '-';
+        document.getElementById('edit_book_id').value = loan.book_id;
+        document.getElementById('edit_book_title').value = book ? book.title : '-';
+        document.getElementById('edit_loan_date').value = loan.loan_date;
+        document.getElementById('edit_due_date').value = loan.due_date;
+        document.getElementById('edit_return_date').value = loan.return_date || '';
+        document.getElementById('edit_status').value = loan.status;
+        document.getElementById('edit_academic_year_id').value = loan.academic_year_id;
+        document.getElementById('edit_semester_id').value = loan.semester_id;
+
+        // Show the modal
+        const editModal = new bootstrap.Modal(document.getElementById('editLoanModal'));
+        editModal.show();
+    }
+
+    // Show return book modal
+    function showReturnBookModal(loanId) {
+        const loan = bookLoans.find(l => l.id == loanId);
+        if (!loan) return;
+
+        // Pre-fill the edit form with return information
+        showEditLoanModal(loanId);
+
+        // Set status to returned
+        document.getElementById('edit_status').value = 'returned';
+
+        // Set return date to today
+        document.getElementById('edit_return_date').value = formattedDate;
+    }
+
+    // Save new loan
+    document.getElementById('saveLoanBtn').addEventListener('click', function() {
+        // Get form values
+        const idStudent = document.getElementById('id_student').value;
+        const bookId = document.getElementById('book_id').value;
+        const loanDate = document.getElementById('loan_date').value;
+        const dueDate = document.getElementById('due_date').value;
+        const academicYearId = document.getElementById('academic_year_id').value;
+        const semesterId = document.getElementById('semester_id').value;
+
+        // Validate form
+        if (!idStudent || !bookId || !loanDate || !dueDate || !academicYearId || !semesterId) {
+            alert('Mohon lengkapi semua field yang diperlukan');
+            return;
+        }
+
+        // In a real application, you would send this data to the server
+        // For this example, we'll just add it to our local data
+        const newId = bookLoans.length > 0 ? Math.max(...bookLoans.map(l => l.id)) + 1 : 1;
+        const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+        const newLoan = {
+            id: newId,
+            id_student: parseInt(idStudent),
+            book_id: parseInt(bookId),
+            loan_date: loanDate,
+            due_date: dueDate,
+            return_date: null,
+            status: 'borrowed',
+            created_at: now,
+            updated_at: now,
+            academic_year_id: parseInt(academicYearId),
+            semester_id: parseInt(semesterId)
+        };
+
+        bookLoans.push(newLoan);
+
+        // Close modal and refresh table
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addLoanModal'));
+        modal.hide();
+
+        // Reset form
+        document.getElementById('addLoanForm').reset();
+        document.getElementById('loan_date').value = formattedDate;
+        document.getElementById('due_date').value = formattedReturnDate;
+
+        // Show success message
+        document.getElementById('successMessage').textContent = 'Peminjaman berhasil ditambahkan';
+        document.getElementById('successAlert').classList.remove('d-none');
+
+        // Refresh table
+        populateLoanTable(bookLoans);
+    });
+
+    // Update loan
+    document.getElementById('updateLoanBtn').addEventListener('click', function() {
+        // Get form values
+        const loanId = document.getElementById('edit_loan_id').value;
+        const loanDate = document.getElementById('edit_loan_date').value;
+        const dueDate = document.getElementById('edit_due_date').value;
+        const returnDate = document.getElementById('edit_return_date').value;
+        const status = document.getElementById('edit_status').value;
+        const academicYearId = document.getElementById('edit_academic_year_id').value;
+        const semesterId = document.getElementById('edit_semester_id').value;
+
+        // Validate form
+        if (!loanDate || !dueDate || !status || !academicYearId || !semesterId) {
+            alert('Mohon lengkapi semua field yang diperlukan');
+            return;
+        }
+
+        // If status is returned, require return date
+        if (status === 'returned' && !returnDate) {
+            alert('Mohon lengkapi tanggal pengembalian');
+            return;
+        }
+
+        // Find the loan to update
+        const loanIndex = bookLoans.findIndex(l => l.id == loanId);
+        if (loanIndex === -1) return;
+
+        const loan = bookLoans[loanIndex];
+
+        // Update loan
+        const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+        bookLoans[loanIndex] = {
+            ...loan,
+            loan_date: loanDate,
+            due_date: dueDate,
+            return_date: status === 'returned' ? returnDate : null,
+            status: status,
+            updated_at: now,
+            academic_year_id: parseInt(academicYearId),
+            semester_id: parseInt(semesterId)
+        };
+
+        // Close modal and refresh table
+        const modal = bootstrap.Modal.getInstance(document.getElementById('editLoanModal'));
+        modal.hide();
+
+        // Show success message
+        document.getElementById('successMessage').textContent = 'Peminjaman berhasil diperbarui';
+        document.getElementById('successAlert').classList.remove('d-none');
+
+        // Refresh table
+        populateLoanTable(bookLoans);
+    });
+
+    // Initialize the table
+    populateLoanTable(bookLoans);
+});
+</script>
 </body>
 </html>

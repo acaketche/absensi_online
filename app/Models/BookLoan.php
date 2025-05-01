@@ -2,14 +2,41 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class BookLoan extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'id_student', 'book_id', 'loan_date', 'due_date', 'return_date', 'status',
+        'academic_year_id', 'semester_id'
     ];
+
+    public function book()
+    {
+        return $this->belongsTo(Book::class, 'book_id');
+    }
+
+    public function student()
+    {
+        return $this->belongsTo(Student::class, 'id_student', 'id_student');
+    }
+
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class, 'academic_year_id');
+    }
+
+    public function semester()
+    {
+        return $this->belongsTo(Semester::class, 'semester_id');
+    }
+    public function class()
+{
+    return $this->student->class(); // indirect access
 }
+public function getClassAttribute()
+{
+    return $this->student ? $this->student->class : null;
+}
+}
+

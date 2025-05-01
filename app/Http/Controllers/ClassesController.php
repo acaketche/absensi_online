@@ -60,17 +60,12 @@ class ClassesController extends Controller
         $class = Classes::with('employee', 'students')->where('class_id', $id)->first();
 
         if (!$class) {
-            return response()->json(['error' => 'Data tidak ditemukan'], 404);
+            abort(404, 'Data tidak ditemukan');
         }
 
-        return response()->json([
-            'id' => $class->class_id,
-            'class_name' => $class->class_name,
-            'employee_name' => $class->employee->fullname ?? '-',
-            'employee_nip' => $class->employee->id_employee ?? '-',
-            'student_count' => $class->students->count(),
-            'male_count' => $class->students->where('gender', 'L')->count(),
-            'female_count' => $class->students->where('gender', 'P')->count(),
+        return view('classes.classesshow', [
+            'class' => $class,
+            'students' => $class->students,
         ]);
     }
 

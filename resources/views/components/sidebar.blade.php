@@ -63,26 +63,14 @@
             </div>
         </div>
 
-        <a href="{{ route('payment.index')}}" class="nav-item text-white d-block mb-2" data-page="data-spp">
+        <a href="{{ route('payment.listdata')}}" class="nav-item text-white d-block mb-2" data-page="data-spp">
             <i class="fas fa-money-bill-wave me-2"></i>
-            <span class="nav-text">Data Pembayaran SPP</span>
+            <span class="nav-text">Manajemen SPP</span>
         </a>
-
-        <!-- Data Buku Paket Dropdown -->
-        <div class="dropdown-container">
-            <a href="#" class="nav-item text-white d-block mb-2 sidebar-dropdown-toggle" data-bs-toggle="dropdown-sidebar" data-target="buku-paket-dropdown">
-                    <i class="fas fa-book-reader me-2"></i>
-                    <span class="nav-text">Data Buku Paket</span>
-                <i class="fas fa-chevron-down dropdown-icon"></i>
-            </a>
-            <div class="dropdown-menu-sidebar" id="buku-paket-dropdown">
-                <a href="#" class="nav-item text-white d-block mb-2 ps-4" data-page="peminjaman-buku">
-                    <i class="fas fa-book-open me-2"></i>
-                    <span class="nav-text">Peminjaman Buku Paket</span>
-                </a>
-            </div>
-        </div>
-
+        <a href="{{ route('books.index')}}" class="nav-item text-white d-block mb-2" data-page="peminjaman-buku">
+            <i class="fas fa-book-open me-2"></i>
+            <span class="nav-text">Manajemen Buku Paket</span>
+        </a>
         <a href="{{ route('Rapor.index')}}" class="nav-item text-white d-block mb-2" data-page="data-nilai">
             <i class="fas fa-chart-bar me-2"></i>
             <span class="nav-text">Data Nilai Siswa</span>

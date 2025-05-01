@@ -12,33 +12,43 @@ use Illuminate\Support\Facades\Storage;
 class StudentController extends Controller
 {
     public function index(Request $request)
-{
-    $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
-    $activeSemester = Semester::where('is_active', 1)->first();
+    {
+        $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
+        $activeSemester = Semester::where('is_active', 1)->first();
 
-    $academicYearId = $request->get('academic_year_id', $activeAcademicYear->id ?? null);
-    $semesterId = $request->get('semester_id', $activeSemester->id ?? null);
-    $classId = $request->get('class_id', null); // Tangkap filter kelas
+        $academicYearId = $request->get('academic_year_id', $activeAcademicYear->id ?? null);
+        $semesterId = $request->get('semester_id', $activeSemester->id ?? null);
+        $classId = $request->get('class_id', null); // Tangkap filter kelas
 
-    // Query siswa berdasarkan filter
-    $students = Student::where('academic_year_id', $academicYearId)
-                        ->when($semesterId, function ($query) use ($semesterId) {
-                            return $query->where('semester_id', $semesterId);
-                        })
-                        ->when($classId, function ($query) use ($classId) {
-                            return $query->where('class_id', $classId);
-                        }) // Tambahkan filter class_id
-                        ->get();
+        // Query siswa berdasarkan filter
+        $students = Student::where('academic_year_id', $academicYearId)
+                            ->when($semesterId, function ($query) use ($semesterId) {
+                                return $query->where('semester_id', $semesterId);
+                            })
+                            ->when($classId, function ($query) use ($classId) {
+                                return $query->where('class_id', $classId);
+                            }) // Tambahkan filter class_id
+                            ->get();
 
-    $academicYears = AcademicYear::all();
-    $semesters = Semester::all();
-    $classes = Classes::all();
+        $academicYears = AcademicYear::all();
+        $semesters = Semester::all();
+        $classes = Classes::all();
 
-    return view('students.index', compact(
-        'students', 'classes', 'activeAcademicYear', 'activeSemester',
-        'academicYears', 'semesters', 'academicYearId', 'semesterId', 'classId'
-    ));
-}
+        return view('students.index', compact(
+            'students', 'classes', 'activeAcademicYear', 'activeSemester',
+            'academicYears', 'semesters', 'academicYearId', 'semesterId', 'classId'
+        ));
+    }
+
+    // Menampilkan form untuk membuat siswa baru
+    public function create()
+    {
+        $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
+        $activeSemester = Semester::where('is_active', 1)->first();
+        $classes = Classes::all();
+
+        return view('students.create', compact('classes', 'activeAcademicYear', 'activeSemester'));
+    }
 
     public function show($id)
     {
@@ -78,7 +88,7 @@ class StudentController extends Controller
                 'fullname' => $request->fullname,
                 'password' => bcrypt($request->password),
                 'birth_place' => $request->birth_place,
-                'birth_date' => $request->birth_date->format('Y-m-d'),
+                'birth_date' => $request->birth_date,
                 'gender' => $request->gender,
                 'parent_phonecell' => $request->parent_phonecell,
                 'class_id' => $request->class_id,
@@ -87,13 +97,25 @@ class StudentController extends Controller
                 'photo' => $photoPath,
             ]);
 
-            return redirect()->route('students.index')->with('success', 'Student added successfully.');
+            return redirect()->route('students.index')->with('success', 'Siswa berhasil ditambahkan.');
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
     }
 
+    // Menampilkan form untuk mengedit siswa
     public function edit($id)
+    {
+        $student = Student::findOrFail($id);
+        $classes = Classes::all();
+        $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
+        $activeSemester = Semester::where('is_active', 1)->first();
+
+        return view('students.edit', compact('student', 'classes', 'activeAcademicYear', 'activeSemester'));
+    }
+
+    // API endpoint untuk mendapatkan data siswa dalam format JSON
+    public function getStudentData($id)
     {
         $student = Student::findOrFail($id);
         return response()->json($student);
@@ -148,6 +170,7 @@ class StudentController extends Controller
 
         return redirect()->route('students.index')->with('success', 'Siswa berhasil dihapus.');
     }
+
     public function search(Request $request)
     {
         $nis = $request->query('nis'); // Ambil input NIS dari request
@@ -168,5 +191,4 @@ class StudentController extends Controller
             return response()->json(['success' => false, 'message' => 'Siswa tidak ditemukan']);
         }
     }
-
 }
