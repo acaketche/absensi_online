@@ -18,36 +18,38 @@ class EmployeeLoginController extends Controller
         return view('auth.login'); // Nama file login harus sesuai
     }
 
-    public function authenticate(Request $request)
-    {
-        $request->validate([
-            'id_employee' => 'required|string',
-            'password' => 'required|string',
-        ]);
+   public function authenticate(Request $request)
+{
+    $request->validate([
+        'id_employee' => 'required|string',
+        'password' => 'required|string',
+    ]);
 
-        // Menggunakan attempt() untuk autentikasi dengan guard employee
-        if (Auth::guard('employee')->attempt([
-            'id_employee' => $request->id_employee,
-            'password' => $request->password
-        ], $request->has('remember'))) {
+    if (Auth::guard('employee')->attempt([
+        'id_employee' => $request->id_employee,
+        'password' => $request->password
+    ], $request->has('remember'))) {
 
-            $employee = Auth::guard('employee')->user();
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name;
 
-            if ($employee->role->role_name === 'Super Admin' || $employee->role->role_name === 'Pegawai Tata Usaha') {
-                return redirect()->route('dashboard.admin');
-            } elseif ($employee->role->role_name === 'Pegawai Piket') {
-                return redirect()->route('dashboard.piket');
-            } elseif ($employee->role->role_name === 'Pegawai Perpustakaan') {
-                return redirect()->route('dashboard.perpus');
-            }
-
-            // Jika role tidak dikenal, arahkan ke dashboard admin atau kembali ke login
-            return redirect()->route('dashboard.admin')->with('warning', 'Role tidak dikenali, diarahkan ke admin.');
+        if ($roleName === 'Super Admin') {
+            return redirect()->route('dashboard.admin');
+        } elseif ($roleName === 'Admin Pegawai Tata Usaha') {
+            return redirect()->route('dashboard.TU');
+        } elseif ($roleName === 'Admin Pegawai Piket') {
+            return redirect()->route('dashboard.piket');
+        } elseif ($roleName === 'Admin Pegawai Perpustakaan') {
+            return redirect()->route('dashboard.perpus');
         }
 
-        // Jika login gagal
-        return back()->withErrors(['id_employee' => 'NIP atau password salah.'])->withInput();
+        return redirect()->route('dashboard.default')->with('warning', 'Role tidak dikenali.');
     }
+
+    return back()->withErrors([
+        'id_employee' => 'NIP atau password salah.'
+    ])->withInput();
+}
 
     public function logout(Request $request)
     {

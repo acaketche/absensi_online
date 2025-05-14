@@ -71,7 +71,7 @@
             <i class="fas fa-book-open me-2"></i>
             <span class="nav-text">Manajemen Buku Paket</span>
         </a>
-        <a href="{{ route('Rapor.index')}}" class="nav-item text-white d-block mb-2" data-page="data-nilai">
+        <a href="{{ route('rapor.classes')}}" class="nav-item text-white d-block mb-2" data-page="data-nilai">
             <i class="fas fa-chart-bar me-2"></i>
             <span class="nav-text">Data Nilai Siswa</span>
         </a>
