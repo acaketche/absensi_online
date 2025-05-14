@@ -208,14 +208,17 @@
                         </select>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Tahun Ajaran</label>
+                        <label for="filterAcademicYear" class="form-label">Tahun Ajaran</label>
                         <select class="form-select" id="filterAcademicYear" name="academic_year_id">
-                        <option value="">-- Semua Tahun Ajaran --</option>
-                        @foreach($classes as $class)
-                        <option value="{{ $class->id }}" {{ request('academic_year_id') == $class->id ? 'selected' : '' }}>{{ $class->name ?? $class->tahun }}</option>
-                        @endforeach
+                            <option value="">-- Semua Tahun Ajaran --</option>
+                            @foreach($academicYears as $year)
+                                <option value="{{ $year->id }}" {{ request('academic_year_id', old('academic_year_id')) == $year->id ? 'selected' : '' }}>
+                                    {{ $year->tahun }}
+                                </option>
+                            @endforeach
                         </select>
-                        </div>
+                    </div>
+
 
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Semester</label>

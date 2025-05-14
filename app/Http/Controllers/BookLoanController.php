@@ -8,6 +8,7 @@ use App\Models\Student;
 use App\Models\Classes; // Perubahan nama model Kelas
 use Illuminate\Http\Request;
 use App\Models\AcademicYear;
+use App\Models\Semester;
 
 
 
@@ -60,8 +61,8 @@ class BookLoanController extends Controller
         {
             $books = Book::all();
             $students = Student::all();
-            $academicYears = \App\Models\AcademicYear::all();
-            $semesters = \App\Models\Semester::all();
+            $academicYears = AcademicYear::all();
+            $semesters = Semester::all();
 
             return view('book_loans.create', compact('books', 'students', 'academicYears', 'semesters'));
         }
