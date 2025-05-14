@@ -57,9 +57,18 @@ class EmployeesController extends Controller
             'qr_code' => 'nullable|image|mimes:png|max:1024'
         ]);
 
-        $photoPath = $request->file('photo') ? $request->file('photo')->store('photos') : null;
-        $qrPath = $request->file('qr_code') ? $request->file('qr_code')->store('qrcodes') : null;
+        $photoPath = null;
+        $qrPath = null;
 
+        if ($request->hasFile('photo')) {
+            $photo = $request->file('photo')->store('public/photo_pegawai');
+            $photoPath = str_replace('public/', 'storage/', $photo);
+        }
+
+        if ($request->hasFile('qr_code')) {
+            $qr = $request->file('qr_code')->store('public/qrcode_pegawai');
+            $qrPath = str_replace('public/', 'storage/', $qr);
+        }
         Employee::create([
             'id_employee' => $request->id_employee,
             'fullname' => $request->fullname,
@@ -113,18 +122,26 @@ class EmployeesController extends Controller
         }
 
         if ($request->hasFile('photo')) {
-            if ($employee->photo) {
-                Storage::delete($employee->photo);
-            }
-            $data['photo'] = $request->file('photo')->store('photos');
-        }
+    // Hapus file lama jika ada
+    if ($employee->photo) {
+        Storage::delete(str_replace('storage/', 'public/', $employee->photo));
+    }
 
-        if ($request->hasFile('qr_code')) {
-            if ($employee->qr_code) {
-                Storage::delete($employee->qr_code);
-            }
-            $data['qr_code'] = $request->file('qr_code')->store('qrcodes');
-        }
+    // Simpan file baru
+    $path = $request->file('photo')->store('public/photo_pegawai');
+    $data['photo'] = str_replace('public/', 'storage/', $path); // simpan path untuk URL publik
+}
+
+if ($request->hasFile('qr_code')) {
+    // Hapus file lama jika ada
+    if ($employee->qr_code) {
+        Storage::delete(str_replace('storage/', 'public/', $employee->qr_code));
+    }
+
+    // Simpan file baru
+    $path = $request->file('qr_code')->store('public/qrcode_pegawai');
+    $data['qr_code'] = str_replace('public/', 'storage/', $path);
+}
 
         $employee->update($data);
 
@@ -132,19 +149,23 @@ class EmployeesController extends Controller
     }
 
     // Menghapus employee
-    public function destroy($id)
-    {
-        $employee = Employee::findOrFail($id);
+   public function destroy($id)
+{
+    $employee = Employee::findOrFail($id);
 
-        if ($employee->photo) {
-            Storage::delete($employee->photo);
-        }
-        if ($employee->qr_code) {
-            Storage::delete($employee->qr_code);
-        }
-
-        $employee->delete();
-
-        return redirect()->route('employees.index')->with('success', 'Employee deleted successfully');
+    // Hapus file photo jika ada
+    if ($employee->photo) {
+        Storage::delete(str_replace('storage/', 'public/', $employee->photo));
     }
+
+    // Hapus file qr_code jika ada
+    if ($employee->qr_code) {
+        Storage::delete(str_replace('storage/', 'public/', $employee->qr_code));
+    }
+
+    // Hapus record dari database
+    $employee->delete();
+
+    return redirect()->route('employees.index')->with('success', 'Employee deleted successfully');
+}
 }

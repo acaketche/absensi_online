@@ -2,108 +2,69 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BookLoan;
-use App\Models\Book;
-use App\Models\Student;
-use App\Models\Classes; // Perubahan nama model Kelas
 use Illuminate\Http\Request;
+use App\Models\Classes;
+use App\Models\Student;
+use App\Models\BookLoan;
+use Carbon\Carbon;
 
 class BookLoanController extends Controller
 {
     public function index()
     {
-        // Ambil semua data peminjaman buku beserta relasi terkait
-        $loans = BookLoan::with([
-            'student.classes', // Relasi ke model Classes melalui student
-            'book',
-            'academicYear',
-            'semester'
-        ])->get();
+        $classes = Classes::with('employee')
+            ->withCount('students')
+            ->withCount(['students as borrowed_books_count' => function($query) {
+                $query->whereHas('bookLoans', function($q) {
+                    $q->where('status', 'borrowed');
+                });
+            }])
+            ->withCount(['students as overdue_loans_count' => function($query) {
+                $query->whereHas('bookLoans', function($q) {
+                    $q->where('status', 'borrowed')
+                      ->whereDate('due_date', '<', Carbon::now());
+                });
+            }])
+            ->get();
 
-        $classes = Classes::all(); // Ambil semua data kelas (dengan model Classes)
-
-        // Kirim data ke view
-        return view('books.booksloans', compact('loans', 'classes'));
+        return view('books.booksloans', compact('classes'));
     }
 
-    public function edit($id)
+    public function classStudents($classId)
     {
-        $loan = BookLoan::findOrFail($id);
-        $books = Book::all();
-        $students = Student::all();
-        return view('book_loans.edit', compact('loan', 'books', 'students'));
+        $class = Classes::with('employee')->findOrFail($classId);
+
+        $students = Student::where('class_id', $classId)
+            ->withCount(['bookLoans' => function($query) {
+                $query->where('status', 'borrowed');
+            }])
+            ->withCount(['bookLoans as overdue_loans_count' => function($query) {
+                $query->where('status', 'borrowed')
+                      ->whereDate('due_date', '<', Carbon::now());
+            }])
+            ->get();
+
+        $totalBookLoans = $students->sum('book_loans_count');
+
+        return view('books.classtudent', compact('class', 'students', 'totalBookLoans'));
     }
 
-    public function update(Request $request, $id)
+    public function studentBooks($studentId)
     {
-        $request->validate([
-            'id_student' => 'required|string',
-            'book_id' => 'required|integer',
-            'loan_date' => 'required|date',
-            'due_date' => 'required|date',
-            'status' => 'required|string',
-            'academic_year_id' => 'required|integer',
-            'semester_id' => 'required|integer',
-        ]);
+        $student = Student::with('class')->where('id_student', $studentId)->firstOrFail();
 
-        $loan = BookLoan::findOrFail($id);
-        $loan->update($request->all());
+        $bookLoans = BookLoan::with('book')
+            ->where('id_student', $studentId)
+            ->orderBy('status')
+            ->orderBy('due_date')
+            ->get();
 
-        return redirect()->route('book-loans.index')->with('success', 'Data peminjaman berhasil diperbarui.');
-    }
+        $overdueCount = $bookLoans->where('status', 'borrowed')
+            ->filter(function($loan) {
+                return Carbon::now()->gt($loan->due_date);
+            })
+            ->count();
 
-    public function create()
-    {
-        $books = Book::all();
-        $students = Student::all();
-        return view('book_loans.create', compact('books', 'students'));
-    }
-
-    public function store(Request $request)
-    {
-        $request->validate([
-            'id_student' => 'required|string',
-            'book_id' => 'required|integer',
-            'loan_date' => 'required|date',
-            'due_date' => 'required|date',
-            'status' => 'required|string',
-            'academic_year_id' => 'required|integer',
-            'semester_id' => 'required|integer',
-        ]);
-
-        BookLoan::create($request->all());
-
-        return redirect()->route('book-loans.index')->with('success', 'Peminjaman buku berhasil dicatat.');
-    }
-
-    public function show($id)
-    {
-        $loan = BookLoan::with(['book', 'student'])->findOrFail($id);
-        return view('book_loans.show', compact('loan'));
-    }
-
-    public function returnBook($id)
-    {
-        $loan = BookLoan::findOrFail($id);
-        $loan->update([
-            'status' => 'Dikembalikan',
-            'return_date' => now(),
-        ]);
-
-        return redirect()->route('book-loans.index')->with('success', 'Buku berhasil dikembalikan.');
-    }
-
-    public function destroy($id)
-    {
-        $loan = BookLoan::findOrFail($id);
-        $loan->delete();
-
-        return redirect()->route('book-loans.index')->with('success', 'Data peminjaman berhasil dihapus.');
-    }
-
-    public function kelasSiswa()
-    {
-        $classes = Classes::all(); // Ambil semua data kelas dari model Classes
-        return view('books.kelas_siswa_peminjaman', compact('classes')); // Tampilkan view dengan data kelas
+        return view('books.studentbook', compact('student', 'bookLoans', 'overdueCount'));
     }
 }

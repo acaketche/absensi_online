@@ -34,9 +34,5 @@ class BookLoan extends Model
 {
     return $this->student->class(); // indirect access
 }
-public function getClassAttribute()
-{
-    return $this->student ? $this->student->class : null;
-}
 }
 

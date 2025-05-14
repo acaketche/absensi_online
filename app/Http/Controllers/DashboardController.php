@@ -7,11 +7,14 @@ use App\Models\Employee;
 
 class DashboardController extends Controller
 {
-    public function admin()
+    public function Superadmin()
     {
         return view('auth.dashboard'); // View untuk Super Admin & Pegawai TU
     }
-
+    public function TataUsaha()
+    {
+        return view('dashboard.TU'); // View untuk Pegawai Piket
+    }
     public function piket()
     {
         return view('dashboard.piket'); // View untuk Pegawai Piket

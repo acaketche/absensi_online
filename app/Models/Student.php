@@ -52,5 +52,13 @@ class Student extends Authenticatable
     {
         $this->attributes['password'] = Hash::make($value);
     }
+    public function bookLoans()
+    {
+        return $this->hasMany(BookLoan::class, 'id_student', 'id_student');
+    }
+    public function rapor()
+{
+    return $this->hasOne(Rapor::class, 'id_student', 'id_student');
+}
 
 }
