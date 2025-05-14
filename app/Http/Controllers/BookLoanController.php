@@ -7,24 +7,28 @@ use App\Models\Book;
 use App\Models\Student;
 use App\Models\Classes; // Perubahan nama model Kelas
 use Illuminate\Http\Request;
+use App\Models\AcademicYear;
+
+
 
 class BookLoanController extends Controller
 {
     public function index()
-    {
-        // Ambil semua data peminjaman buku beserta relasi terkait
-        $loans = BookLoan::with([
-            'student.classes', // Relasi ke model Classes melalui student
-            'book',
-            'academicYear',
-            'semester'
-        ])->get();
+        {
+            $loans = BookLoan::with([
+                'student.classes',
+                'book',
+                'academicYear',
+                'semester'
+            ])->get();
 
-        $classes = Classes::all(); // Ambil semua data kelas (dengan model Classes)
+            $classes = Classes::all();
+            $books = Book::all();
+            $students = Student::all();
+            $academicYears = AcademicYear::all(); // Tambahkan ini
 
-        // Kirim data ke view
-        return view('books.booksloans', compact('loans', 'classes'));
-    }
+            return view('books.booksloans', compact('loans', 'classes', 'books', 'students', 'academicYears'));
+        }
 
     public function edit($id)
     {
@@ -53,28 +57,41 @@ class BookLoanController extends Controller
     }
 
     public function create()
-    {
-        $books = Book::all();
-        $students = Student::all();
-        return view('book_loans.create', compact('books', 'students'));
-    }
+        {
+            $books = Book::all();
+            $students = Student::all();
+            $academicYears = \App\Models\AcademicYear::all();
+            $semesters = \App\Models\Semester::all();
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'id_student' => 'required|string',
-            'book_id' => 'required|integer',
-            'loan_date' => 'required|date',
-            'due_date' => 'required|date',
-            'status' => 'required|string',
-            'academic_year_id' => 'required|integer',
-            'semester_id' => 'required|integer',
-        ]);
+            return view('book_loans.create', compact('books', 'students', 'academicYears', 'semesters'));
+        }
 
-        BookLoan::create($request->all());
 
-        return redirect()->route('book-loans.index')->with('success', 'Peminjaman buku berhasil dicatat.');
-    }
+        public function store(Request $request)
+        {
+            $validated = $request->validate([
+                'id_student' => 'required|string',
+                'book_id' => 'required|integer',
+                'loan_date' => 'required|date',
+                'due_date' => 'required|date',
+                'status' => 'required|string|in:Dipinjam,Dikembalikan',
+                'academic_year_id' => 'required|integer',
+                'semester_id' => 'required|integer',
+            ]);
+
+            BookLoan::create([
+                'id_student' => $validated['id_student'],
+                'book_id' => $validated['book_id'],
+                'loan_date' => $validated['loan_date'],
+                'due_date' => $validated['due_date'],
+                'status' => $validated['status'],
+                'academic_year_id' => $validated['academic_year_id'],
+                'semester_id' => $validated['semester_id'],
+            ]);
+
+            return redirect()->route('book-loans.index')->with('success', 'Peminjaman buku berhasil dicatat.');
+        }
+
 
     public function show($id)
     {

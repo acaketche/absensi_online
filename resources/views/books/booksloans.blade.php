@@ -177,10 +177,12 @@
     </header>
 
     <!-- Alert for success message -->
-    <div class="alert alert-success alert-dismissible fade show d-none" role="alert" id="successAlert">
-        <span id="successMessage"></span>
+    @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ session('success') }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
+    @endif
 
     <!-- Search Bar -->
     <div class="search-container mb-4">
@@ -194,37 +196,38 @@
             <i class="fas fa-filter me-2"></i> Filter Data
         </div>
         <div class="card-body p-4">
-            <form id="filterForm">
+            <form id="filterForm" method="GET" action="{{ route('book-loans.index') }}">
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Status Peminjaman</label>
-                        <select class="form-select" id="filterStatus">
+                        <select class="form-select" id="filterStatus" name="status">
                             <option value="">-- Semua Status --</option>
-                            <option value="borrowed">Dipinjam</option>
-                            <option value="returned">Dikembalikan</option>
-                            <option value="overdue">Terlambat</option>
+                            <option value="Dipinjam" {{ request('status') == 'Dipinjam' ? 'selected' : '' }}>Dipinjam</option>
+                            <option value="Dikembalikan" {{ request('status') == 'Dikembalikan' ? 'selected' : '' }}>Dikembalikan</option>
+                            <option value="Terlambat" {{ request('status') == 'Terlambat' ? 'selected' : '' }}>Terlambat</option>
                         </select>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Tahun Ajaran</label>
-                        <select class="form-select" id="filterAcademicYear">
-                            <option value="">-- Semua Tahun Ajaran --</option>
-                            <option value="1">2023/2024</option>
-                            <option value="2">2022/2023</option>
-                            <option value="3">2021/2022</option>
+                        <select class="form-select" id="filterAcademicYear" name="academic_year_id">
+                        <option value="">-- Semua Tahun Ajaran --</option>
+                        @foreach($classes as $class)
+                        <option value="{{ $class->id }}" {{ request('academic_year_id') == $class->id ? 'selected' : '' }}>{{ $class->name ?? $class->tahun }}</option>
+                        @endforeach
                         </select>
-                    </div>
+                        </div>
+
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Semester</label>
-                        <select class="form-select" id="filterSemester">
+                        <select class="form-select" id="filterSemester" name="semester_id">
                             <option value="">-- Semua Semester --</option>
-                            <option value="1">Ganjil</option>
-                            <option value="2">Genap</option>
+                            <option value="1" {{ request('semester_id') == 1 ? 'selected' : '' }}>Ganjil</option>
+                            <option value="2" {{ request('semester_id') == 2 ? 'selected' : '' }}>Genap</option>
                         </select>
                     </div>
                 </div>
                 <div class="d-flex gap-2">
-                    <button type="button" id="applyFilterBtn" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary">
                         <i class="fas fa-filter me-2"></i>Tampilkan
                     </button>
                     <button type="reset" id="resetFilterBtn" class="btn btn-secondary">
@@ -242,18 +245,18 @@
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
+                <table class="table table-hover mb-0" id="loanTable">
                     <thead class="bg-light">
                         <tr>
                             <th class="py-3 px-4">No</th>
-                            <th class="py-3 px-4">Nama Siswa</th>
-                            <th class="py-3 px-4">Judul Buku</th>
-                            <th class="py-3 px-4">Tanggal Pinjam</th>
-                            <th class="py-3 px-4">Tanggal Kembali</th>
-                            <th class="py-3 px-4">Status</th>
-                            <th class="py-3 px-4">Tahun Ajaran</th>
-                            <th class="py-3 px-4">Semester</th>
-                            <th class="py-3 px-4">Aksi</th>
+                            <th class="py-2 px-4">Nama Siswa</th>
+                            <th class="py-2 px-4">Judul Buku</th>
+                            <th class="py-2 px-4">Tanggal Pinjam</th>
+                            <th class="py-2 px-4">Tanggal Kembali</th>
+                            <th class="py-2 px-4">Status</th>
+                            <th class="py-2 px-4">Tahun Ajaran</th>
+                            <th class="py-2 px-4">Semester</th>
+                            <th class="py-2 px-4">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -265,14 +268,20 @@
                                 <td class="py-2 px-4">{{ $loan->loan_date }}</td>
                                 <td class="py-2 px-4">{{ $loan->return_date ?? '-' }}</td>
                                 <td class="py-2 px-4">
-                                    <span class="badge bg-{{ $loan->status === 'Dipinjam' ? 'warning' : 'success' }}">
+                                    <span class="badge bg-{{ $loan->status === 'Dipinjam' ? 'warning' : ($loan->status === 'Dikembalikan' ? 'success' : 'danger') }}">
                                         {{ $loan->status }}
                                     </span>
                                 </td>
                                 <td class="py-2 px-4">{{ $loan->academicYear->tahun ?? '-' }}</td>
                                 <td class="py-2 px-4">{{ $loan->semester->nama ?? '-' }}</td>
                                 <td class="py-2 px-4">
-                                    <a href="#" class="btn btn-info btn-sm">Detail</a>
+                                    <a href="{{ route('book-loans.show', $loan->id) }}" class="btn btn-info btn-sm">Detail</a>
+                                    <a href="{{ route('book-loans.edit', $loan->id) }}" class="btn btn-warning btn-sm">Edit</a>
+                                    <form action="{{ route('book-loans.destroy', $loan->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus data peminjaman ini?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
+                                    </form>
                                 </td>
                             </tr>
                         @endforeach
@@ -288,38 +297,30 @@
 <div class="modal fade" id="addLoanModal" tabindex="-1" aria-labelledby="addLoanModalLabel" aria-hidden="true">
 <div class="modal-dialog modal-lg">
     <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="addLoanModalLabel">Tambah Peminjaman Buku</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            <form id="addLoanForm">
+        <form action="{{ route('book-loans.store') }}" method="POST" id="addLoanForm">
+            @csrf
+            <div class="modal-header">
+                <h5 class="modal-title" id="addLoanModalLabel">Tambah Peminjaman Buku</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
                 <div class="row mb-3">
                     <div class="col-md-6 mb-3 mb-md-0">
                         <label for="id_student" class="form-label">Pilih Siswa</label>
                         <select class="form-select" id="id_student" name="id_student" required>
                             <option value="">-- Pilih Siswa --</option>
-                            <option value="1">Ahmad Rizky (S001) - Kelas 10 IPA</option>
-                            <option value="2">Budi Santoso (S002) - Kelas 10 IPA</option>
-                            <option value="3">Citra Dewi (S003) - Kelas 10 IPS</option>
-                            <option value="4">Dian Purnama (S004) - Kelas 11 IPA</option>
-                            <option value="5">Eko Prasetyo (S005) - Kelas 11 IPS</option>
+                            @foreach($students as $student)
+                                <option value="{{ $student->id_student }}">{{ $student->fullname }} ({{ $student->id_student }}) - Kelas {{ $student->classes->name ?? '-' }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="col-md-6">
                         <label for="book_id" class="form-label">Pilih Buku</label>
                         <select class="form-select" id="book_id" name="book_id" required>
                             <option value="">-- Pilih Buku --</option>
-                            <option value="1">Matematika Kelas 10 Semester 1</option>
-                            <option value="2">Bahasa Indonesia Kelas 10</option>
-                            <option value="3">Fisika Kelas 11</option>
-                            <option value="4">Sejarah Indonesia Kelas 12</option>
-                            <option value="5">English for SMA Grade 11</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
+                            @foreach($books as $book)
+                                <option value="{{ $book->id }}">{{ $book->title }}</option>
+                            @endforeach
                     <div class="col-md-6 mb-3 mb-md-0">
                         <label for="loan_date" class="form-label">Tanggal Peminjaman</label>
                         <input type="date" class="form-control" id="loan_date" name="loan_date" required>
@@ -335,17 +336,17 @@
                         <label for="academic_year_id" class="form-label">Tahun Ajaran</label>
                         <select class="form-select" id="academic_year_id" name="academic_year_id" required>
                             <option value="">-- Pilih Tahun Ajaran --</option>
-                            <option value="1">2023/2024</option>
-                            <option value="2">2022/2023</option>
-                            <option value="3">2021/2022</option>
+                            @foreach($academicYears as $year)
+                                <option value="{{ $year->id }}">{{ $year->tahun }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="col-md-6">
                         <label for="semester_id" class="form-label">Semester</label>
                         <select class="form-select" id="semester_id" name="semester_id" required>
                             <option value="">-- Pilih Semester --</option>
-                            <option value="1">Ganjil</option>
-                            <option value="2">Genap</option>
+                            <option value="1" {{ request('semester_id') == 1 ? 'selected' : '' }}>Ganjil</option>
+                            <option value="2" {{ request('semester_id') == 2 ? 'selected' : '' }}>Genap</option>
                         </select>
                     </div>
                 </div>
@@ -564,175 +565,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Sample data for books
-    const books = [
-        {
-            id: 1,
-            title: 'Matematika Kelas 10 Semester 1',
-            author: 'Dr. Budi Santoso',
-            publisher: 'Erlangga',
-            year_published: 2022,
-            stock: 45,
-            created_at: '2023-01-15 08:30:00',
-            updated_at: '2023-01-15 08:30:00'
-        },
-        {
-            id: 2,
-            title: 'Bahasa Indonesia Kelas 10',
-            author: 'Dra. Siti Rahayu',
-            publisher: 'Gramedia',
-            year_published: 2022,
-            stock: 50,
-            created_at: '2023-01-15 09:15:00',
-            updated_at: '2023-01-15 09:15:00'
-        },
-        {
-            id: 3,
-            title: 'Fisika Kelas 11',
-            author: 'Prof. Ahmad Wijaya',
-            publisher: 'Yudhistira',
-            year_published: 2021,
-            stock: 30,
-            created_at: '2023-01-16 10:20:00',
-            updated_at: '2023-01-16 10:20:00'
-        },
-        {
-            id: 4,
-            title: 'Sejarah Indonesia Kelas 12',
-            author: 'Dr. Hendra Gunawan',
-            publisher: 'Erlangga',
-            year_published: 2021,
-            stock: 25,
-            created_at: '2023-01-17 11:45:00',
-            updated_at: '2023-01-17 11:45:00'
-        },
-        {
-            id: 5,
-            title: 'English for SMA Grade 11',
-            author: 'Sarah Johnson',
-            publisher: 'Cambridge Press',
-            year_published: 2022,
-            stock: 10,
-            created_at: '2023-01-18 13:10:00',
-            updated_at: '2023-01-18 13:10:00'
-        }
-    ];
-
-    // Sample data for students
-    const students = [
-        {
-            id: 1,
-            name: 'Ahmad Rizky',
-            nis: 'S001',
-            class: '10 IPA'
-        },
-        {
-            id: 2,
-            name: 'Budi Santoso',
-            nis: 'S002',
-            class: '10 IPA'
-        },
-        {
-            id: 3,
-            name: 'Citra Dewi',
-            nis: 'S003',
-            class: '10 IPS'
-        },
-        {
-            id: 4,
-            name: 'Dian Purnama',
-            nis: 'S004',
-            class: '11 IPA'
-        },
-        {
-            id: 5,
-            name: 'Eko Prasetyo',
-            nis: 'S005',
-            class: '11 IPS'
-        }
-    ];
-
-    // Sample data for academic years
-    const academicYears = [
-        { id: 1, name: '2023/2024' },
-        { id: 2, name: '2022/2023' },
-        { id: 3, name: '2021/2022' }
-    ];
-
-    // Sample data for semesters
-    const semesters = [
-        { id: 1, name: 'Ganjil' },
-        { id: 2, name: 'Genap' }
-    ];
-
-    // Sample data for book loans
-    const bookLoans = [
-        {
-            id: 1,
-            id_student: 1,
-            book_id: 1,
-            loan_date: '2023-08-01',
-            due_date: '2023-08-15',
-            return_date: null,
-            status: 'borrowed',
-            created_at: '2023-08-01 10:15:00',
-            updated_at: '2023-08-01 10:15:00',
-            academic_year_id: 1,
-            semester_id: 1
-        },
-        {
-            id: 2,
-            id_student: 2,
-            book_id: 2,
-            loan_date: '2023-07-15',
-            due_date: '2023-07-29',
-            return_date: '2023-07-28',
-            status: 'returned',
-            created_at: '2023-07-15 09:30:00',
-            updated_at: '2023-07-28 14:20:00',
-            academic_year_id: 1,
-            semester_id: 1
-        },
-        {
-            id: 3,
-            id_student: 3,
-            book_id: 3,
-            loan_date: '2023-07-10',
-            due_date: '2023-07-24',
-            return_date: null,
-            status: 'overdue',
-            created_at: '2023-07-10 11:45:00',
-            updated_at: '2023-07-25 08:10:00',
-            academic_year_id: 1,
-            semester_id: 1
-        },
-        {
-            id: 4,
-            id_student: 4,
-            book_id: 4,
-            loan_date: '2023-08-05',
-            due_date: '2023-08-19',
-            return_date: null,
-            status: 'borrowed',
-            created_at: '2023-08-05 13:20:00',
-            updated_at: '2023-08-05 13:20:00',
-            academic_year_id: 1,
-            semester_id: 1
-        },
-        {
-            id: 5,
-            id_student: 5,
-            book_id: 5,
-            loan_date: '2023-07-20',
-            due_date: '2023-08-03',
-            return_date: '2023-08-05',
-            status: 'returned',
-            created_at: '2023-07-20 10:30:00',
-            updated_at: '2023-08-05 15:45:00',
-            academic_year_id: 1,
-            semester_id: 1
-        }
-    ];
 
     // Set today's date as default for loan dates
     const today = new Date();
