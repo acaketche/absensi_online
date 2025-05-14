@@ -17,10 +17,9 @@ use App\Http\Controllers\EmployeeAttendanceController;
 use App\Http\Controllers\AttendanceStatusController;
 use App\Http\Controllers\RaporController;
 use App\Http\Controllers\PaymentController;
+use App\Models\Kelas;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::redirect('/', '/login/employee');
 
 // Resource routes
 Route::resource('students', StudentController::class);
@@ -52,26 +51,13 @@ Route::resource('books', BookController::class);
 Route::resource('book-loans', BookLoanController::class);
 Route::get('/books/kelas-siswa', [BookLoanController::class, 'kelasSiswa'])->name('book-loans.kelas-siswa');
 
-Route::get('/api/class/{id}/students', function ($id) {
-    $class = \App\Models\Kelas::findOrFail($id);
-    $students = \App\Models\Student::where('class_id', $id)->get();
-    return response()->json([
-        'class_name' => $class->name,
-        'students' => $students
-    ]);
-});
-
-Route::get('/api/student/{id}/loans', function ($id) {
-    $loans = \App\Models\BookLoan::with('book')->where('id_student', $id)->get();
-    return response()->json($loans);
-});
 
 
-    Route::resource('users', UserController::class);
-    Route::get('/dashboard/admin', [DashboardController::class, 'admin'])->name('dashboard.admin');
-    Route::get('/dashboard/piket', [DashboardController::class, 'piket'])->name('dashboard.piket');
-    Route::get('/dashboard/perpus', [DashboardController::class, 'perpus'])->name('dashboard.perpus');
-    Route::get('/dashboard/default', [DashboardController::class, 'default'])->name('dashboard.default');
+Route::resource('users', UserController::class);
+Route::get('/dashboard/admin', [DashboardController::class, 'admin'])->name('dashboard.admin');
+Route::get('/dashboard/piket', [DashboardController::class, 'piket'])->name('dashboard.piket');
+Route::get('/dashboard/perpus', [DashboardController::class, 'perpus'])->name('dashboard.perpus');
+Route::get('/dashboard/default', [DashboardController::class, 'default'])->name('dashboard.default');
 
 Route::post('/academic-years/{id}/set-active', [AcademicYearController::class, 'setActive'])->name('academic_years.setActive');
 Route::resource('attendance', EmployeeAttendanceController::class);
@@ -93,7 +79,7 @@ Route::prefix('login')->group(function () {
     Route::post('/reset-password', [EmployeeLoginController::class, 'resetPassword'])->name('password.update');
 
     Route::get('/student', [StudentLoginController::class, 'showLoginForm'])->name('login.student');
-    Route::post('/student', [StudentLoginController::class, 'login']);
+    Route::post('/student', [StudentLoginController::class, 'login'])->name('login.student.post');
 });
 
 Route::post('/logout/employee', [EmployeeLoginController::class, 'logout'])->name('logout.employee');
