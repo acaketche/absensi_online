@@ -30,4 +30,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('payments-history', [App\Http\Controllers\Api\PaymentsController::class, 'index'])->name('api.payments.history');
 
     Route::get('student-acchievement', [App\Http\Controllers\Api\StudentAchievementController::class, 'index'])->name('api.student.acchievement');
+
+    Route::post('/student/attendance', [App\Http\Controllers\API\AttendanceController::class, 'studentAttendance'])->name('api.student.attendance');
 });
