@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\StudentAttendance;
 use Exception;
 use Illuminate\Http\Request;
 use League\Geotools\Coordinate\Coordinate;
@@ -45,5 +46,18 @@ class AttendanceController extends Controller
                 'message' => "Terjadi kesalahan: $err",
             ], 403);
         }
+    }
+
+    public function getHistories()
+    {
+        $oneDayAgo = \Carbon\Carbon::now()->subDay();
+
+        $attendances = StudentAttendance::where('created_at', '>=', $oneDayAgo)->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Attendance history from the last 24 hours retrieved successfully.',
+            'data' => $attendances,
+        ]);
     }
 }

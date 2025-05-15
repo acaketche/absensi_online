@@ -11,9 +11,16 @@ class AttendanceStatus extends Model
 
     protected $table = 'attendance_status';
 
+    protected $primaryKey = 'status_id';
+
+    public $timestamps = true;
+
     protected $fillable = [
         'status_name'
     ];
 
-    public $timestamps = true;
+    public function studentAttendances()
+    {
+        $this->hasMany(StudentAttendance::class, 'status_id');
+    }
 }
