@@ -359,12 +359,15 @@
             <form id="filterForm" class="row g-3">
                 <div class="col-md-4">
                     <label for="filterTahunAjaran" class="form-label">Tahun Ajaran</label>
-                    <select class="form-select" id="filterTahunAjaran" name="academic_year_id">
-                        <option value="">Semua Tahun Ajaran</option>
-                        @foreach($academicYears as $year)
-                        <option value="{{ $year->id }}">{{ $year->name }}</option>
-                        @endforeach
-                    </select>
+                    <select id="academicYearSelect" name="academic_year_id" class="form-control">
+                                <option value="">-- Pilih Tahun --</option>
+                                @foreach ($academicYears as $tahun)
+                                    <option value="{{ $tahun->id }}"
+                                        {{ request('academic_year_id') == $tahun->id ? 'selected' : '' }}>
+                                        {{ $tahun->year_name }}
+                                    </option>
+                                @endforeach
+                            </select>
                 </div>
                 <div class="col-md-4">
                     <label for="filterTingkat" class="form-label">Tingkat</label>
@@ -373,15 +376,6 @@
                         <option value="10">Kelas 10</option>
                         <option value="11">Kelas 11</option>
                         <option value="12">Kelas 12</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label for="filterJurusan" class="form-label">Jurusan</label>
-                    <select class="form-select" id="filterJurusan" name="major">
-                        <option value="">Semua Jurusan</option>
-                        <option value="IPA">IPA</option>
-                        <option value="IPS">IPS</option>
-                        <option value="Bahasa">Bahasa</option>
                     </select>
                 </div>
                 <div class="col-12 mt-3">
@@ -405,7 +399,7 @@
                     </div>
                     <h5 class="class-title">{{ $class->class_name }}</h5>
                     <p class="class-teacher">
-                        <i class="fas fa-user-tie"></i> {{ $class->teacher->name ?? 'Belum ada wali kelas' }}
+                        <i class="fas fa-user-tie"></i> {{ $class->employee->fullname ?? 'Belum ada wali kelas' }}
                     </p>
                     <div class="class-meta">
                         <span><i class="fas fa-calendar-alt me-1"></i> {{ $class->academic_year->name ?? 'Tahun Ajaran' }}</span>
