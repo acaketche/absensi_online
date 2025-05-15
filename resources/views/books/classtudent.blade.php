@@ -254,7 +254,7 @@
                 </div>
             @endif
         </div>
-        <div class="card-footer bg-light">
+        <div class="card-footer bg-light ">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <span class="fw-bold">Total Siswa:</span> {{ $students->count() }} orang
