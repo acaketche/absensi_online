@@ -43,12 +43,8 @@
 </head>
 <body class="bg-light">
 <div class="d-flex">
-    <!-- Sidebar -->
   @include('components.sidebar')
-
-    <!-- Main Content -->
     <main class="flex-grow-1 p-4">
-        <!-- Header dengan Profil Admin -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fs-4 fw-bold mb-0"></h2>
             <div class="dropdown">
@@ -87,15 +83,15 @@
             </a>
         </div>
 
-        <!-- @if ($errors->any()) -->
+         @if ($errors->any())
         <div class="alert alert-danger">
             <ul class="mb-0">
-                <!-- @foreach ($errors->all() as $error) -->
-                <li><!-- {{ $error }} --></li>
-                <!-- @endforeach -->
+                 @foreach ($errors->all() as $error)
+                <li> {{ $error }}</li>
+                 @endforeach
             </ul>
         </div>
-        <!-- @endif -->
+         @endif
 
         <div class="card">
             <div class="card-header bg-primary text-white">
@@ -109,29 +105,29 @@
                             <label for="academic_year_id" class="form-label">Tahun Ajaran</label>
                             <select class="form-select @error('academic_year_id') is-invalid @enderror" id="academic_year_id" name="academic_year_id" required>
                                 <option value="">-- Pilih Tahun Ajaran --</option>
-                                <!-- @foreach($academicYears as $year) -->
+                                 @foreach($academicYears as $year)
                                 <option value="{{ $year->id }}" {{ old('academic_year_id') == $year->id ? 'selected' : '' }}>
-                                    <!-- {{ $year->name }} -->
+                                     {{ $year->year_name }}
                                 </option>
-                                <!-- @endforeach -->
+                                 @endforeach
                             </select>
-                            <!-- @error('academic_year_id') -->
-                            <div class="invalid-feedback"><!-- {{ $message }} --></div>
-                            <!-- @enderror -->
+                             @error('academic_year_id')
+                            <div class="invalid-feedback"> {{ $message }}</div>
+                             @enderror
                         </div>
                         <div class="col-md-6">
                             <label for="semester_id" class="form-label">Semester</label>
                             <select class="form-select @error('semester_id') is-invalid @enderror" id="semester_id" name="semester_id" required>
                                 <option value="">-- Pilih Semester --</option>
-                                <!-- @foreach($semesters as $semester) -->
+                                 @foreach($semesters as $semester)
                                 <option value="{{ $semester->id }}" {{ old('semester_id') == $semester->id ? 'selected' : '' }}>
-                                    <!-- {{ $semester->name }} -->
+                                     {{ $semester->semester_name }}
                                 </option>
-                                <!-- @endforeach -->
+                                 @endforeach
                             </select>
-                            <!-- @error('semester_id') -->
-                            <div class="invalid-feedback"><!-- {{ $message }} --></div>
-                            <!-- @enderror -->
+                             @error('semester_id')
+                            <div class="invalid-feedback"> {{ $message }}</div>
+                             @enderror
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -139,52 +135,52 @@
                             <label for="class_id" class="form-label">Kelas</label>
                             <select class="form-select @error('class_id') is-invalid @enderror" id="class_id" name="class_id" required>
                                 <option value="">-- Pilih Kelas --</option>
-                                <!-- @foreach($classes as $class) -->
+                                 @foreach($classes as $class)
                                 <option value="{{ $class->id }}" {{ old('class_id') == $class->id ? 'selected' : '' }}>
-                                    <!-- {{ $class->name }} -->
+                                     {{ $class->class_name }}
                                 </option>
-                                <!-- @endforeach -->
+                                 @endforeach
                             </select>
-                            <!-- @error('class_id') -->
-                            <div class="invalid-feedback"><!-- {{ $message }} --></div>
-                            <!-- @enderror -->
+                             @error('class_id')
+                            <div class="invalid-feedback"> {{ $message }}</div>
+                             @enderror
                         </div>
                         <div class="col-md-6">
                             <label for="id_student" class="form-label">Siswa</label>
                             <select class="form-select @error('id_student') is-invalid @enderror" id="id_student" name="id_student" required>
                                 <option value="">-- Pilih Siswa --</option>
-                                <!-- @foreach($students as $student) -->
+                                 @foreach($students as $student)
                                 <option value="{{ $student->id }}" {{ old('id_student', request()->get('student_id')) == $student->id ? 'selected' : '' }}>
-                                    <!-- {{ $student->name }} ({{ $student->nis }}) -->
+                                     {{ $student->fullname }} - {{ $student->id_student}}
                                 </option>
-                                <!-- @endforeach -->
+                                 @endforeach
                             </select>
-                            <!-- @error('id_student') -->
-                            <div class="invalid-feedback"><!-- {{ $message }} --></div>
-                            <!-- @enderror -->
+                             @error('id_student')
+                            <div class="invalid-feedback"> {{ $message }}</div>
+                             @enderror
                         </div>
                     </div>
                     <div class="mb-3">
                         <label for="report_date" class="form-label">Tanggal Rapor</label>
                         <input type="date" class="form-control @error('report_date') is-invalid @enderror" id="report_date" name="report_date" value="{{ old('report_date') }}" required>
-                        <!-- @error('report_date') -->
-                        <div class="invalid-feedback"><!-- {{ $message }} --></div>
-                        <!-- @enderror -->
+                         @error('report_date')
+                        <div class="invalid-feedback"> {{ $message }}</div>
+                         @enderror
                     </div>
                     <div class="mb-3">
                         <label for="description" class="form-label">Keterangan (Opsional)</label>
                         <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3">{{ old('description') }}</textarea>
-                        <!-- @error('description') -->
-                        <div class="invalid-feedback"><!-- {{ $message }} --></div>
-                        <!-- @enderror -->
+                         @error('description')
+                        <div class="invalid-feedback"> {{ $message }}</div>
+                         @enderror
                     </div>
                     <div class="mb-3">
                         <label for="file" class="form-label">File Rapor (PDF)</label>
                         <input type="file" class="form-control @error('file') is-invalid @enderror" id="file" name="file" accept=".pdf" required>
                         <div class="form-text">Upload file dalam format PDF. Maksimal ukuran file 2MB.</div>
-                        <!-- @error('file') -->
-                        <div class="invalid-feedback"><!-- {{ $message }} --></div>
-                        <!-- @enderror -->
+                         @error('file')
+                        <div class="invalid-feedback"> {{ $message }}</div>
+                         @enderror
                     </div>
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary">

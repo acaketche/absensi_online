@@ -194,7 +194,7 @@
                         <option value="">-- Pilih Kelas --</option>
                         @foreach ($classes as $class)
                             <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
-                                {{ $class->name }}
+                                {{ $class->class_name }}
                             </option>
                         @endforeach
                     </select>
@@ -205,7 +205,7 @@
                         <option value="">-- Pilih Tahun Akademik --</option>
                         @foreach($academicYears as $year)
                             <option value="{{ $year->id }}" {{ $academicYearId == $year->id ? 'selected' : '' }}>
-                                {{ $year->name }}
+                                {{ $year->year_name }}
                             </option>
                         @endforeach
                     </select>
@@ -216,7 +216,7 @@
                         <option value="">-- Pilih Semester --</option>
                         @foreach($semesters as $semester)
                             <option value="{{ $semester->id }}" {{ $semesterId == $semester->id ? 'selected' : '' }}>
-                                {{ $semester->name }}
+                                {{ $semester->semester_name }}
                             </option>
                         @endforeach
                     </select>

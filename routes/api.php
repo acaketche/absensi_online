@@ -25,8 +25,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('profile-student', [App\Http\Controllers\Api\StudentController::class, 'profile'])->name('api.profile');
     Route::post('profile-update', [App\Http\Controllers\Api\StudentController::class, 'editProfile'])->name('api.profile.update');
 
-    // Route::get('cek-location', [App\Http\Controllers\Api\StudentController::class, 'cekLocation'])->name('api.cek.location');
-    Route::get('book-loan/{id}', [App\Http\Controllers\Api\BooksController::class, 'index'])->name('api.book-loan');
+    Route::get('book-loan', [App\Http\Controllers\Api\BooksController::class, 'index'])->name('api.book-loan');
 
     Route::get('payments-history', [App\Http\Controllers\Api\PaymentsController::class, 'index'])->name('api.payments.history');
+
+    Route::get('student-acchievement', [App\Http\Controllers\Api\StudentAchievementController::class, 'index'])->name('api.student.acchievement');
 });

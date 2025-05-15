@@ -92,7 +92,7 @@ class RaporController extends Controller
             'academic_year_id' => $request->academic_year_id,
             'semester_id' => $request->semester_id,
             'report_date' => $request->report_date,
-            'file_path' => $filePath ?? '', // Jika tidak ada file, simpan path kosong
+            'file_path' => $filePath ?? '',
             'description' => $request->description,
         ]);
 
