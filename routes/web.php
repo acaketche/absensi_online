@@ -80,6 +80,8 @@ Route::middleware(['web', 'auth:employee', 'role:2'])->group(function () {
     Route::get('/book-loans', [BookLoanController::class, 'index'])->name('book-loans.index');
     Route::get('/book-loans/classes/{classId}/students', [BookLoanController::class, 'classStudents'])->name('book-loans.class-students');
     Route::get('/book-loans/students/{studentId}/books', [BookLoanController::class, 'studentBooks'])->name('book-loans.student-books');
+    Route::get('/book-loans/student/{id}', [BookLoanController::class, 'studentLoans'])->name('book-loans.student');
+
     // Manajemen Pembayaran
     Route::get('/payment/listdata', [PaymentController::class, 'listData'])->name('payment.listdata');
     Route::get('/payment/create', [PaymentController::class, 'create'])->name('payment.create');
@@ -153,4 +155,5 @@ Route::middleware(['web', 'auth:employee', 'role:5'])->group(function () {
     Route::get('/book-loans', [BookLoanController::class, 'index'])->name('book-loans.index');
     Route::get('/book-loans/classes/{classId}/students', [BookLoanController::class, 'classStudents'])->name('book-loans.class-students');
     Route::get('/book-loans/students/{studentId}/books', [BookLoanController::class, 'studentBooks'])->name('book-loans.student-books');
+    Route::post('/book-loans', [BookLoanController::class, 'store'])->name('book-loans.store');
 });

@@ -224,6 +224,9 @@
                 <i class="fas fa-book me-1"></i> Daftar Buku Dipinjam
             </div>
             <div class="d-flex">
+                <button type="button" class="btn btn-sm btn-success me-2" data-bs-toggle="modal" data-bs-target="#addLoanModal">
+                    <i class="fas fa-plus me-1"></i> Tambah
+                </button>
                 <input type="text" id="searchBook" class="form-control form-control-sm me-2" placeholder="Cari buku...">
                 <button class="btn btn-sm btn-light" id="printBookList">
                     <i class="fas fa-print me-1"></i> Cetak
@@ -334,6 +337,78 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Tambah Peminjaman -->
+<div class="modal fade" id="addLoanModal" tabindex="-1" aria-labelledby="addLoanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <form action="{{ route('book-loans.store') }}" method="POST" class="modal-content">
+        @csrf
+        <div class="modal-header">
+          <h5 class="modal-title" id="addLoanModalLabel">Tambah Peminjaman Buku</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="id_student" value="{{ $student->id_student }}">
+
+          <div class="mb-3">
+            <label for="book_id" class="form-label">Pilih Buku</label>
+            <select name="book_id" id="book_id" class="form-select" required>
+              <option value="" selected disabled>-- Pilih Buku --</option>
+              @foreach($books as $book)
+                <option value="{{ $book->id }}">{{ $book->title }} ({{ $book->book_code }})</option>
+              @endforeach
+            </select>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="loan_date" class="form-label">Tanggal Pinjam</label>
+              <input type="date" name="loan_date" id="loan_date" class="form-control" value="{{ date('Y-m-d') }}" required>
+            </div>
+            <div class="col-md-6">
+              <label for="due_date" class="form-label">Tanggal Kembali</label>
+              <input type="date" name="due_date" id="due_date" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <label for="status" class="form-label">Status</label>
+            <select name="status" id="status" class="form-select" required>
+              <option value="Dipinjam" selected>Dipinjam</option>
+              <option value="Dikembalikan">Dikembalikan</option>
+            </select>
+          </div>
+
+          <div class="row g-3 mt-2">
+            <div class="col-md-6">
+              <label for="academic_year_id" class="form-label">Tahun Akademik</label>
+              <select name="academic_year_id" id="academic_year_id" class="form-select" required>
+                <option value="" selected disabled>-- Pilih Tahun Akademik --</option>
+                @foreach($academicYears as $year)
+                  <option value="{{ $year->id }}">{{ $year->year_name }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="semester_id" class="form-label">Semester</label>
+              <select name="semester_id" id="semester_id" class="form-select" required>
+                <option value="" selected disabled>-- Pilih Semester --</option>
+                @foreach($semesters as $semester)
+                  <option value="{{ $semester->id }}">{{ $semester->semester_name }}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan Peminjaman</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   </main>
 </div>
 

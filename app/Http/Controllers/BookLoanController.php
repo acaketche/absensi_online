@@ -9,6 +9,7 @@ use App\Models\Classes; // Perubahan nama model Kelas
 use Illuminate\Http\Request;
 use App\Models\AcademicYear;
 use App\Models\Semester;
+use Carbon\Carbon;
 
 
 
@@ -16,12 +17,12 @@ class BookLoanController extends Controller
 {
     public function index()
         {
-            $loans = BookLoan::with([
-                'student.classes',
-                'book',
-                'academicYear',
-                'semester'
-            ])->get();
+        $loans = BookLoan::with([
+            'student.class',
+            'book',
+            'academicYear',
+            'semester'
+        ])->get();
 
             $classes = Classes::all();
             $books = Book::all();
@@ -31,13 +32,17 @@ class BookLoanController extends Controller
             return view('books.booksloans', compact('loans', 'classes', 'books', 'students', 'academicYears'));
         }
 
-    public function edit($id)
-    {
-        $loan = BookLoan::findOrFail($id);
-        $books = Book::all();
-        $students = Student::all();
-        return view('book_loans.edit', compact('loan', 'books', 'students'));
-    }
+        public function edit($id)
+        {
+            $loan = BookLoan::findOrFail($id);
+            $books = Book::all();
+            $students = Student::all();
+            $academicYears = AcademicYear::all();  // Tambahkan ini
+            $semesters = Semester::all();          // Tambahkan ini jika butuh
+
+            return view('book_loans.edit', compact('loan', 'books', 'students', 'academicYears', 'semesters'));
+        }
+
 
     public function update(Request $request, $id)
     {
@@ -119,9 +124,44 @@ class BookLoanController extends Controller
         return redirect()->route('book-loans.index')->with('success', 'Data peminjaman berhasil dihapus.');
     }
 
-    public function kelasSiswa()
+    public function classStudents($classId)
     {
-        $classes = Classes::all(); // Ambil semua data kelas dari model Classes
-        return view('books.kelas_siswa_peminjaman', compact('classes')); // Tampilkan view dengan data kelas
+        $class = Classes::findOrFail($classId);
+
+        // Ambil semua siswa dan relasi peminjaman buku
+        $students = Student::withCount(['bookLoans', 'overdueLoans'])
+                    ->where('class_id', $classId)
+                    ->get();
+
+        // Hitung total semua buku yang dipinjam oleh siswa di kelas ini
+        $totalBookLoans = $students->sum('book_loans_count');
+
+        return view('books.classtudent', compact('class', 'students', 'totalBookLoans'));
     }
+
+
+    public function studentBooks($id)
+    {
+        $student = Student::with('class')->findOrFail($id);
+
+        $bookLoans = BookLoan::with('book')
+            ->where('id_student', $student->id_student)
+            ->orderByDesc('loan_date')
+            ->get();
+
+        $overdueCount = $bookLoans->where('status', 'borrowed')->filter(function ($loan) {
+            return Carbon::now()->gt($loan->due_date);
+        })->count();
+
+        $books = Book::all();
+
+        // Tambahkan academicYears dan semesters
+        $academicYears = AcademicYear::all();
+        $semesters = Semester::all();
+
+        return view('books.studentbook', compact('student', 'bookLoans', 'overdueCount', 'books', 'academicYears', 'semesters'));
+    }
+
+
+
 }
