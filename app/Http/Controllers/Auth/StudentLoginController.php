@@ -17,11 +17,12 @@ class StudentLoginController extends Controller
     {
         $credentials = $request->only('id_student', 'password');
 
+
         if (Auth::guard('student')->attempt($credentials)) {
             return redirect()->route('dashboard.student');
         }
 
-        return back()->withErrors(['error' => 'ID atau password salah.']);
+        return back()->withErrors(['login' => 'ID atau password salah.']);
     }
 
     public function logout()

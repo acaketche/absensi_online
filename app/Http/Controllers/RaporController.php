@@ -23,9 +23,16 @@ class RaporController extends Controller
             $query->where('academic_year_id', $request->academic_year_id);
         }
 
-        if ($request->filled('grade')) {
-            $query->where('grade', $request->grade);
-        }
+        // Menyimpan data rapor ke database
+        Rapor::create([
+            'id_student' => $request->id_student,
+            'class_id' => $request->class_id,
+            'academic_year_id' => $request->academic_year_id,
+            'semester_id' => $request->semester_id,
+            'report_date' => $request->report_date,
+            'file_path' => $filePath ?? '',
+            'description' => $request->description,
+        ]);
 
         if ($request->filled('major')) {
             $query->where('major', $request->major);
