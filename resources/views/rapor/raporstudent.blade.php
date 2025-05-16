@@ -398,6 +398,18 @@
         <a href="{{ route('rapor.classes') }}" class="back-button">
             <i class="fas fa-arrow-left"></i> Kembali ke Daftar Kelas
         </a>
+         <!-- Header Section -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+            <div>
+                <h2 class="fs-4 fw-bold mb-1"></h2>
+            </div>
+            <div class="d-flex gap-2 mt-2 mt-md-0">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" placeholder="Cari nama siswa atau NIS/NISN..." class="form-control" id="searchInput">
+                </div>
+            </div>
+        </div>
 
         <!-- Class Info -->
         <div class="class-info">
@@ -405,10 +417,10 @@
                 <i class="fas fa-chalkboard"></i>
             </div>
             <div class="class-details">
-                <h3 class="class-name">{{ $class->name }}</h3>
+                <h3 class="class-name">{{ $class->class_name }}</h3>
                 <div class="class-meta">
                     <div class="class-meta-item">
-                        <i class="fas fa-user-tie"></i> {{ $class->teacher->name ?? 'Belum ada wali kelas' }}
+                        <i class="fas fa-user-tie"></i> {{ $employee->fullname ?? 'Belum ada wali kelas' }}
                     </div>
                     <div class="class-meta-item">
                         <i class="fas fa-calendar-alt"></i> {{ $class->academicYear->name ?? 'Tahun Ajaran' }}
@@ -420,25 +432,6 @@
             </div>
         </div>
 
-        <!-- Header Section -->
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-            <div>
-                <h2 class="fs-4 fw-bold mb-1">Data Siswa {{ $class->name }}</h2>
-                <p class="text-muted mb-0">Kelola nilai rapor siswa</p>
-            </div>
-            <div class="d-flex gap-2 mt-2 mt-md-0">
-                <div class="search-container">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" placeholder="Cari nama siswa atau NIS/NISN..." class="form-control" id="searchInput">
-                </div>
-            </div>
-        </div>
-
-        <!-- Info Alert -->
-        <div class="info-alert mb-4">
-            <i class="fas fa-info-circle"></i>
-            <div>Menampilkan data siswa kelas {{ $class->name }}</div>
-        </div>
 
         <!-- Data Siswa -->
         <div class="card">

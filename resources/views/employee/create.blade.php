@@ -160,7 +160,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="role_id" class="form-label">Role</label>
-                                <select class="form-control @error('role_id') is-invalid @enderror" id="role_id" name="role_id" required>
+                                <select class="form-control @error('role_id') is-invalid @enderror" id="role_id" name="role_id">
                                     <option value="">-- Pilih Role --</option>
                                     @foreach($roles ?? [] as $role)
                                         <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>{{ $role->role_name }}</option>
