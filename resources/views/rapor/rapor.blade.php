@@ -4,125 +4,298 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Data Nilai Siswa</title>
+    <title>Data Kelas | E-School</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <style>
-        /* Main Content Styles */
-        .main-content {
-            flex: 1;
-            padding: 30px;
-            background: #f5f5f5;
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+            --danger-color: #e63946;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
+        body {
+            background-color: #f5f7fb;
+            font-family: 'Poppins', sans-serif;
         }
 
-        .search-bar {
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-weight: 600;
+            padding: 16px 20px;
+            border: none;
+        }
+
+        .search-container {
             position: relative;
-            display: flex;
-            align-items: center;
+            margin-bottom: 24px;
         }
 
-        .search-bar input {
-            padding: 10px 35px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            width: 300px;
+        .search-container input {
+            border-radius: 50px;
+            padding: 12px 20px 12px 50px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            font-size: 15px;
+            transition: all 0.3s ease;
         }
 
-        .search-bar i {
+        .search-container input:focus {
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+            border-color: var(--primary-color);
+        }
+
+        .search-container .search-icon {
             position: absolute;
-            left: 10px;
-            color: #666;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            font-size: 16px;
         }
 
-        .btn-primary, .bg-primary {
-            background-color: #4266B9 !important;
-            border-color: #4266B9 !important;
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: 50px;
+            padding: 10px 24px;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
         .btn-primary:hover {
-            background-color: #365796 !important;
-            border-color: #365796 !important;
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
         }
 
-        .text-primary {
-            color: #4266B9 !important;
+        .class-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
         }
 
-        .pdf-preview {
-            width: 100%;
-            height: 500px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        .class-card {
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .class-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .class-card .card-body {
+            padding: 20px;
+        }
+
+        .class-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .class-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #777;
+        }
+
+        .class-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .student-count {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary-color);
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .student-count i {
+            margin-right: 5px;
+        }
+
+        .class-teacher {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .class-teacher i {
+            margin-right: 5px;
+            color: var(--primary-color);
+        }
+
+        .class-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            margin-bottom: 15px;
         }
 
         .filter-section {
-            background-color: #f8f9fa;
-            border-radius: 0.25rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
         }
 
-        .student-info {
+        .filter-section:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .filter-title {
             display: flex;
             align-items: center;
-            gap: 15px;
+            margin-bottom: 20px;
+            color: var(--primary-color);
         }
 
-        .student-photo {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            object-fit: cover;
+        .filter-title i {
+            margin-right: 10px;
+            font-size: 1.2rem;
         }
 
-        .student-details {
+        .form-select, .form-control {
+            border-radius: 8px;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .form-select:focus, .form-control:focus {
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+            border-color: var(--primary-color);
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .info-alert {
+            background: linear-gradient(135deg, #4cc9f0, #4361ee);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 24px;
             display: flex;
-            flex-direction: column;
+            align-items: center;
         }
 
-        .student-name {
-            font-weight: bold;
-            margin-bottom: 0;
+        .info-alert i {
+            font-size: 1.5rem;
+            margin-right: 15px;
         }
 
-        .student-id {
-            font-size: 0.8rem;
-            color: #6c757d;
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
         }
 
-        .nilai-badge {
-            font-size: 0.8rem;
-            padding: 0.3rem 0.5rem;
+        .empty-icon {
+            font-size: 48px;
+            color: #ccc;
+            margin-bottom: 20px;
         }
 
-        .toggle-rapor {
+        .empty-text {
+            color: #888;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .toggle-filters {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
             cursor: pointer;
-            color: #4266B9;
+            padding: 8px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
         }
 
-        .rapor-row {
-            background-color: #f8f9fa;
+        .toggle-filters:hover {
+            background-color: rgba(67, 97, 238, 0.1);
         }
 
+        .toggle-filters i {
+            margin-right: 8px;
+        }
 
+        @media (max-width: 768px) {
+            .class-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+
+            .header-actions {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 @if(Auth::guard('employee')->check())
-<body class="bg-light">
+<body>
 <div class="d-flex">
     <!-- Sidebar -->
-   @include('components.sidebar')
+    @include('components.sidebar')
 
     <!-- Main Content -->
     <main class="flex-grow-1 p-4">
@@ -158,179 +331,103 @@
             </div>
         </div>
 
-        <header class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fs-4 fw-bold">Data Nilai Siswa</h2>
-            <div class="d-flex align-items-center">
-                <input type="text" placeholder="Cari nama siswa" class="form-control me-3" style="width: 200px;" id="searchInput">
-                <a href="{{ route('Rapor.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i> Upload Rapor
-                </a>
+        <!-- Header Section -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+            <div>
+                <h2 class="fs-4 fw-bold mb-1">Data Kelas</h2>
+                <p class="text-muted mb-0">Pilih kelas untuk melihat data nilai siswa</p>
             </div>
-        </header>
+            <div class="d-flex gap-2 mt-2 mt-md-0">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" placeholder="Cari kelas..." class="form-control" id="searchInput">
+                </div>
+            </div>
+        </div>
+
+        <!-- Toggle Filters Button -->
+        <button class="toggle-filters mb-3" id="toggleFilters">
+            <i class="fas fa-filter"></i> Filter Kelas
+        </button>
 
         <!-- Filter Section -->
-        <div class="filter-section mb-4">
-            <h5 class="mb-3">Filter Data Siswa</h5>
+        <div class="filter-section mb-4" id="filterSection" style="display: none;">
+            <div class="filter-title">
+                <i class="fas fa-sliders-h"></i>
+                <h5 class="mb-0">Filter Data Kelas</h5>
+            </div>
             <form id="filterForm" class="row g-3">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label for="filterTahunAjaran" class="form-label">Tahun Ajaran</label>
-                    <select class="form-select" id="filterTahunAjaran" name="academic_year_id">
-                        <option value="">Semua Tahun Ajaran</option>
-                        <!-- Loop through academic years -->
-                        <!-- @foreach($academicYears as $year)
-                        <option value="{{ $year->id }}">{{ $year->name }}</option>
-                        @endforeach -->
-                    </select>
+                    <select id="academicYearSelect" name="academic_year_id" class="form-control">
+                                <option value="">-- Pilih Tahun --</option>
+                                @foreach ($academicYears as $tahun)
+                                    <option value="{{ $tahun->id }}"
+                                        {{ request('academic_year_id') == $tahun->id ? 'selected' : '' }}>
+                                        {{ $tahun->year_name }}
+                                    </option>
+                                @endforeach
+                            </select>
                 </div>
-                <div class="col-md-3">
-                    <label for="filterSemester" class="form-label">Semester</label>
-                    <select class="form-select" id="filterSemester" name="semester_id">
-                        <option value="">Semua Semester</option>
-                        <!-- Loop through semesters -->
-                        <!-- @foreach($semesters as $semester)
-                        <option value="{{ $semester->id }}">{{ $semester->name }}</option>
-                        @endforeach -->
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="filterKelas" class="form-label">Kelas</label>
-                    <select class="form-select" id="filterKelas" name="class_id">
-                        <option value="">Semua Kelas</option>
-                        <!-- Loop through classes -->
-                        <!-- @foreach($classes as $class)
-                        <option value="{{ $class->id }}">{{ $class->name }}</option>
-                        @endforeach -->
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="filterStatus" class="form-label">Status Rapor</label>
-                    <select class="form-select" id="filterStatus" name="status">
-                        <option value="">Semua Status</option>
-                        <option value="1">Sudah Ada Rapor</option>
-                        <option value="0">Belum Ada Rapor</option>
+                <div class="col-md-4">
+                    <label for="filterTingkat" class="form-label">Tingkat</label>
+                    <select class="form-select" id="filterTingkat" name="grade">
+                        <option value="">Semua Tingkat</option>
+                        <option value="10">Kelas 10</option>
+                        <option value="11">Kelas 11</option>
+                        <option value="12">Kelas 12</option>
                     </select>
                 </div>
                 <div class="col-12 mt-3">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-filter me-1"></i> Terapkan Filter
                     </button>
-                    <button type="reset" class="btn btn-secondary ms-2">
+                    <button type="reset" class="btn btn-outline-secondary ms-2">
                         <i class="fas fa-sync-alt me-1"></i> Reset
                     </button>
                 </div>
             </form>
         </div>
 
-        <!-- Info Kelas Aktif -->
-        <div class="alert alert-info d-flex align-items-center mb-4">
-            <i class="fas fa-info-circle me-2"></i>
-            <div>
-                Menampilkan data siswa
-            </div>
-        </div>
-
-        <!-- Data Nilai Siswa -->
-        <div class="card">
-            <div class="card-header bg-primary text-white">Daftar Siswa dan Nilai</div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover" id="siswaTable">
-                        <thead class="table-light">
-                            <tr>
-                                <th width="5%">No</th>
-                                <th width="30%">Siswa</th>
-                                <th width="15%">NIS/NISN</th>
-                                <th width="15%">Kelas</th>
-                                <th width="15%">Status Rapor</th>
-                                <th width="20%">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Loop through rapor data -->
-                            @foreach($rapor as $index => $item)
-                            <tr>
-                                <td>{{ $index + 1 }}</td>
-                                <td>
-                                    <div class="student-info">
-                                        <!-- Check if the student has a photo -->
-                                        @if($item->student->photo_path)
-                                            <img src="{{ asset('storage/' . $item->student->photo_path) }}" alt="Foto {{ $item->student->name }}" class="student-photo">
-                                        @else
-                                            <img src="{{ asset('images/default-avatar.jpg') }}" alt="Foto Default" class="student-photo">
-                                        @endif
-                                        <div class="student-details">
-                                            <p class="student-name">{{ $item->student->name }}</p>
-                                            <span class="student-id">{{ $item->student->gender }}</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div>NIS: {{ $item->student->nis }}</div>
-                                    <div>NISN: {{ $item->student->nisn }}</div>
-                                </td>
-                                <td>{{ $item->class->name ?? '-' }}</td>
-                                <td>
-                                    <span class="badge bg-success">
-                                        <i class="fas fa-check-circle me-1"></i> Sudah Ada Rapor
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="d-flex gap-1">
-                                        <a href="{{ route('rapor.edit', $item->id) }}" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-edit me-1"></i> Edit
-                                        </a>
-                                        <form action="{{ route('rapor.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus rapor ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger">
-                                                <i class="fas fa-trash me-1"></i> Hapus
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                            <!-- If no rapor data, show students without rapor -->
-                            <!-- @foreach($students->whereNotIn('id', $rapor->pluck('id_student')) as $index => $student) -->
-                            <tr>
-                                <td><!-- {{ $rapor->count() + $index + 1 }} --></td>
-                                <td>
-                                    <div class="student-info">
-                                        <!-- @if($student->photo_path) -->
-                                        <img src="{{ asset('storage/' . $student->photo_path) }}" alt="Foto {{ $student->name }}" class="student-photo">
-                                        <!-- @else -->
-                                        <img src="{{ asset('images/default-avatar.jpg') }}" alt="Foto Default" class="student-photo">
-                                        <!-- @endif -->
-                                        <div class="student-details">
-                                            <p class="student-name"><!-- {{ $student->name }} --></p>
-                                            <span class="student-id"><!-- {{ $student->gender }} --></span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div>NIS: <!-- {{ $student->nis }} --></div>
-                                    <div>NISN: <!-- {{ $student->nisn }} --></div>
-                                </td>
-                                <td><!-- {{ $student->class->name ?? '-' }} --></td>
-                                <td>
-                                    <span class="badge bg-danger">
-                                        <i class="fas fa-times-circle me-1"></i> Belum Ada Rapor
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="d-flex gap-1">
-                                        <a href="{{ route('Rapor.create', ['student_id' => $student->id]) }}" class="btn btn-sm btn-success">
-                                            <i class="fas fa-upload me-1"></i> Upload
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                            <!-- @endforeach -->
-                        </tbody>
-                    </table>
+        <!-- Class Grid -->
+        <div class="class-grid">
+            @forelse($classes as $class)
+            <div class="card class-card" onclick="window.location.href='{{ route('rapor.students', $class->class_id) }}'">
+                <div class="card-body">
+                    <div class="class-icon">
+                        <i class="fas fa-chalkboard"></i>
+                    </div>
+                    <h5 class="class-title">{{ $class->class_name }}</h5>
+                    <p class="class-teacher">
+                        <i class="fas fa-user-tie"></i> {{ $class->employee->fullname ?? 'Belum ada wali kelas' }}
+                    </p>
+                    <div class="class-meta">
+                        <span><i class="fas fa-calendar-alt me-1"></i> {{ $class->academic_year->name ?? 'Tahun Ajaran' }}</span>
+                        <span><i class="fas fa-book me-1"></i> {{ $class->major ?? 'Jurusan' }}</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="student-count">
+                            <i class="fas fa-users"></i> {{ $class->students_count ?? 0 }} Siswa
+                        </span>
+                        <button class="btn btn-sm btn-primary">
+                            <i class="fas fa-arrow-right"></i> Lihat Siswa
+                        </button>
+                    </div>
                 </div>
             </div>
+            @empty
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-school"></i>
+                        </div>
+                        <h5>Belum Ada Kelas</h5>
+                        <p class="empty-text">Belum ada data kelas yang tersedia.</p>
+                    </div>
+                </div>
+            </div>
+            @endforelse
         </div>
     </main>
 </div>
@@ -338,42 +435,59 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Fungsi pencarian
+    // Toggle filter section
+    const toggleFilters = document.getElementById('toggleFilters');
+    const filterSection = document.getElementById('filterSection');
+
+    toggleFilters.addEventListener('click', function() {
+        if (filterSection.style.display === 'none') {
+            filterSection.style.display = 'block';
+            toggleFilters.innerHTML = '<i class="fas fa-times"></i> Tutup Filter';
+        } else {
+            filterSection.style.display = 'none';
+            toggleFilters.innerHTML = '<i class="fas fa-filter"></i> Filter Kelas';
+        }
+    });
+
+    // Search functionality
     document.getElementById('searchInput').addEventListener('keyup', function() {
         const searchValue = this.value.toLowerCase();
-        const tableRows = document.querySelectorAll('#siswaTable tbody tr');
+        const classCards = document.querySelectorAll('.class-card');
+        let visibleCards = 0;
 
-        tableRows.forEach(row => {
-            const studentName = row.querySelector('.student-name')?.textContent.toLowerCase() || '';
-            const studentId = row.querySelector('.student-id')?.textContent.toLowerCase() || '';
-            const nisNisn = row.cells[2]?.textContent.toLowerCase() || '';
+        classCards.forEach(card => {
+            const className = card.querySelector('.class-title').textContent.toLowerCase();
+            const teacherName = card.querySelector('.class-teacher').textContent.toLowerCase();
+            const classMeta = card.querySelector('.class-meta').textContent.toLowerCase();
 
-            if (studentName.includes(searchValue) || studentId.includes(searchValue) || nisNisn.includes(searchValue)) {
-                row.style.display = '';
+            if (className.includes(searchValue) || teacherName.includes(searchValue) || classMeta.includes(searchValue)) {
+                card.style.display = '';
+                visibleCards++;
             } else {
-                row.style.display = 'none';
+                card.style.display = 'none';
             }
         });
     });
 
-    // Fungsi filter
+    // Filter form submission
     document.getElementById('filterForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
         const tahunAjaran = document.getElementById('filterTahunAjaran').value;
-        const semester = document.getElementById('filterSemester').value;
-        const kelas = document.getElementById('filterKelas').value;
-        const status = document.getElementById('filterStatus').value;
+        const tingkat = document.getElementById('filterTingkat').value;
+        const jurusan = document.getElementById('filterJurusan').value;
 
-        // Update info kelas aktif
-        let infoText = 'Menampilkan data siswa';
+        // Update info text
+        let infoText = 'Menampilkan kelas';
 
-        if (kelas) {
-            const kelasSelect = document.getElementById('filterKelas');
-            const kelasText = kelasSelect.options[kelasSelect.selectedIndex].text;
-            infoText += ` kelas <strong>${kelasText}</strong>`;
+        if (tingkat) {
+            infoText += ` tingkat <strong>${tingkat}</strong>`;
         } else {
-            infoText += ` <strong>semua kelas</strong>`;
+            infoText += ' semua tingkat';
+        }
+
+        if (jurusan) {
+            infoText += ` jurusan <strong>${jurusan}</strong>`;
         }
 
         if (tahunAjaran) {
@@ -382,22 +496,54 @@ document.addEventListener('DOMContentLoaded', function() {
             infoText += ` untuk Tahun Ajaran <strong>${tahunText}</strong>`;
         }
 
-        if (semester) {
-            const semesterSelect = document.getElementById('filterSemester');
-            const semesterText = semesterSelect.options[semesterSelect.selectedIndex].text;
-            infoText += ` Semester <strong>${semesterText}</strong>`;
-        }
-
-        document.querySelector('.alert-info div').innerHTML = infoText;
+        document.getElementById('filterInfo').innerHTML = infoText;
 
         // In a real implementation, this would submit the form to the server
-        // For now, we'll just update the UI
+        // For now, we'll just simulate filtering
+        filterClassCards(tahunAjaran, tingkat, jurusan);
     });
 
-    // Reset filter
-    document.querySelector('#filterForm button[type="reset"]').addEventListener('click', function() {
-        document.querySelector('.alert-info div').innerHTML = 'Menampilkan data siswa';
+    // Reset filter button
+    document.getElementById('filterForm').querySelector('button[type="reset"]').addEventListener('click', function() {
+        document.getElementById('filterInfo').innerHTML = 'Menampilkan semua kelas';
+
+        // Reset class filtering
+        const classCards = document.querySelectorAll('.class-card');
+        classCards.forEach(card => {
+            card.style.display = '';
+        });
     });
+
+    // Simulate filtering class cards
+    function filterClassCards(tahunAjaran, tingkat, jurusan) {
+        const classCards = document.querySelectorAll('.class-card');
+
+        classCards.forEach(card => {
+            // In a real implementation, you would check actual data attributes
+            // This is just a simulation for demo purposes
+            const className = card.querySelector('.class-title').textContent.toLowerCase();
+            const classMeta = card.querySelector('.class-meta').textContent.toLowerCase();
+
+            let showCard = true;
+
+            if (tingkat && !className.includes(`kelas ${tingkat}`)) {
+                showCard = false;
+            }
+
+            if (jurusan && !classMeta.includes(jurusan.toLowerCase())) {
+                showCard = false;
+            }
+
+            // For tahunAjaran, we would need actual data attributes
+            // This is simplified for the demo
+
+            if (showCard) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
 });
 </script>
 </body>

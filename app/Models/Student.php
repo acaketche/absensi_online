@@ -54,5 +54,21 @@ class Student extends Authenticatable
     {
         $this->attributes['password'] = Hash::make($value);
     }
+    public function bookLoans()
+    {
+        return $this->hasMany(BookLoan::class, 'id_student', 'id_student');
+    }
+    public function rapor()
+    {
+        return $this->hasOne(Rapor::class, 'id_student', 'id_student');
+    }
+
+    public function overdueLoans()
+        {
+            return $this->hasMany(BookLoan::class, 'id_student', 'id_student')
+                        ->where('due_date', '<', now())
+                        ->whereNull('return_date'); // pastikan ada kolom returned_at untuk peminjaman yang belum dikembalikan
+        }
+
 
 }

@@ -17,3 +17,4 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('student-acchievement', [App\Http\Controllers\Api\StudentAchievementController::class, 'index'])->name('api.student.acchievement');
 });
+

@@ -10,8 +10,8 @@ class Employee extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    protected $table = 'employees'; // Tambahkan ini agar Laravel tahu tabelnya
-
+    protected $table = 'employees';
+    protected $guard = 'employee';
     protected $primaryKey = 'id_employee';
     public $incrementing = false;
     protected $keyType = 'string';

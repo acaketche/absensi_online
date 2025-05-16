@@ -575,51 +575,47 @@
         </div>
 
         <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                // Search student functionality
-                document.getElementById('searchStudentBtn').addEventListener('click', function () {
-                    let nis = document.getElementById('nisSearch').value;
+            document.getElementById('searchStudentBtn').addEventListener('click', function () {
+    let id_student = document.getElementById('nisSearch').value;
 
-                    if (nis.trim() === '') {
-                        alert('Masukkan NIS terlebih dahulu!');
-                        return;
-                    }
+    if (id_student.trim() === '') {
+        alert('Masukkan ID Student terlebih dahulu!');
+        return;
+    }
 
-                    // Simulate API call - replace with actual endpoint
-                    fetch(`/api/students/search?nis=${nis}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                // Show student info
-                                document.getElementById('studentInfo').classList.remove('d-none');
-                                document.getElementById('studentNIS').textContent = data.student.id_student;
-                                document.getElementById('studentName').textContent = data.student.fullname;
-                                document.getElementById('studentClass').textContent = data.student.class_name;
+    // Menggunakan id_student sebagai parameter pencarian
+    fetch(`/api/students/search?id_student=${id_student}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Tampilkan informasi siswa
+                document.getElementById('studentInfo').classList.remove('d-none');
+                document.getElementById('studentNIS').textContent = data.student.id_student;
+                document.getElementById('studentName').textContent = data.student.fullname;
+                document.getElementById('studentClass').textContent = data.student.class_name;
 
-                                // Set hidden input value
-                                document.getElementById('id_student').value = data.student.id_student;
+                // Set nilai hidden input
+                document.getElementById('id_student').value = data.student.id_student;
 
-                                // Show form
-                                document.getElementById('attendanceForm').classList.remove('d-none');
+                // Tampilkan form absensi
+                document.getElementById('attendanceForm').classList.remove('d-none');
 
-                                // Pre-select class if available
-                                if (data.student.class_id) {
-                                    document.getElementById('class_id').value = data.student.class_id;
-                                    // Trigger change to load subjects
-                                    loadSubjects(data.student.class_id);
-                                }
-                            } else {
-                                alert('Siswa tidak ditemukan');
-                                document.getElementById('studentInfo').classList.add('d-none');
-                                document.getElementById('attendanceForm').classList.add('d-none');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('Terjadi kesalahan saat mencari data siswa');
-                        });
-                });
-
+                // Jika ada class_id, preload subject
+                if (data.student.class_id) {
+                    document.getElementById('class_id').value = data.student.class_id;
+                    loadSubjects(data.student.class_id);
+                }
+            } else {
+                alert('Siswa tidak ditemukan');
+                document.getElementById('studentInfo').classList.add('d-none');
+                document.getElementById('attendanceForm').classList.add('d-none');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat mencari data siswa');
+        });
+});
                 // Load subjects based on class selection
                 function loadSubjects(classId) {
                     // Replace with actual endpoint

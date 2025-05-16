@@ -13,6 +13,12 @@ class BookLoan extends Model
         'academic_year_id', 'semester_id'
     ];
 
+    protected $casts = [
+        'loan_date' => 'datetime',
+        'due_date' => 'datetime',
+        'return_date' => 'datetime',
+    ];
+
     public function book()
     {
         return $this->belongsTo(Book::class, 'book_id');
@@ -35,10 +41,6 @@ class BookLoan extends Model
     public function class()
 {
     return $this->student->class(); // indirect access
-}
-public function getClassAttribute()
-{
-    return $this->student ? $this->student->class : null;
 }
 }
 

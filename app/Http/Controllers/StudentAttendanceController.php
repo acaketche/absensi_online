@@ -150,30 +150,37 @@ class StudentAttendanceController extends Controller
         return redirect()->route('attendances.index')->with('success', 'Absensi berhasil dihapus.');
     }
 
-    public function search(Request $request)
-{
-    $id = $request->query('nis'); // ini sebetulnya id_student
+  public function searchById(Request $request)
+    {
+        $id = $request->query('id_student');
 
-    $student = Student::with('class')
-                ->where('id', $id)
-                ->first();
+        if (!$id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Parameter id_student diperlukan',
+            ], 400);
+        }
 
-    if ($student) {
+        $student = Student::with('class') // pastikan relasi `class` ada
+            ->where('id_student', $id)
+            ->first();
+
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Siswa tidak ditemukan',
+            ]);
+        }
+
         return response()->json([
             'success' => true,
             'student' => [
-                'id_student' => $student->id,
+                'id_student' => $student->id_student,
                 'fullname' => $student->fullname,
-                'class_name' => $student->class->name ?? '-',
-                'class_id' => $student->class_id
+                'class_name' => $student->class->class_name ?? '-',
+                'class_id' => $student->class->class_id ?? null,
             ]
-        ]);
-    } else {
-        return response()->json([
-            'success' => false,
-            'message' => 'Siswa tidak ditemukan'
         ]);
     }
 }
 
-}
