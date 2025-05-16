@@ -283,7 +283,10 @@
 @if(Auth::guard('employee')->check())
 <body>
 <div class="d-flex">
-  @include('components.sidebar')
+    <!-- Sidebar -->
+    @include('components.sidebar')
+
+    <!-- Main Content -->
     <main class="flex-grow-1 p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fs-4 fw-bold mb-0"></h2>
@@ -333,15 +336,54 @@
             <p class="text-muted mb-0">Upload file rapor untuk siswa</p>
         </div>
 
-         @if ($errors->any())
+        <!-- Error Alert -->
+        @if($errors->any())
         <div class="alert alert-danger">
-            <ul class="mb-0">
-                 @foreach ($errors->all() as $error)
-                <li> {{ $error }}</li>
-                 @endforeach
-            </ul>
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <div>
+                    <strong>Terjadi kesalahan!</strong>
+                    <ul class="mb-0 mt-1">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
         </div>
-         @endif
+        @endif
+
+        <!-- Student Info (if student is selected) -->
+        @if($student)
+        <div class="student-info">
+            <div>
+                @if($student->photo_path)
+                    <img src="{{ asset('storage/' . $student->photo_path) }}" alt="Foto {{ $student->name }}" class="student-photo">
+                @else
+                    <img src="{{ asset('images/default-avatar.jpg') }}" alt="Foto Default" class="student-photo">
+                @endif
+            </div>
+            <div class="student-details">
+                <h3 class="student-name">{{ $student->name }}</h3>
+                <div class="student-meta">
+                    <div class="student-meta-item">
+                        <i class="fas fa-id-card"></i> NIS: {{ $student->nis }}
+                    </div>
+                    <div class="student-meta-item">
+                        <i class="fas fa-id-badge"></i> NISN: {{ $student->nisn }}
+                    </div>
+                    <div class="student-meta-item">
+                        <i class="fas fa-venus-mars"></i> {{ $student->gender }}
+                    </div>
+                    @if($student->class)
+                    <div class="student-meta-item">
+                        <i class="fas fa-chalkboard"></i> {{ $student->class->name }}
+                    </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+        @endif
 
         <!-- Upload Form -->
         <div class="card">
@@ -377,83 +419,53 @@
                             <label for="academic_year_id" class="form-label">Tahun Ajaran</label>
                             <select class="form-select" id="academic_year_id" name="academic_year_id" required>
                                 <option value="">-- Pilih Tahun Ajaran --</option>
-                                 @foreach($academicYears as $year)
-                                <option value="{{ $year->id }}" {{ old('academic_year_id') == $year->id ? 'selected' : '' }}>
-                                     {{ $year->year_name }}
-                                </option>
-                                 @endforeach
+                                @foreach($academicYears as $year)
+                                <option value="{{ $year->id }}">{{ $year->name }}</option>
+                                @endforeach
                             </select>
-                             @error('academic_year_id')
-                            <div class="invalid-feedback"> {{ $message }}</div>
-                             @enderror
                         </div>
                         <div class="col-md-6">
                             <label for="semester_id" class="form-label">Semester</label>
                             <select class="form-select" id="semester_id" name="semester_id" required>
                                 <option value="">-- Pilih Semester --</option>
-                                 @foreach($semesters as $semester)
-                                <option value="{{ $semester->id }}" {{ old('semester_id') == $semester->id ? 'selected' : '' }}>
-                                     {{ $semester->semester_name }}
-                                </option>
-                                 @endforeach
+                                @foreach($semesters as $semester)
+                                <option value="{{ $semester->id }}">{{ $semester->name }}</option>
+                                @endforeach
                             </select>
-                             @error('semester_id')
-                            <div class="invalid-feedback"> {{ $message }}</div>
-                             @enderror
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="class_id" class="form-label">Kelas</label>
-                            <select class="form-select @error('class_id') is-invalid @enderror" id="class_id" name="class_id" required>
-                                <option value="">-- Pilih Kelas --</option>
-                                 @foreach($classes as $class)
-                                <option value="{{ $class->id }}" {{ old('class_id') == $class->id ? 'selected' : '' }}>
-                                     {{ $class->class_name }}
-                                </option>
-                                 @endforeach
-                            </select>
-                             @error('class_id')
-                            <div class="invalid-feedback"> {{ $message }}</div>
-                             @enderror
-                        </div>
-                        <div class="col-md-6">
-                            <label for="id_student" class="form-label">Siswa</label>
-                            <select class="form-select @error('id_student') is-invalid @enderror" id="id_student" name="id_student" required>
-                                <option value="">-- Pilih Siswa --</option>
-                                 @foreach($students as $student)
-                                <option value="{{ $student->id }}" {{ old('id_student', request()->get('student_id')) == $student->id ? 'selected' : '' }}>
-                                     {{ $student->fullname }} - {{ $student->id_student}}
-                                </option>
-                                 @endforeach
-                            </select>
-                             @error('id_student')
-                            <div class="invalid-feedback"> {{ $message }}</div>
-                             @enderror
                         </div>
                     </div>
                     <div class="mb-3">
                         <label for="report_date" class="form-label">Tanggal Rapor</label>
-                        <input type="date" class="form-control @error('report_date') is-invalid @enderror" id="report_date" name="report_date" value="{{ old('report_date') }}" required>
-                         @error('report_date')
-                        <div class="invalid-feedback"> {{ $message }}</div>
-                         @enderror
+                        <input type="date" class="form-control" id="report_date" name="report_date" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="description" class="form-label">Keterangan (Opsional)</label>
-                        <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3">{{ old('description') }}</textarea>
-                         @error('description')
-                        <div class="invalid-feedback"> {{ $message }}</div>
-                         @enderror
+                        <label for="description" class="form-label">Deskripsi (Opsional)</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="Masukkan deskripsi atau catatan tambahan..."></textarea>
                     </div>
-                    <div class="mb-3">
-                        <label for="file" class="form-label">File Rapor (PDF)</label>
-                        <input type="file" class="form-control @error('file') is-invalid @enderror" id="file" name="file" accept=".pdf" required>
-                        <div class="form-text">Upload file dalam format PDF. Maksimal ukuran file 2MB.</div>
-                         @error('file')
-                        <div class="invalid-feedback"> {{ $message }}</div>
-                         @enderror
+
+                    <div class="mb-4">
+                        <label class="form-label">File Rapor (PDF)</label>
+                        <div class="file-upload" id="fileUpload">
+                            <input type="file" name="rapor_file" id="raporFile" accept=".pdf" required>
+                            <div class="file-upload-icon">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div class="file-upload-text">Klik atau seret file PDF ke sini</div>
+                            <div class="file-upload-hint">Maksimal 10MB</div>
+                        </div>
+                        <div class="file-preview" id="filePreview" style="display: none;">
+                            <div class="file-preview-icon">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div class="file-preview-info">
+                                <div class="file-preview-name" id="fileName"></div>
+                                <div class="file-preview-size" id="fileSize"></div>
+                            </div>
+                            <button type="button" class="file-preview-remove" id="removeFile">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="d-flex justify-content-end gap-2">
