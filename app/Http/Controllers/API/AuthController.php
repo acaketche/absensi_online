@@ -9,41 +9,38 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-public function login(Request $request)
+    public function login(Request $request)
     {
         $request->validate([
-            'id_student' => 'required|string',
-            'password' => 'required|string',
+            'id_student' => 'required|exists:students,id_student',
+            'password' => 'required',
         ]);
 
-        \Log::info('Login attempt for id_student: ' . $request->id_student);
+        // Attempt to authenticate the user
+        if (\Illuminate\Support\Facades\Auth::guard('student')->attempt($request->only('id_student', 'password'))) {
+            // Generate a new token for the authenticated user
+            $student = \Illuminate\Support\Facades\Auth::guard('student')->user();
+            $token = $student->createToken('StudentToken')->plainTextToken;
 
-        // Cari data student berdasarkan id_student
-        $student = Student::where('id_student', $request->id_student)->first();
-
-        if ($student) {
-            \Log::info('Student found: ' . $student->id_student);
-            \Log::info('Stored password hash: ' . $student->password);
-            $passwordMatch = Hash::check($request->password, $student->password);
-            \Log::info('Password match: ' . ($passwordMatch ? 'true' : 'false'));
-
-        } else {
-            \Log::info('Student not found');
+            return response()->json([
+                'message' => 'Login successful',
+                'data' => [
+                    'token' => $token,
+                ]
+            ]);
         }
 
-        // Cek jika student tidak ditemukan atau password salah
-        if (!$student) {
-            return response()->json(['message' => 'Student not found'], 404);
-        }
+        return response()->json(['message' => 'Invalid credentials'], 401);
+    }
 
-        if (!Hash::check($request->password, $student->password)) {
-            return response()->json(['message' => 'Password incorrect'], 401);
-        }
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
 
-        // Jika login berhasil, kembalikan data student
         return response()->json([
-            'message' => 'Login berhasil',
-            'student' => $student,
+            'status' => true,
+            'message' => 'Logout successful',
+            'code' => 200
         ]);
     }
 }
