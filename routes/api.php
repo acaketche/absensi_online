@@ -19,4 +19,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/student/attendance', [App\Http\Controllers\API\AttendanceController::class, 'studentAttendance'])->name('api.student.attendance');
     Route::post('/student/attendance/histories', [App\Http\Controllers\API\AttendanceController::class, 'getHistories'])->name('api.student.attendance.histories');
+    Route::get('/student/attendance/now', [App\Http\Controllers\API\AttendanceController::class, 'getAttendanceNow'])->name('api.student.attendance.now');
 });
