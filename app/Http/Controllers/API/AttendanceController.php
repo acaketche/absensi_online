@@ -125,4 +125,61 @@ class AttendanceController extends Controller
             ], 404);
         }
     }
+
+    public function checkoutAttendance(Request $request)
+    {
+
+        $request->validate([
+            'attendance_id' => 'required|numeric',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+        ]);
+
+        $attendance = StudentAttendance::find($request->attendance_id);
+
+        if (!$attendance) return response()->json([
+            'success' => false,
+            'message' => 'Absensi tidak ditemukan.',
+        ]);
+
+        $distance = $this->distance($request->latitude, $request->longitude);
+        $radiusMeter = 10;
+
+        if ($distance > $radiusMeter) {
+            return response()->json([
+                'message' => 'Gagal absensi. Anda berada di luar radius.',
+                'distance_m' => round($distance, 2) . ' meter',
+                'data' => null,
+            ], 403);
+        }
+
+        $attendance->check_out_time = now()->format('H:i:s');
+
+        $attendance->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Check-out berhasil dicatat.',
+            'data' => $attendance
+        ]);
+    }
+
+    public function distance($latitude, $longitude): int|float
+    {
+        $lat = (float) $latitude;
+        $lng = (float) $longitude;
+
+        $geotools = new Geotools();
+        $userCoord = new Coordinate([$lat, $lng]);
+        $officeCoord = new Coordinate([-6.950503233824411, 108.48821126111385]);
+
+        $distanceKm = $geotools->distance()->setFrom($userCoord)->setTo($officeCoord)->in('km')->haversine();
+        $distanceMeter = $distanceKm * 1000;
+
+        return $distanceMeter;
+    }
+
+    public function test() {
+        return null;
+    }
 }
