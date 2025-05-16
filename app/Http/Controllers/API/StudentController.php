@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\AcademicYear;
-use App\Models\Position;
+use App\Models\Classes;
 use App\Models\Semester;
 use Illuminate\Http\Request;
 
@@ -26,6 +26,7 @@ class StudentController extends Controller
                     'gender'=> $request->user()->gender,
                     "academic_year" => AcademicYear::where('id', $request->user()->academic_year_id)->first()->year_name,
                     "semester" => Semester::where('id', $request->user()->semester_id)->first()->semester_name,
+                    'student_class' => Classes::where('class_id', $request->user()->class_id)->first()->class_name,
                 ]
             ]
         ]);
