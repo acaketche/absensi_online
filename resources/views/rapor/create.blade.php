@@ -288,7 +288,6 @@
 
     <!-- Main Content -->
     <main class="flex-grow-1 p-4">
-        <!-- Header dengan Profil Admin -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fs-4 fw-bold mb-0"></h2>
             <div class="dropdown">
@@ -435,7 +434,6 @@
                             </select>
                         </div>
                     </div>
-
                     <div class="mb-3">
                         <label for="report_date" class="form-label">Tanggal Rapor</label>
                         <input type="date" class="form-control" id="report_date" name="report_date" required>

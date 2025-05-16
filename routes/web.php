@@ -36,7 +36,7 @@ Route::prefix('login')->group(function () {
     Route::post('/reset-password', [EmployeeLoginController::class, 'resetPassword'])->name('password.update');
 
     Route::get('/student', [StudentLoginController::class, 'showLoginForm'])->name('login.student');
-    Route::post('/student', [StudentLoginController::class, 'login']);
+    Route::post('/student', [StudentLoginController::class, 'login'])->name('login.student.post');
 });
 
 Route::post('/logout/employee', [EmployeeLoginController::class, 'logout'])->name('logout.employee');

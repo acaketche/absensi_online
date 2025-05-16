@@ -23,7 +23,7 @@ class Payment extends Model
     // Relasi ke Student
     public function student()
     {
-        return $this->belongsTo(Student::class, 'id_student', 'id');
+        return $this->belongsTo(Student::class, 'id_student', 'id_student');
     }
 
     // Relasi ke Tahun Ajaran
