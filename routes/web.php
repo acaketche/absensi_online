@@ -98,4 +98,18 @@ Route::middleware(['student'])->group(function () {
     })->name('dashboard.student');
 });
 
-Route::get('/search-student', [StudentController::class, 'search'])->name('search.student');
+Route::get('api/search-student', [StudentController::class, 'search'])->name('search.student');
+
+Route::get('class/{id}/students', function ($id) {
+    $class = \App\Models\Classes::findOrFail($id);
+    $students = \App\Models\Student::where('class_id', $id)->get();
+    return response()->json([
+        'class_name' => $class->name,
+        'students' => $students
+    ]);
+});
+
+Route::get('api/student/{id}/loans', function ($id) {
+    $loans = \App\Models\BookLoan::with('book')->where('id_student', $id)->get();
+    return response()->json($loans);
+});
