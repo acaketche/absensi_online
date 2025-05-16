@@ -23,9 +23,7 @@ class PaymentsController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Payments retrieved successfully',
-            'data' => [
-                'history-payments' => $payments,
-            ]
+            'data' => $payments
         ]);
     }
 }
