@@ -44,7 +44,7 @@ class StudentAttendance extends Model
 
     public function status()
     {
-        return $this->belongsTo(Status::class, 'status_id');
+        return $this->belongsTo(AttendanceStatus::class, 'status_id');
     }
     public function academicYear()
     {

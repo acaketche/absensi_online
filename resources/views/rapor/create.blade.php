@@ -434,7 +434,6 @@
                             </select>
                         </div>
                     </div>
-
                     <div class="mb-3">
                         <label for="report_date" class="form-label">Tanggal Rapor</label>
                         <input type="date" class="form-control" id="report_date" name="report_date" required>
