@@ -182,8 +182,4 @@ class AttendanceController extends Controller
 
         return $distanceMeter;
     }
-
-    public function test() {
-        return null;
-    }
 }
