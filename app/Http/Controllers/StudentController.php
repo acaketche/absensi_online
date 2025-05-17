@@ -7,6 +7,7 @@ use App\Models\Classes;
 use App\Models\AcademicYear;
 use App\Models\Semester;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class StudentController extends Controller
@@ -80,13 +81,13 @@ class StudentController extends Controller
         try {
             $photoPath = null;
             if ($request->hasFile('photo')) {
-                $photoPath = $request->file('photo')->store('photos', 'public');
+                $photoPath = $request->file('photo')->store('photo_siswa', 'public');
             }
 
             Student::create([
                 'id_student' => $request->id_student,
                 'fullname' => $request->fullname,
-                'password' => bcrypt($request->password),
+                'password' => Hash::make($request->password),
                 'birth_place' => $request->birth_place,
                 'birth_date' => $request->birth_date,
                 'gender' => $request->gender,
@@ -150,7 +151,7 @@ class StudentController extends Controller
             }
 
             // Simpan foto baru
-            $data['photo'] = $request->file('photo')->store('photos', 'public');
+            $data['photo'] = $request->file('photo')->store('photo_siswa', 'public');
         }
 
         $student->update($data);

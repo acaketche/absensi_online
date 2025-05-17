@@ -39,6 +39,11 @@ class AttendanceController extends Controller
                 'document' => $request->document ?? null,
             ];
 
+            if ($request->hasFile('document')) {
+                $filePath = $request->file('document')->store('permissions', 'public');
+                $attendanceData['document'] = $filePath;
+            }
+
             if ($statusId === 1) {
                 $request->validate([
                     'latitude' => 'required|numeric',
@@ -57,7 +62,7 @@ class AttendanceController extends Controller
                 }
 
                 $distance = $this->distance($request->latitude, $request->longitude);
-                $radiusMeter = 10;
+                $radiusMeter = 100;
 
                 if ($distance > $radiusMeter) {
                     return response()->json([
@@ -90,15 +95,45 @@ class AttendanceController extends Controller
         }
     }
 
-    public function getHistories()
+    public function getHistories(Request $request)
     {
-        $oneDayAgo = \Carbon\Carbon::now()->subDay();
+        $oneWeekAgo = \Carbon\Carbon::now()->subDay(7);
 
-        $attendances = StudentAttendance::where('created_at', '>=', $oneDayAgo)->get();
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'type' => 'nullable|in:keluar'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first('type'),
+            ], 422);
+        }
+
+        $type = $request->query('type');
+
+        $attendancesQuery = StudentAttendance::with('status')
+            ->where('id_student', $request->user()->id_student)
+            ->where('attendance_date', '>=', $oneWeekAgo)
+            ->orderBy('attendance_date', 'desc')
+            ->orderBy('check_in_time', 'desc');
+
+        if ($type === 'keluar') {
+            $attendancesQuery->whereNotNull('check_out_time');
+        }
+
+        $attendances = $attendancesQuery->get()
+            ->map(function ($attendance) {
+                $data = $attendance->toArray();
+                unset($data['status_id'], $data['class_id']);
+                $data['status'] = $attendance->status?->status_name;
+                $data['class_name'] = $attendance->class?->class_name;
+                return $data;
+            });
 
         return response()->json([
             'success' => true,
-            'message' => 'Attendance history from the last 24 hours retrieved successfully.',
+            'message' => 'Attendance history retrieved successfully.',
             'data' => $attendances,
         ]);
     }
@@ -123,10 +158,15 @@ class AttendanceController extends Controller
             ]);
         } else {
             return response()->json([
-                'success' => false,
+                'success' => true,
                 'message' => 'Belum ada data absensi hari ini',
-                'data' => null
-            ], 404);
+                'data' => [
+                    'attendance_id' => null,
+                    'check_in_time' => null,
+                    'check_out_time' => null,
+                    'status' => null,
+                ],
+            ]);
         }
     }
 
@@ -147,7 +187,7 @@ class AttendanceController extends Controller
         ]);
 
         $distance = $this->distance($request->latitude, $request->longitude);
-        $radiusMeter = 10;
+        $radiusMeter = 100;
 
         if ($distance > $radiusMeter) {
             return response()->json([
@@ -175,7 +215,7 @@ class AttendanceController extends Controller
 
         $geotools = new Geotools();
         $userCoord = new Coordinate([$lat, $lng]);
-        $officeCoord = new Coordinate([-6.950503233824411, 108.48821126111385]);
+        $officeCoord = new Coordinate([-6.886673415898163, 108.49382131353438]); // TODO: ganti koordinat
 
         $distanceKm = $geotools->distance()->setFrom($userCoord)->setTo($officeCoord)->in('km')->haversine();
         $distanceMeter = $distanceKm * 1000;
