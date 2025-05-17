@@ -15,7 +15,7 @@ class EmployeeLoginController extends Controller
 {
     public function showLoginForm()
     {
-        return view('auth.login'); // Nama file login harus sesuai
+        return view('auth.login');
     }
 
    public function authenticate(Request $request)
@@ -28,7 +28,7 @@ class EmployeeLoginController extends Controller
     if (Auth::guard('employee')->attempt([
         'id_employee' => $request->id_employee,
         'password' => $request->password
-    ], $request->has('remember'))) {
+    ])) {
 
         $employee = Auth::guard('employee')->user();
         $roleName = $employee->role->role_name;
