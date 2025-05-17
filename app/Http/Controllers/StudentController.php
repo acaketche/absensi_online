@@ -23,21 +23,28 @@ class StudentController extends Controller
 
         // Query siswa berdasarkan filter
         $students = Student::where('academic_year_id', $academicYearId)
-                            ->when($semesterId, function ($query) use ($semesterId) {
-                                return $query->where('semester_id', $semesterId);
-                            })
-                            ->when($classId, function ($query) use ($classId) {
-                                return $query->where('class_id', $classId);
-                            }) // Tambahkan filter class_id
-                            ->get();
+            ->when($semesterId, function ($query) use ($semesterId) {
+                return $query->where('semester_id', $semesterId);
+            })
+            ->when($classId, function ($query) use ($classId) {
+                return $query->where('class_id', $classId);
+            }) // Tambahkan filter class_id
+            ->get();
 
         $academicYears = AcademicYear::all();
         $semesters = Semester::all();
         $classes = Classes::all();
 
         return view('students.index', compact(
-            'students', 'classes', 'activeAcademicYear', 'activeSemester',
-            'academicYears', 'semesters', 'academicYearId', 'semesterId', 'classId'
+            'students',
+            'classes',
+            'activeAcademicYear',
+            'activeSemester',
+            'academicYears',
+            'semesters',
+            'academicYearId',
+            'semesterId',
+            'classId'
         ));
     }
 
@@ -61,7 +68,6 @@ class StudentController extends Controller
     {
         $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
         $activeSemester = Semester::where('is_active', 1)->first();
-
         if (!$activeAcademicYear || !$activeSemester) {
             return redirect()->back()->with('error', 'Tahun Ajaran atau Semester aktif tidak ditemukan.');
         }
@@ -142,7 +148,7 @@ class StudentController extends Controller
 
         // Jika password diisi, enkripsi dan update
         if ($request->filled('password')) {
-            $data['password'] = bcrypt($request->password);
+            $data['password'] = Hash::make($request->password);
         }
 
         if ($request->hasFile('photo')) {
