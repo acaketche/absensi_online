@@ -193,7 +193,7 @@
                         <select class="form-select" id="employee_id" name="employee_id" required>
                             <option value="">-- Pilih Pegawai --</option>
                             @foreach($employees ?? [] as $employee)
-                                <option value="{{ $employee->id }}">{{ $employee->name }} ({{ $employee->employee_id }})</option>
+                                <option value="{{ $employee->id_employee }}">{{ $employee->fullname }} </option>
                             @endforeach
                         </select>
                     </div>
