@@ -37,4 +37,9 @@ class Subject extends Model
     {
         return $this->belongsTo(Semester::class, 'semester_id');
     }
+
+
+    public function acchievement(){
+         return $this->belongsTo(StudentAchievement::class, 'subject_id');
+    }
 }

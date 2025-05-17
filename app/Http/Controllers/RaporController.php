@@ -13,12 +13,6 @@ use Illuminate\Support\Facades\Validator;
 
 class RaporController extends Controller
 {
-    /**
-     * Menampilkan daftar kelas
-     *
-     * @param Request $request
-     * @return \Illuminate\View\View
-     */
     public function classes(Request $request)
     {
         $query = Classes::with(['employee', 'academicYear'])
@@ -34,12 +28,6 @@ class RaporController extends Controller
         return view('rapor.rapor', compact('classes', 'academicYears'));
     }
 
-    /**
-     * Menampilkan daftar siswa dalam kelas
-     *
-     * @param int $classId
-     * @return \Illuminate\View\View
-     */
     public function students($classId)
     {
         $class = Classes::with(['employee', 'academicYear'])->findOrFail($classId);
@@ -52,12 +40,6 @@ class RaporController extends Controller
         return view('rapor.raporstudent', compact('class', 'students'));
     }
 
-    /**
-     * Menyimpan rapor baru dari modal upload
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function store(Request $request)
     {
         // Validasi input
@@ -66,7 +48,7 @@ class RaporController extends Controller
             'report_date'    => 'required|date',
             'report_file'    => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'description'    => 'nullable|string|max:500',
-            'status_report'  => 'required|in:pending,approved,rejected',
+            'status_report'  => 'required|in:Belum Ada,Sudah Ada',
         ]);
 
         if ($validator->fails()) {
@@ -94,10 +76,8 @@ class RaporController extends Controller
 
         // Upload file
         $fileName = null;
-        if ($request->hasFile('report_file')) {
-            $file = $request->file('report_file');
-            $fileName = 'rapor_' . $student->nis . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $file->storeAs('rapor', $fileName, 'public');
+        if ($request->hasFile('file_path')) {
+            $file = $request->file('file_path')->store('file_rapor', 'public');;
         }
 
         // Simpan data rapor
@@ -115,13 +95,6 @@ class RaporController extends Controller
         return redirect()->route('rapor.students', ['classId' => $student->class_id])
                          ->with('success', 'Rapor berhasil diupload!');
     }
-
-    /**
-     * Menampilkan form untuk edit rapor
-     *
-     * @param int $id
-     * @return \Illuminate\View\View
-     */
     public function edit($id)
     {
         $rapor = Rapor::with(['student', 'academicYear', 'semester', 'class'])->findOrFail($id);
@@ -131,13 +104,6 @@ class RaporController extends Controller
         return view('rapor.edit', compact('rapor', 'academicYears', 'semesters'));
     }
 
-    /**
-     * Update rapor yang sudah ada
-     *
-     * @param Request $request
-     * @param int $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function update(Request $request, $id)
     {
         // Validasi input
@@ -147,7 +113,7 @@ class RaporController extends Controller
             'report_date'      => 'required|date',
             'description'      => 'nullable|string|max:500',
             'report_file'      => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-            'status_report'    => 'required|in:pending,approved,rejected',
+            'status_report'    => 'required|in:Belum Ada,Sudah Ada',
         ]);
 
         if ($validator->fails()) {
@@ -198,12 +164,6 @@ class RaporController extends Controller
             ->with('success', 'Rapor berhasil diupdate.');
     }
 
-    /**
-     * Menghapus rapor
-     *
-     * @param int $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function destroy($id)
     {
         $rapor = Rapor::findOrFail($id);
@@ -220,24 +180,13 @@ class RaporController extends Controller
             ->with('success', 'Rapor berhasil dihapus.');
     }
 
-    /**
-     * Menampilkan detail rapor
-     *
-     * @param int $id
-     * @return \Illuminate\View\View
-     */
+
     public function show($id)
     {
         $rapor = Rapor::with(['student', 'academicYear', 'semester', 'class'])->findOrFail($id);
         return view('rapor.show', compact('rapor'));
     }
 
-    /**
-     * Download file rapor
-     *
-     * @param int $id
-     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
-     */
     public function download($id)
     {
         $rapor = Rapor::findOrFail($id);

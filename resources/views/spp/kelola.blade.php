@@ -183,10 +183,7 @@
     <!-- Main Content -->
     <main class="flex-grow-1 p-4">
         <!-- Header dengan Profil Admin -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fs-4 fw-bold mb-0"></h2>
-        <div class="dropdown">
-            <div class="admin-profile d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
+
                 @include('components.profiladmin')
         <!-- Search Bar -->
         <header class="d-flex justify-content-between align-items-center mb-4">

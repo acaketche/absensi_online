@@ -467,8 +467,13 @@
                                             <span class="text-danger"><i class="fas fa-female me-1"></i> Perempuan</span>
                                         @endif
                                     </td>
-                                    <td>
-                                        @if($student->rapor && count($student->rapor) > 0)
+                                                                    <td>
+                                    @if($student->rapor && $student->rapor->count() > 0)
+                                        @php
+                                            $status = $student->rapor->first()->status_report;
+                                        @endphp
+
+                                        @if($status === 'Sudah Ada')
                                             <span class="badge bg-success">
                                                 <i class="fas fa-check-circle me-1"></i> Sudah Ada
                                             </span>
@@ -477,7 +482,12 @@
                                                 <i class="fas fa-times-circle me-1"></i> Belum Ada
                                             </span>
                                         @endif
-                                    </td>
+                                    @else
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-times-circle me-1"></i> Belum Ada
+                                        </span>
+                                    @endif
+                                </td>
                                     <td>
                                         @if($student->rapor && count($student->rapor) > 0)
                                             {{ \Carbon\Carbon::parse($student->rapor[0]->report_date)->format('d/m/Y') }}
@@ -614,15 +624,7 @@
                         <textarea class="form-control" id="description" name="description" rows="3" placeholder="Masukkan deskripsi atau catatan tambahan..."></textarea>
                     </div>
 
-                    <!-- Status Report -->
-                    <div class="mb-3">
-                        <label for="status_report" class="form-label">Status Rapor</label>
-                        <select class="form-select" id="status_report" name="status_report">
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
-                        </select>
-                    </div>
+                    <input type="hidden" name="status_report" value="{{ old('status_report') }}">
 
                     <!-- File Upload -->
                     <div class="mb-4">

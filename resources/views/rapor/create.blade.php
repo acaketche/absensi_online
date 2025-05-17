@@ -143,13 +143,13 @@
 
         .student-meta-item i {
             margin-right: 5px;
-            color: var(--primary-color);
+            color: var(--secondary-color);
         }
 
         .back-button {
             display: inline-flex;
             align-items: center;
-            color: var(--primary-color);
+            color: var(--secondary-color);
             font-weight: 500;
             margin-bottom: 15px;
             text-decoration: none;
@@ -180,7 +180,7 @@
         }
 
         .file-upload:hover {
-            border-color: var(--primary-color);
+            border-color: var(--secondary-color);
             background-color: rgba(67, 97, 238, 0.05);
         }
 
@@ -269,7 +269,7 @@
 
         .info-card {
             background-color: rgba(67, 97, 238, 0.05);
-            border-left: 4px solid var(--primary-color);
+            border-left: 4px solid var(--secondary-color);
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -277,7 +277,7 @@
 
         .info-card-title {
             font-weight: 600;
-            color: var(--primary-color);
+            color: var(--secondary-color);
             margin-bottom: 5px;
             display: flex;
             align-items: center;
@@ -371,6 +371,46 @@
                 <form action="{{ route('rapor.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
+                    @if(!$student)
+                    <div class="mb-3">
+                        <label for="student_id" class="form-label">Pilih Siswa</label>
+                        <select class="form-select" id="student_id" name="student_id" required>
+                            <option value="">-- Pilih Siswa --</option>
+                            @if($class)
+                                @foreach($class->students as $s)
+                                    <option value="{{ $s->id_student }}">{{ $s->fullname }}</option>
+                                @endforeach
+                            @else
+                                <option disabled>Kelas belum dipilih atau data tidak ditemukan.</option>
+                            @endif
+                        </select>
+                    </div>
+                    @else
+                    <input type="hidden" name="student_id" value="{{ $student->id_student }}">
+                    @endif
+
+                    <input type="hidden" name="class_id" value="{{ $class->class_id ?? '' }}">
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="academic_year_id" class="form-label">Tahun Ajaran</label>
+                            <select class="form-select" id="academic_year_id" name="academic_year_id" required>
+                                <option value="">-- Pilih Tahun Ajaran --</option>
+                                @foreach($academicYears as $year)
+                                <option value="{{ $year->id }}">{{ $year->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="semester_id" class="form-label">Semester</label>
+                            <select class="form-select" id="semester_id" name="semester_id" required>
+                                <option value="">-- Pilih Semester --</option>
+                                @foreach($semesters as $semester)
+                                <option value="{{ $semester->id }}">{{ $semester->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
                     <!-- Hidden Fields -->
                     <input type="hidden" name="id_student" value="{{ $student->id_student }}">
                     <input type="hidden" name="academic_year_id" value="{{ $student->academic_year_id }}">
@@ -389,15 +429,7 @@
                         <textarea class="form-control" id="description" name="description" rows="3" placeholder="Masukkan deskripsi atau catatan tambahan..."></textarea>
                     </div>
 
-                    <!-- Status Report -->
-                    <div class="mb-3">
-                        <label for="status_report" class="form-label">Status Rapor</label>
-                        <select class="form-select" id="status_report" name="status_report">
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
-                        </select>
-                    </div>
+                   <input type="hidden" name="status_report" value="{{ $status_report }}">
 
                     <!-- File Upload -->
                     <div class="mb-4">

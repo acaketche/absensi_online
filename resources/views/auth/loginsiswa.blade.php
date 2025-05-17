@@ -78,13 +78,14 @@
             <p>Portal Informasi Siswa</p>
         </div>
 
-        <form id="loginForm">
+        <form  method="POST" action="{{ route('login.student.post') }}">
+            @csrf
             <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="username" placeholder="NIS / Username" required>
+                <input type="text" class="form-control" name="id_student" placeholder="NIS / Username" required>
                 <label for="username">NIS / Username</label>
             </div>
             <div class="form-floating mb-3">
-                <input type="password" class="form-control" id="password" placeholder="Password" required>
+                <input type="password" class="form-control" name="password" placeholder="Password" required>
                 <label for="password">Password</label>
             </div>
             <div class="form-check mb-3">
@@ -96,14 +97,17 @@
             <div class="d-grid">
                 <button type="submit" class="btn btn-primary btn-lg">Masuk</button>
             </div>
-            <div id="loginError" class="alert alert-danger mt-3" style="display: none;">
-                Username atau password salah. Silakan coba lagi.
-            </div>
         </form>
 
         <div class="login-footer">
             <p>Lupa password? Hubungi administrator sekolah.</p>
         </div>
+
+        @error('login')
+            <div class="alert alert-danger mt-3" role="alert">
+                {{ $message }}
+            </div>
+        @enderror
     </div>
 
     <div class="school-info">
@@ -113,37 +117,5 @@
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Login form handling
-            const loginForm = document.getElementById('loginForm');
-            const loginError = document.getElementById('loginError');
-
-            // Valid credentials (in a real app, this would be verified server-side)
-            const validCredentials = {
-                'siswa': 'password123',
-                '2023001': 'ahmad123'
-            };
-
-            loginForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('password').value;
-
-                // Check credentials
-                if (validCredentials[username] && validCredentials[username] === password) {
-                    // Store login state (in a real app, this would be a secure token)
-                    localStorage.setItem('isLoggedIn', 'true');
-
-                    // Redirect to student portal
-                    window.location.href = 'student-portal.html';
-                } else {
-                    // Show error
-                    loginError.style.display = 'block';
-                }
-            });
-        });
-    </script>
 </body>
 </html>

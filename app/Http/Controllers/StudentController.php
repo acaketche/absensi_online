@@ -66,7 +66,7 @@ class StudentController extends Controller
         }
 
         $request->validate([
-            'id_student' => 'required|string|max:20|unique:students,id_student',
+            'id_student' => 'required|numeric|max:20|unique:students,id_student',
             'fullname' => 'required|string|max:100',
             'class_id' => 'required|string|max:50',
             'parent_phonecell' => 'required|string|max:15',
@@ -124,7 +124,7 @@ class StudentController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'id_student' => 'required|string|max:20|unique:students,id_student,' . $id . ',id_student',
+            'id_student' => 'required|numeric|max:20|unique:students,id_student,' . $id . ',id_student',
             'fullname' => 'required|string|max:100',
             'class_id' => 'required|string|max:50',
             'parent_phonecell' => 'required|string|max:15',
