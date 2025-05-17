@@ -39,6 +39,11 @@ class AttendanceController extends Controller
                 'document' => $request->document ?? null,
             ];
 
+            if ($request->hasFile('document')) {
+                $filePath = $request->file('document')->store('permissions', 'public');
+                $attendanceData['document'] = $filePath;
+            }
+
             if ($statusId === 1) {
                 $request->validate([
                     'latitude' => 'required|numeric',
