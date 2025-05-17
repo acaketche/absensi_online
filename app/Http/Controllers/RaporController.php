@@ -9,7 +9,6 @@ use App\Models\Rapor;
 use App\Models\AcademicYear;
 use App\Models\Semester;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class RaporController extends Controller
@@ -23,14 +22,6 @@ class RaporController extends Controller
             $query->where('academic_year_id', $request->academic_year_id);
         }
 
-        if ($request->filled('grade')) {
-            $query->where('grade', $request->grade);
-        }
-
-        if ($request->filled('major')) {
-            $query->where('major', $request->major);
-        }
-
         $classes = $query->get();
         $academicYears = AcademicYear::all();
 
@@ -40,73 +31,70 @@ class RaporController extends Controller
     public function students($classId)
     {
         $class = Classes::with(['employee', 'academicYear'])->findOrFail($classId);
+
+        // Load students with their rapor data
         $students = Student::where('class_id', $classId)
-            ->with('rapor')
+            ->with(['rapor', 'academicYear', 'semester'])
             ->get();
 
         return view('rapor.raporstudent', compact('class', 'students'));
     }
 
-    public function create(Request $request)
-    {
-        $student = null;
-        $class = null;
-
-        if ($request->filled('id_student')) {
-            $student = Student::findOrFail($request->id_student);
-            $class = $student->class;
-        }
-
-        if ($request->filled('class_id')) {
-            $class = Classes::findOrFail($request->class_id);
-        }
-
-        $academicYears = AcademicYear::all();
-        $semesters = Semester::all();
-
-        return view('rapor.create', compact('student', 'class', 'academicYears', 'semesters'));
-    }
-
     public function store(Request $request)
     {
+        // Validasi input
         $validator = Validator::make($request->all(), [
-            'student_id' => 'required|exists:students,id_student',
-            'class_id' => 'required|exists:classes,class_id',
-            'academic_year_id' => 'required|exists:academic_years,id',
-            'semester_id' => 'required|exists:semesters,id',
-            'rapor_file' => 'required|file|mimes:pdf|max:10240',
+            'id_student'     => 'required|exists:students,id_student',
+            'report_date'    => 'required|date',
+            'report_file'    => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'description'    => 'nullable|string|max:500',
+            'status_report'  => 'required|in:Belum Ada,Sudah Ada',
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('error_modal', true); // Flag untuk menampilkan kembali modal jika ada error
         }
 
-        $existingRapor = Rapor::where('id_student', $request->student_id)
-            ->where('academic_year_id', $request->academic_year_id)
-            ->where('semester_id', $request->semester_id)
+        // Ambil data siswa
+        $student = Student::with(['class', 'academicYear', 'semester'])->findOrFail($request->id_student);
+
+        // Cek apakah sudah ada rapor untuk siswa, tahun ajaran, dan semester yang sama
+        $existingRapor = Rapor::where('id_student', $student->id_student)
+            ->where('academic_year_id', $student->academic_year_id)
+            ->where('semester_id', $student->semester_id)
             ->first();
 
         if ($existingRapor) {
             return redirect()->back()
-                ->with('error', 'Rapor untuk siswa ini pada tahun ajaran dan semester yang dipilih sudah ada.')
-                ->withInput();
+                ->with('error', 'Rapor untuk siswa ini pada tahun ajaran dan semester yang sama sudah ada.')
+                ->with('error_modal', true)
+                ->with('student_id', $student->id_student); // Untuk membuka kembali modal dengan siswa yang sama
         }
 
-        $path = $request->file('rapor_file')->store('rapor', 'public');
+        // Upload file
+        $fileName = null;
+        if ($request->hasFile('file_path')) {
+            $file = $request->file('file_path')->store('file_rapor', 'public');;
+        }
 
-        $rapor = new Rapor();
-        $rapor->id_student = $request->student_id;
-        $rapor->class_id = $request->class_id;
-        $rapor->academic_year_id = $request->academic_year_id;
-        $rapor->semester_id = $request->semester_id;
-        $rapor->file_path = $path;
-        $rapor->description = $request->description;
-        $rapor->save();
+        // Simpan data rapor
+        Rapor::create([
+            'id_student'        => $student->id_student,
+            'class_id'          => $student->class_id,
+            'academic_year_id'  => $student->academic_year_id,
+            'semester_id'       => $student->semester_id,
+            'report_date'       => $request->report_date,
+            'description'       => $request->description,
+            'file_path'         => 'rapor/' . $fileName,
+            'status_report'     => $request->status_report,
+        ]);
 
-        return redirect()->route('rapor.students', $request->class_id)
-            ->with('success', 'Rapor berhasil diupload.');
+        return redirect()->route('rapor.students', ['classId' => $student->class_id])
+                         ->with('success', 'Rapor berhasil diupload!');
     }
-
     public function edit($id)
     {
         $rapor = Rapor::with(['student', 'academicYear', 'semester', 'class'])->findOrFail($id);
@@ -118,18 +106,26 @@ class RaporController extends Controller
 
     public function update(Request $request, $id)
     {
+        // Validasi input
         $validator = Validator::make($request->all(), [
             'academic_year_id' => 'required|exists:academic_years,id',
-            'semester_id' => 'required|exists:semesters,id',
-            'rapor_file' => 'nullable|file|mimes:pdf|max:10240',
+            'semester_id'      => 'required|exists:semesters,id',
+            'report_date'      => 'required|date',
+            'description'      => 'nullable|string|max:500',
+            'report_file'      => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'status_report'    => 'required|in:Belum Ada,Sudah Ada',
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
         }
 
         $rapor = Rapor::findOrFail($id);
+        $student = Student::findOrFail($rapor->id_student);
 
+        // Cek apakah sudah ada rapor lain untuk siswa, tahun ajaran, dan semester yang sama
         $existingRapor = Rapor::where('id_student', $rapor->id_student)
             ->where('academic_year_id', $request->academic_year_id)
             ->where('semester_id', $request->semester_id)
@@ -138,22 +134,30 @@ class RaporController extends Controller
 
         if ($existingRapor) {
             return redirect()->back()
-                ->with('error', 'Rapor untuk siswa ini pada tahun ajaran dan semester yang dipilih sudah ada.')
+                ->with('error', 'Rapor untuk tahun ajaran dan semester ini sudah ada.')
                 ->withInput();
         }
 
-        if ($request->hasFile('rapor_file')) {
+        // Update file jika ada
+        if ($request->hasFile('report_file')) {
+            // Hapus file lama jika ada
             if ($rapor->file_path) {
                 Storage::disk('public')->delete($rapor->file_path);
             }
 
-            $path = $request->file('rapor_file')->store('rapor', 'public');
-            $rapor->file_path = $path;
+            // Upload file baru
+            $file = $request->file('report_file');
+            $fileName = 'rapor_' . $student->nis . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->storeAs('rapor', $fileName, 'public');
+            $rapor->file_path = 'rapor/' . $fileName;
         }
 
+        // Update data rapor
         $rapor->academic_year_id = $request->academic_year_id;
-        $rapor->semester_id = $request->semester_id;
-        $rapor->description = $request->description;
+        $rapor->semester_id      = $request->semester_id;
+        $rapor->report_date      = $request->report_date;
+        $rapor->description      = $request->description;
+        $rapor->status_report    = $request->status_report;
         $rapor->save();
 
         return redirect()->route('rapor.students', $rapor->class_id)
@@ -165,6 +169,7 @@ class RaporController extends Controller
         $rapor = Rapor::findOrFail($id);
         $classId = $rapor->class_id;
 
+        // Hapus file rapor jika ada
         if ($rapor->file_path) {
             Storage::disk('public')->delete($rapor->file_path);
         }
@@ -173,5 +178,26 @@ class RaporController extends Controller
 
         return redirect()->route('rapor.students', $classId)
             ->with('success', 'Rapor berhasil dihapus.');
+    }
+
+
+    public function show($id)
+    {
+        $rapor = Rapor::with(['student', 'academicYear', 'semester', 'class'])->findOrFail($id);
+        return view('rapor.show', compact('rapor'));
+    }
+
+    public function download($id)
+    {
+        $rapor = Rapor::findOrFail($id);
+
+        if (!$rapor->file_path || !Storage::disk('public')->exists($rapor->file_path)) {
+            return redirect()->back()->with('error', 'File rapor tidak ditemukan.');
+        }
+
+        $student = Student::findOrFail($rapor->id_student);
+        $fileName = 'Rapor_' . $student->fullname . '_' . $rapor->academicYear->name . '_' . $rapor->semester->name . '.' . pathinfo($rapor->file_path, PATHINFO_EXTENSION);
+
+        return response()->download(storage_path('app/public/' . $rapor->file_path), $fileName);
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Classes;
 use App\Models\Employee;
 use App\Models\AcademicYear;
 use App\Models\Semester;
+use App\Models\Position;
 
 class ClassesController extends Controller
 {
@@ -14,7 +15,7 @@ class ClassesController extends Controller
     public function index()
     {
         $classes = Classes::with('employee')->get();
-        $waliKelas = Employee::where('role_id', '1')->get();
+        $waliKelas = Employee::where('position_id', 7)->get();
         $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
         $activeSemester = Semester::where('is_active', 1)->first();
 
@@ -69,13 +70,17 @@ class ClassesController extends Controller
         ]);
     }
 
-    // Menampilkan form edit kelas
     public function edit($id)
-    {
-        $class = Classes::where('class_id', $id)->firstOrFail();
-        $waliKelas = Employee::where('role_id', '1')->get();
-        return view('classes.edit', compact('class', 'waliKelas'));
-    }
+{
+    $class = Classes::where('class_id', $id)->firstOrFail();
+
+    // Ambil hanya employee yang posisinya 'Wali Kelas'
+    $waliKelas = Employee::whereHas('position_id', function ($query) {
+        $query->where('name', 'Wali Kelas');
+    })->get();
+
+    return view('classes.edit', compact('class', 'waliKelas'));
+}
 
     // Memperbarui data kelas
     public function update(Request $request, $id)
@@ -103,4 +108,19 @@ class ClassesController extends Controller
 
         return redirect()->route('classes.index')->with('success', 'Kelas berhasil dihapus.');
     }
+// Mengambil data kelas dalam format JSON untuk modal edit
+public function getClassData($id)
+{
+    $class = Classes::with('employee')->where('class_id', $id)->first();
+
+    if (!$class) {
+        return response()->json(['message' => 'Data tidak ditemukan'], 404);
+    }
+
+    return response()->json([
+        'class_name' => $class->class_name,
+        'employee_nip' => $class->id_employee,
+    ]);
+}
+
 }

@@ -115,37 +115,7 @@
   <!-- Main Content -->
   <main class="flex-grow-1 p-4">
     <!-- Header dengan Profil Admin -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fs-4 fw-bold mb-0"></h2>
-        <div class="dropdown">
-            <div class="admin-profile d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
-                <div class="d-flex flex-column text-end me-2">
-                    <span class="admin-name">{{ Auth::guard('employee')->user()->fullname }}</span>
-                    <small class="admin-role text-muted">
-                        {{ Auth::guard('employee')->user()->role->role_name ?? 'Tidak ada role' }}
-                    </small>
-                </div>
-                <div class="admin-avatar">
-                    <img src="{{ Auth::guard('employee')->user()->photo ? asset('storage/' . Auth::guard('employee')->user()->photo) : 'https://via.placeholder.com/150' }}"
-                         alt="Admin Profile" class="w-100 h-100 object-fit-cover">
-                </div>
-                <i class="fas fa-chevron-down ms-2 text-muted"></i>
-            </div>
-            <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fas fa-key"></i> Ubah Password</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                    <form id="logout-form" action="{{ route('logout.employee') }}" method="POST" style="display: none;">
-                        @csrf
-                    </form>
-                    <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
-
+   @include('components.profiladmin')
     <!-- Judul Halaman dan Tombol Kembali -->
     <header class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fs-4 fw-bold">Buku Dipinjam - {{ $student->fullname }}</h2>
@@ -162,15 +132,16 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-2 text-center mb-3 mb-md-0">
-                    @if($student->photo)
-                        <img src="{{ asset('storage/' . $student->photo) }}"
-                            alt="Foto {{ $student->fullname }}"
-                            class="student-avatar">
-                    @else
-                        <div class="student-initial">
-                            {{ substr($student->fullname, 0, 1) }}
-                        </div>
-                    @endif
+                @if($student->photo)
+                    <img src="{{ asset('storage/' . $student->photo) }}"
+                        alt="Foto {{ $student->fullname }}"
+                        style="width: 150px; height: 150px; object-fit: cover; border-radius: 10px;">
+                @else
+                    <div class="student-initial"
+                        style="width: 150px; height: 150px; font-size: 48px; display: flex; align-items: center; justify-content: center; background-color: #ccc; border-radius: 10px;">
+                        {{ substr($student->fullname, 0, 1) }}
+                    </div>
+                @endif
                 </div>
                 <div class="col-md-5">
                     <div class="row mb-2">

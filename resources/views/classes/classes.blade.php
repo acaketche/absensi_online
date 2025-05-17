@@ -20,36 +20,7 @@
   <!-- Main Content -->
   <main class="flex-grow-1 p-4">
     <!-- Header dengan Profil Admin -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fs-4 fw-bold mb-0"></h2>
-        <div class="dropdown">
-            <div class="admin-profile d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
-                <div class="d-flex flex-column text-end me-2">
-                    <span class="admin-name">{{ Auth::guard('employee')->user()->fullname }}</span>
-                    <small class="admin-role text-muted">
-                        {{ Auth::guard('employee')->user()->role->role_name ?? 'Tidak ada role' }}
-                    </small>
-                </div>
-                <div class="admin-avatar">
-                    <img src="{{ Auth::guard('employee')->user()->photo ? asset('storage/' . Auth::guard('employee')->user()->photo) : 'https://via.placeholder.com/150' }}"
-                         alt="Admin Profile" class="w-100 h-100 object-fit-cover">
-                </div>
-                <i class="fas fa-chevron-down ms-2 text-muted"></i>
-            </div>
-            <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fas fa-key"></i> Ubah Password</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                    <form id="logout-form" action="{{ route('logout.employee') }}" method="POST" style="display: none;">
-                        @csrf
-                    </form>
-                    <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
+    @include('components.profiladmin')
       <header class="d-flex justify-content-between align-items-center mb-4">
           <h2 class="fs-4 fw-bold">Data Kelas</h2>
           <div class="d-flex align-items-center">
@@ -117,10 +88,10 @@
                         <td>{{ $class->class_name }}</td>
                         <td>
                             <div class="teacher-info d-flex align-items-center">
-                                <img src="{{ $class->employee?->photo ? asset('storage/' . $class->employee?->photo) : 'https://via.placeholder.com/40' }}"
-                                     alt="Foto {{ $class->employee?->fullname ?? 'Tidak Ada Data' }}"
-                                     class="teacher-photo rounded-circle me-3"
-                                     width="40" height="40">
+                               <img src="{{ $class->employee?->photo ? asset('storage/' . $class->employee->photo) : 'https://via.placeholder.com/150' }}"
+                                alt="Foto {{ $class->employee?->fullname ?? 'Tidak Ada Data' }}"
+                                class="teacher-photo rounded-circle me-3"
+                                width="50" height="60">
                                 <div class="teacher-details">
                                     <p class="teacher-name mb-0">
                                         {{ $class->employee?->fullname ?? 'Tidak Ada Data' }}
@@ -241,18 +212,18 @@
                       <input type="text" class="form-control" id="edit_class_name" name="class_name" required>
                       <div class="form-text">Contoh: X IPA 1, XI IPS 2, XII IPA 3, dll.</div>
                   </div>
-                  <div class="mb-3">
-                      <label for="edit_id_employee" class="form-label">Wali Kelas</label>
-                      <select class="form-select" id="edit_id_employee" name="id_employee" required>
-                          <option value="">-- Pilih Wali Kelas --</option>
-                          @foreach ($waliKelas as $wali)
-                              <option value="{{ $wali->id_employee }}">
-                                  {{ $wali->fullname }} (NIP: {{ $wali->id_employee }})
-                              </option>
-                          @endforeach
-                      </select>
-                  </div>
-                  <div class="d-grid">
+                 <div class="mb-3">
+                        <label for="edit_id_employee" class="form-label">Wali Kelas</label>
+                        <select class="form-select" id="edit_id_employee" name="id_employee" required>
+                            <option value="">-- Pilih Wali Kelas --</option>
+                            @foreach ($waliKelas as $wali)
+                                <option value="{{ $wali->id_employee }}" {{ $class->id_employee == $wali->id_employee ? 'selected' : '' }}>
+                                    {{ $wali->fullname }} (NIP: {{ $wali->id_employee }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                     <div class="d-grid">
                       <button type="submit" class="btn btn-primary">
                           <i class="fas fa-save me-1"></i> Simpan Perubahan
                       </button>
@@ -284,31 +255,34 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Fungsi filter
-  document.getElementById('filterForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const tingkat = document.getElementById('filterTingkat').value;
+  document.addEventListener('DOMContentLoaded', function () {
+    // Filter saat submit form
+    document.getElementById('filterForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const tingkat = document.getElementById('filterTingkat').value;
 
-      const tableRows = document.querySelectorAll('#classTable tbody tr');
+        const tableRows = document.querySelectorAll('#classTable tbody tr');
 
-      tableRows.forEach(row => {
-          let showRow = true;
+        tableRows.forEach(row => {
+            let showRow = true;
 
-          // Filter berdasarkan tingkat
-          if (tingkat && !row.cells[1].textContent.startsWith(tingkat)) {
-              showRow = false;
-          }
+            // Filter berdasarkan tingkat
+            if (tingkat && !row.cells[1].textContent.startsWith(tingkat)) {
+                showRow = false;
+            }
 
-          row.style.display = showRow ? '' : 'none';
-      });
-  });
+            row.style.display = showRow ? '' : 'none';
+        });
+    });
 
-  // Reset filter
-  document.querySelector('#filterForm button[type="reset"]').addEventListener('click', function() {
-      const tableRows = document.querySelectorAll('#classTable tbody tr');
-      tableRows.forEach(row => {
-          row.style.display = '';
-      });
-  });
+    // Reset filter
+    document.querySelector('#filterForm button[type="reset"]').addEventListener('click', function() {
+        const tableRows = document.querySelectorAll('#classTable tbody tr');
+        tableRows.forEach(row => {
+            row.style.display = '';
+        });
+    });
+});
 
   // Fungsi untuk modal edit kelas
   const editClassModal = document.getElementById('editClassModal');
@@ -325,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function() {
           // Update action URL form
           document.getElementById('editClassForm').action = `/classes/${classId}`;
 
-          fetch(`/classes/${classId}`)
+        fetch(`/classes/json/${classId}`)
               .then(response => {
                   if (!response.ok) {
                       throw new Error('Network response was not ok');

@@ -9,12 +9,13 @@ class Rapor extends Model
 {
     use HasFactory;
 
-    protected $table = 'rapor'; // Nama tabel di database
+    protected $table = 'rapor'; // Nama tabel
 
-    protected $primaryKey = 'id'; // Primary Key
+    protected $primaryKey = 'id'; // Primary key
 
-    public $timestamps = true; // Mengaktifkan timestamps
+    public $timestamps = true; // created_at dan updated_at aktif
 
+    // Kolom yang dapat diisi (mass assignment)
     protected $fillable = [
         'id_student',
         'class_id',
@@ -22,7 +23,8 @@ class Rapor extends Model
         'semester_id',
         'report_date',
         'file_path',
-        'description'
+        'description',
+        'status_report', // Tambahkan kolom ini
     ];
 
     /**

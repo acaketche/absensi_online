@@ -82,37 +82,7 @@
   <!-- Main Content -->
   <main class="flex-grow-1 p-4">
     <!-- Header dengan Profil Admin -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fs-4 fw-bold mb-0"></h2>
-        <div class="dropdown">
-            <div class="admin-profile d-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
-                <div class="d-flex flex-column text-end me-2">
-                    <span class="admin-name">{{ Auth::guard('employee')->user()->fullname }}</span>
-                    <small class="admin-role text-muted">
-                        {{ Auth::guard('employee')->user()->role->role_name ?? 'Tidak ada role' }}
-                    </small>
-                </div>
-                <div class="admin-avatar">
-                    <img src="{{ Auth::guard('employee')->user()->photo ? asset('storage/' . Auth::guard('employee')->user()->photo) : 'https://via.placeholder.com/150' }}"
-                         alt="Admin Profile" class="w-100 h-100 object-fit-cover">
-                </div>
-                <i class="fas fa-chevron-down ms-2 text-muted"></i>
-            </div>
-            <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fas fa-key"></i> Ubah Password</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                    <form id="logout-form" action="{{ route('logout.employee') }}" method="POST" style="display: none;">
-                        @csrf
-                    </form>
-                    <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
-
+    @include('components.profiladmin')
     <!-- Judul Halaman dan Tombol Kembali -->
     <header class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fs-4 fw-bold">Daftar Siswa Kelas {{ $class->class_name }}</h2>
@@ -150,7 +120,7 @@
                                 <img src="{{ asset('storage/' . $class->employee->photo) }}"
                                     alt="Foto {{ $class->employee->fullname }}"
                                     class="rounded-circle me-3"
-                                    width="50" height="50">
+                                    width="100" height="120">
                             @else
                                 <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3"
                                     style="width: 50px; height: 50px;">
