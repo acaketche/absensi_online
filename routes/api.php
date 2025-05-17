@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/login-student', [App\Http\Controllers\Api\AuthController::class, 'login'])->name('api.login.student');
 
-
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/logout-student', [App\Http\Controllers\Api\AuthController::class, 'logout'])->name('api.logout.student');
 
