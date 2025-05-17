@@ -21,6 +21,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\BookLoanController;
 use App\Http\Controllers\Auth\EmployeeLoginController;
 use App\Http\Controllers\Auth\StudentLoginController;
+use App\Http\Controllers\ProfileController;
 
 
 Route::get('/', function () {
@@ -32,8 +33,8 @@ Route::prefix('login')->group(function () {
     Route::post('/employee', [EmployeeLoginController::class, 'authenticate']);
     Route::get('/forgot-password', [EmployeeLoginController::class, 'showForgotPasswordForm'])->name('password.request');
     Route::post('/forgot-password', [EmployeeLoginController::class, 'sendResetLink'])->name('password.email');
-    Route::get('/reset-password/{token}', [EmployeeLoginController::class, 'showResetForm'])->name('password.reset');
-    Route::post('/reset-password', [EmployeeLoginController::class, 'resetPassword'])->name('password.update');
+    Route::get('/reset-password/{token}', [ProfileController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [ProfileController::class, 'resetPassword'])->name('password.update');
 
     Route::get('/student', [StudentLoginController::class, 'showLoginForm'])->name('login.student');
     Route::post('/student', [StudentLoginController::class, 'login']);
@@ -42,13 +43,14 @@ Route::prefix('login')->group(function () {
 Route::post('/logout/employee', [EmployeeLoginController::class, 'logout'])->name('logout.employee');
 Route::post('/logout/student', [StudentLoginController::class, 'logout'])->name('logout.student');
 
-Route::middleware(['web', 'auth:employee', 'role:2'])->group(function () {
+Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function () {
      // Dashboards
     Route::get('/admin/dashboard', [DashboardController::class, 'Superadmin'])->name('dashboard.admin');
     // Mengelola siswa
     Route::resource('students', StudentController::class);
     // Mengelola kelas
     Route::resource('classes', ClassesController::class);
+    Route::get('/classes/json/{id}', [ClassesController::class, 'getClassData'])->name('classes.json');
     // Tahun Ajaran & Semester
     Route::resource('academicyear', AcademicYearController::class);
     Route::resource('semesters', SemesterController::class);
@@ -95,7 +97,7 @@ Route::middleware(['web', 'auth:employee', 'role:2'])->group(function () {
     Route::resource('users', UserController::class);
 });
 
-Route::middleware(['web', 'auth:employee', 'role:3'])->group(function () {
+Route::middleware(['web', 'auth:employee', 'role:Admin Tata Usaha'])->group(function () {
     Route::get('/tu/dashboard', [DashboardController::class, 'TataUsaha'])->name('dashboard.TU');
 
     // Semua route resource di luar book & book-loans bisa dimasukkan di sini
@@ -137,7 +139,7 @@ Route::middleware(['web', 'auth:employee', 'role:3'])->group(function () {
     Route::post('/semester/toggle-status/{id}', [StatusController::class, 'toggleSemesterStatus']);
 });
 
-Route::middleware(['web', 'auth:employee', 'role:4'])->group(function () {
+Route::middleware(['web', 'auth:employee', 'role:Admin Pegawai Piket'])->group(function () {
     Route::get('/piket/dashboard', [DashboardController::class, 'piket'])->name('dashboard.piket');
 
     // Hanya absensi siswa dan pegawai
@@ -145,7 +147,7 @@ Route::middleware(['web', 'auth:employee', 'role:4'])->group(function () {
     Route::resource('attendance', EmployeeAttendanceController::class);
 });
 
-Route::middleware(['web', 'auth:employee', 'role:5'])->group(function () {
+Route::middleware(['web', 'auth:employee', 'role:Admin Perpustakaan'])->group(function () {
     Route::get('/perpus/dashboard', [DashboardController::class, 'perpus'])->name('dashboard.perpus');
 
     // Manajemen buku

@@ -80,7 +80,7 @@ class StudentController extends Controller
         try {
             $photoPath = null;
             if ($request->hasFile('photo')) {
-                $photoPath = $request->file('photo')->store('photos', 'public');
+                $photoPath = $request->file('photo')->store('photo_siswa', 'public');
             }
 
             Student::create([
@@ -150,7 +150,7 @@ class StudentController extends Controller
             }
 
             // Simpan foto baru
-            $data['photo'] = $request->file('photo')->store('photos', 'public');
+            $data['photo'] = $request->file('photo')->store('photo_siswa', 'public');
         }
 
         $student->update($data);
