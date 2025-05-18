@@ -66,6 +66,8 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
     // Pegawai dan Absensi Pegawai
     Route::resource('employees', EmployeesController::class);
     Route::resource('attendance', EmployeeAttendanceController::class);
+    Route::put('/attendance/{id}', [EmployeeAttendanceController::class, 'update'])->name('attendance.update');
+    Route::get('/attendance/export/pdf', [EmployeeAttendanceController::class, 'exportPdf'])->name('attendance.export.pdf');
     // Absensi Siswa
     Route::resource('student-attendance', StudentAttendanceController::class);
     Route::get('/students/search', [StudentAttendanceController::class, 'searchById']);

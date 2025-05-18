@@ -61,51 +61,66 @@
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEmployeeAttendanceModal">+ Tambah Absensi</button>
             </div>
         </header>
+@if ($errors->any())
+    <div class="alert alert-danger">
+        <ul class="mb-0">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 
-        <!-- Filter Section -->
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white">Filter Absensi Pegawai</div>
-            <div class="card-body">
-                <form action="{{ route('attendance.index') }}" method="GET">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <label>Jabatan</label>
-                            <select name="position" class="form-control">
-                                <option value="">-- Semua Jabatan --</option>
-                                @foreach($positions ?? [] as $position)
-                                    <option value="{{ $position }}" {{ request('position') == $position ? 'selected' : '' }}>
-                                        {{ $position }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label>Status</label>
-                            <select name="status" class="form-control">
-                                <option value="">-- Semua Status --</option>
-                                <option value="Hadir" {{ request('status') == 'Hadir' ? 'selected' : '' }}>Hadir</option>
-                                <option value="Terlambat" {{ request('status') == 'Terlambat' ? 'selected' : '' }}>Terlambat</option>
-                                <option value="Izin" {{ request('status') == 'Izin' ? 'selected' : '' }}>Izin</option>
-                                <option value="Sakit" {{ request('status') == 'Sakit' ? 'selected' : '' }}>Sakit</option>
-                                <option value="Alpha" {{ request('status') == 'Alpha' ? 'selected' : '' }}>Alpha</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label>Tanggal Mulai</label>
-                            <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}">
-                        </div>
-                        <div class="col-md-3">
-                            <label>Tanggal Selesai</label>
-                            <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}">
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <button type="submit" class="btn btn-primary">Tampilkan</button>
-                        <a href="{{ route('attendance.index') }}" class="btn btn-secondary ms-2">Reset</a>
-                    </div>
-                </form>
+       <!-- Filter Section -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        Filter Absensi Pegawai
+    </div>
+    <div class="card-body">
+        <form action="{{ route('attendance.index') }}" method="GET" class="mb-3">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">-- Semua Status --</option>
+                        @foreach($statuses as $status)
+                            <option value="{{ $status->status_id }}"
+                                {{ request('status') == $status->status_id ? 'selected' : '' }}>
+                                {{ $status->status_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="start_date" class="form-label">Tanggal Mulai</label>
+                    <input type="date" id="start_date" name="start_date"
+                        class="form-control" value="{{ request('start_date') }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="end_date" class="form-label">Tanggal Selesai</label>
+                    <input type="date" id="end_date" name="end_date"
+                        class="form-control" value="{{ request('end_date') }}">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">Tampilkan</button>
+                    <a href="{{ route('attendance.index') }}" class="btn btn-secondary">Reset</a>
+                </div>
             </div>
-        </div>
+        </form>
+
+        <!-- Export PDF Button -->
+        <form action="{{ route('attendance.export.pdf') }}" method="GET" target="_blank">
+            <input type="hidden" name="academic_year_id" value="{{ $academicYearId }}">
+            <input type="hidden" name="semester_id" value="{{ $semesterId }}">
+            <input type="hidden" name="status" value="{{ request('status') }}">
+            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-file-earmark-pdf"></i> Export PDF
+            </button>
+        </form>
+    </div>
+</div>
 
         <!-- Data Absensi Pegawai -->
         <div class="card">
@@ -117,12 +132,10 @@
                             <tr>
                                 <th>No</th>
                                 <th>Nama Pegawai</th>
-                                <th>Jabatan</th>
                                 <th>Tanggal</th>
                                 <th>Waktu Masuk</th>
                                 <th>Waktu Keluar</th>
                                 <th>Status</th>
-                                <th>Lokasi</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -130,8 +143,7 @@
                             @forelse($attendances ?? [] as $index => $attendance)
                             <tr>
                                 <td>{{ $index + 1 }}</td>
-                                <td>{{ $attendance->employee->name ?? $attendance->employee_id }}</td>
-                                <td>{{ $attendance->employee->position ?? '-' }}</td>
+                                <td>{{ $attendance->employee->fullname ?? $attendance->employee->id_employee }}</td>
                                 <td>{{ date('d-m-Y', strtotime($attendance->attendance_date)) }}</td>
                                 <td>{{ date('H:i', strtotime($attendance->check_in)) }}</td>
                                 <td>
@@ -141,22 +153,22 @@
                                         <span class="text-muted">Belum absen keluar</span>
                                     @endif
                                 </td>
-                                <td>
-                                    <span class="status-badge status-{{ strtolower($attendance->status) }}">
-                                        {{ $attendance->status }}
+                               <td>
+                                    <span class="status-badge status-{{ strtolower($attendance->status->status_name) }}">
+                                        {{ $attendance->status->status_name }}
                                     </span>
                                 </td>
+
                                 <td>
-                                    @if($attendance->latitude && $attendance->longitude)
-                                        <a href="https://maps.google.com/?q={{ $attendance->latitude }},{{ $attendance->longitude }}" target="_blank">
-                                            <i class="fas fa-map-marker-alt"></i> Lihat Lokasi
-                                        </a>
-                                    @else
-                                        <span class="text-muted">Tidak ada data</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editEmployeeAttendanceModal" data-id="{{ $attendance->id }}">
+                                    <button  class="btn btn-sm btn-warning edit-attendance-btn"
+                                        data-id="{{ $attendance->id }}"
+                                        data-employee-id="{{ $attendance->employee->id_employee }}"
+                                        data-attendance-date="{{ $attendance->attendance_date }}"
+                                        data-check-in="{{ $attendance->check_in }}"
+                                        data-check-out="{{ $attendance->check_out }}"
+                                        data-status-id="{{ $attendance->status->status_id }}"
+                                         data-bs-toggle="modal"
+                                        data-bs-target="#editEmployeeAttendanceModal">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteEmployeeAttendanceModal" data-id="{{ $attendance->id }}" data-name="{{ $attendance->employee->name ?? $attendance->employee_id }}">
@@ -193,7 +205,7 @@
                         <select class="form-select" id="employee_id" name="employee_id" required>
                             <option value="">-- Pilih Pegawai --</option>
                             @foreach($employees ?? [] as $employee)
-                                <option value="{{ $employee->id_employee }}">{{ $employee->fullname }} </option>
+                               <option value="{{ $employee->id_employee}}"> {{ $employee->fullname }} (NIP: {{ $employee->id_employee }})</option>
                             @endforeach
                         </select>
                     </div>
@@ -211,29 +223,17 @@
                         <small class="text-muted">Kosongkan jika belum absen keluar</small>
                     </div>
                     <div class="mb-3">
-                        <label for="status" class="form-label">Status</label>
-                        <select class="form-select" id="status" name="status" required>
+                        <label for="status_id" class="form-label">Status</label>
+                        <select class="form-select" id="status_id" name="status_id" required>
                             <option value="">-- Pilih Status --</option>
-                            <option value="Hadir">Hadir</option>
-                            <option value="Terlambat">Terlambat</option>
-                            <option value="Izin">Izin</option>
-                            <option value="Sakit">Sakit</option>
-                            <option value="Alpha">Alpha</option>
+                            @foreach($statuses as $status)
+                                <option value="{{ $status->status_id }}">{{ $status->status_name }}</option>
+                            @endforeach
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label for="latitude" class="form-label">Latitude</label>
-                        <input type="text" class="form-control" id="latitude" name="latitude">
-                    </div>
-                    <div class="mb-3">
-                        <label for="longitude" class="form-label">Longitude</label>
-                        <input type="text" class="form-control" id="longitude" name="longitude">
-                    </div>
-                    <div class="mb-3">
-                        <label for="notes" class="form-label">Catatan</label>
-                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+                     <input type="hidden" name="academic_year_id" value="{{ $activeAcademicYear->id ?? '' }}">
+                        <input type="hidden" name="semester_id" value="{{ $activeSemester->id ?? '' }}">
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                 </form>
             </div>
         </div>
@@ -243,64 +243,59 @@
 <!-- Modal Edit Absensi Pegawai -->
 <div class="modal fade" id="editEmployeeAttendanceModal" tabindex="-1" aria-labelledby="editEmployeeAttendanceModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editEmployeeAttendanceModalLabel">Edit Absensi Pegawai</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editEmployeeAttendanceForm" action="" method="POST">
-                    @csrf
-                    @method('PUT')
+        <form id="editEmployeeAttendanceForm" method="POST">
+            @csrf
+            @method('PUT')
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Absensi Pegawai</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_attendance_id" name="id">
+
                     <div class="mb-3">
-                        <label for="edit_employee_id" class="form-label">Pegawai</label>
+                        <label for="edit_id_employee" class="form-label">Pegawai</label>
                         <select class="form-select" id="edit_employee_id" name="employee_id" required>
                             <option value="">-- Pilih Pegawai --</option>
                             @foreach($employees ?? [] as $employee)
-                                <option value="{{ $employee->id }}">{{ $employee->name }} ({{ $employee->employee_id }})</option>
+                                <option value="{{ $employee->id_employee }}">{{ $employee->fullname }} (NIP: {{ $employee->id_employee }})</option>
                             @endforeach
                         </select>
                     </div>
+
                     <div class="mb-3">
                         <label for="edit_attendance_date" class="form-label">Tanggal Absensi</label>
                         <input type="date" class="form-control" id="edit_attendance_date" name="attendance_date" required>
                     </div>
+
                     <div class="mb-3">
                         <label for="edit_check_in" class="form-label">Waktu Masuk</label>
-                        <input type="time" class="form-control" id="edit_check_in" name="check_in" required>
+                        <input type="time" class="form-control" id="edit_check_in" name="check_in">
                     </div>
+
                     <div class="mb-3">
                         <label for="edit_check_out" class="form-label">Waktu Keluar</label>
                         <input type="time" class="form-control" id="edit_check_out" name="check_out">
                         <small class="text-muted">Kosongkan jika belum absen keluar</small>
                     </div>
+
                     <div class="mb-3">
-                        <label for="edit_status" class="form-label">Status</label>
-                        <select class="form-select" id="edit_status" name="status" required>
+                        <label for="edit_status_id" class="form-label">Status</label>
+                        <select class="form-select" id="edit_status_id" name="status_id" required>
                             <option value="">-- Pilih Status --</option>
-                            <option value="Hadir">Hadir</option>
-                            <option value="Terlambat">Terlambat</option>
-                            <option value="Izin">Izin</option>
-                            <option value="Sakit">Sakit</option>
-                            <option value="Alpha">Alpha</option>
+                            @foreach($statuses as $status)
+                                <option value="{{ $status->status_id }}">{{ $status->status_name }}</option>
+                            @endforeach
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label for="edit_latitude" class="form-label">Latitude</label>
-                        <input type="text" class="form-control" id="edit_latitude" name="latitude">
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit_longitude" class="form-label">Longitude</label>
-                        <input type="text" class="form-control" id="edit_longitude" name="longitude">
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit_notes" class="form-label">Catatan</label>
-                        <textarea class="form-control" id="edit_notes" name="notes" rows="3"></textarea>
-                    </div>
+
+                </div>
+                <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                </form>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 
@@ -329,33 +324,32 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle edit employee attendance modal
-    const editEmployeeAttendanceModal = document.getElementById('editEmployeeAttendanceModal');
-    if (editEmployeeAttendanceModal) {
-        editEmployeeAttendanceModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const id = button.getAttribute('data-id');
+document.addEventListener("DOMContentLoaded", function () {
+    const editButtons = document.querySelectorAll(".edit-attendance-btn");
+    const form = document.getElementById("editEmployeeAttendanceForm");
 
-            // Set form action
-            document.getElementById('editEmployeeAttendanceForm').action = `/employee/attendance/${id}`;
+    editButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            const id = button.getAttribute("data-id");
+            const employeeId = button.getAttribute("data-employee-id");
+            const date = button.getAttribute("data-attendance-date");
+            const checkIn = button.getAttribute("data-check-in");
+            const checkOut = button.getAttribute("data-check-out");
+            const statusId = button.getAttribute("data-status-id");
 
-            // Fetch the attendance data via AJAX
-            fetch(`/employee/attendance/${id}/edit`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('edit_employee_id').value = data.employee_id;
-                    document.getElementById('edit_attendance_date').value = data.attendance_date;
-                    document.getElementById('edit_check_in').value = data.check_in;
-                    document.getElementById('edit_check_out').value = data.check_out || '';
-                    document.getElementById('edit_status').value = data.status;
-                    document.getElementById('edit_latitude').value = data.latitude || '';
-                    document.getElementById('edit_longitude').value = data.longitude || '';
-                    document.getElementById('edit_notes').value = data.notes || '';
-                })
-                .catch(error => console.error('Error:', error));
+            // Set form action dynamically
+            form.action = `/attendance/${id}`;
+
+            // Isi form dengan data dari tombol
+            document.getElementById("edit_attendance_id").value = id;
+            document.getElementById("edit_employee_id").value = employeeId;
+            document.getElementById("edit_attendance_date").value = date;
+            document.getElementById("edit_check_in").value = checkIn?.slice(0, 5);
+            document.getElementById("edit_check_out").value = checkOut?.slice(0, 5);
+            document.getElementById("edit_status_id").value = statusId;
         });
-    }
+    });
+});
 
     // Handle delete employee attendance modal
     const deleteEmployeeAttendanceModal = document.getElementById('deleteEmployeeAttendanceModal');
@@ -372,29 +366,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('deleteEmployeeAttendanceForm').action = `/employee/attendance/${id}`;
         });
     }
-
-    // Get current location for add employee attendance form
-    const addEmployeeAttendanceModal = document.getElementById('addEmployeeAttendanceModal');
-    if (addEmployeeAttendanceModal) {
-        addEmployeeAttendanceModal.addEventListener('show.bs.modal', function() {
-            // Set current date and time
-            const now = new Date();
-            const date = now.toISOString().split('T')[0];
-            const time = now.toTimeString().split(' ')[0].substring(0, 5);
-
-            document.getElementById('attendance_date').value = date;
-            document.getElementById('check_in').value = time;
-
-            // Get current location
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    document.getElementById('latitude').value = position.coords.latitude;
-                    document.getElementById('longitude').value = position.coords.longitude;
-                });
-            }
-        });
-    }
-});
 </script>
 </body>
 </html>

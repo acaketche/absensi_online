@@ -216,11 +216,13 @@
                         <label for="edit_id_employee" class="form-label">Wali Kelas</label>
                         <select class="form-select" id="edit_id_employee" name="id_employee" required>
                             <option value="">-- Pilih Wali Kelas --</option>
+                           @foreach ($classes as $class)
                             @foreach ($waliKelas as $wali)
-                                <option value="{{ $wali->id_employee }}" {{ $class->id_employee == $wali->id_employee ? 'selected' : '' }}>
+                                <option value="{{ $wali->id_employee }}" {{ $class->employee && $class->employee->id_employee == $wali->id_employee ? 'selected' : '' }}>
                                     {{ $wali->fullname }} (NIP: {{ $wali->id_employee }})
                                 </option>
                             @endforeach
+                        @endforeach
                         </select>
                     </div>
                      <div class="d-grid">

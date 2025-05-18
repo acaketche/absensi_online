@@ -151,68 +151,51 @@
         </div>
         @endif
 
-        <!-- Filter Section -->
-        <div class="filter-section mb-4">
-            <h5 class="mb-3">Filter Data Kehadiran</h5>
-            <form id="filterForm" action="{{ route('student-attendance.index') }}" method="GET" class="row g-3">
-                <div class="col-md-3">
-                    <label for="attendance_date" class="form-label">Tanggal</label>
-                    <input type="date" class="form-control" id="attendance_date" name="attendance_date" value="{{ request('attendance_date') }}">
-                </div>
-                <div class="col-md-3">
-                    <label for="class_id" class="form-label">Kelas</label>
-                    <select name="class_id" class="form-control" id="class_id">
-                        <option value="">-- Pilih Kelas --</option>
-                        @foreach ($classes as $class)
-                            <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
-                                {{ $class->class_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="academic_year_id" class="form-label">Tahun Akademik</label>
-                    <select class="form-control" id="academic_year_id" name="academic_year_id">
-                        <option value="">-- Pilih Tahun Akademik --</option>
-                        @foreach($academicYears as $year)
-                            <option value="{{ $year->id }}" {{ $academicYearId == $year->id ? 'selected' : '' }}>
-                                {{ $year->year_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="semester_id" class="form-label">Semester</label>
-                    <select class="form-control" id="semester_id" name="semester_id">
-                        <option value="">-- Pilih Semester --</option>
-                        @foreach($semesters as $semester)
-                            <option value="{{ $semester->id }}" {{ $semesterId == $semester->id ? 'selected' : '' }}>
-                                {{ $semester->semester_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="status_id" class="form-label">Status</label>
-                    <select class="form-select" id="status_id" name="status_id">
-                        <option value="">Semua Status</option>
-                        @foreach($statuses as $status)
-                            <option value="{{ $status->id }}" {{ request('status_id') == $status->id ? 'selected' : '' }}>
+       <div class="filter-section mb-4">
+    <h5 class="mb-3">Filter Data Kehadiran</h5>
+    <form id="filterForm" action="{{ route('student-attendance.index') }}" method="GET" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label for="start_date" class="form-label">Tanggal Mulai</label>
+            <input type="date" id="start_date" name="start_date" class="form-control" value="{{ request('start_date') }}">
+        </div>
+        <div class="col-md-3">
+            <label for="end_date" class="form-label">Tanggal Selesai</label>
+            <input type="date" id="end_date" name="end_date" class="form-control" value="{{ request('end_date') }}">
+        </div>
+        <div class="col-md-3">
+            <label for="class_id" class="form-label">Kelas</label>
+            <select name="class_id" id="class_id" class="form-select">
+                <option value="">-- Pilih Kelas --</option>
+                @foreach ($classes as $class)
+                    <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
+                        {{ $class->class_name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="status_id" class="form-label">Status</label>
+            <select name="status_id" id="status_id" class="form-select">
+                <option value="">Semua Status</option>
+                @foreach($statuses as $status)
+                   <option value="{{ $status->status_id }}"
+                                {{ request('status') == $status->status_id ? 'selected' : '' }}>
                                 {{ $status->status_name }}
                             </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-12 mt-3">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-filter me-1"></i> Terapkan Filter
-                    </button>
-                    <a href="{{ route('student-attendance.index') }}" class="btn btn-secondary ms-2">
-                        <i class="fas fa-sync-alt me-1"></i> Reset
-                    </a>
-                </div>
-            </form>
+                @endforeach
+            </select>
         </div>
+
+        <div class="col-12 mt-3">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-filter me-1"></i> Terapkan Filter
+            </button>
+            <a href="{{ route('student-attendance.index') }}" class="btn btn-secondary ms-2">
+                <i class="fas fa-sync-alt me-1"></i> Reset
+            </a>
+        </div>
+    </form>
+</div>
 
         <!-- Attendance Tabs -->
         <ul class="nav nav-tabs mb-4 attendance-tabs" id="attendanceTabs" role="tablist">
@@ -587,28 +570,6 @@
             alert('Terjadi kesalahan saat mencari data siswa');
         });
 });
-                // Load subjects based on class selection
-                function loadSubjects(classId) {
-                    // Replace with actual endpoint
-                    fetch(`/api/students/search?id=${id_student}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            const subjectSelect = document.getElementById('subject_id');
-                            subjectSelect.innerHTML = '<option value="">-- Pilih Mata Pelajaran --</option>';
-
-                            if (data.subjects && data.subjects.length > 0) {
-                                data.subjects.forEach(subject => {
-                                    const option = document.createElement('option');
-                                    option.value = subject.id;
-                                    option.textContent = subject.name;
-                                    subjectSelect.appendChild(option);
-                                });
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error loading subjects:', error);
-                        });
-                }
 
                 // Class change event
                 document.getElementById('class_id').addEventListener('change', function() {
@@ -647,7 +608,6 @@
                         }
                     });
                 });
-            });
         </script>
     </main>
 </div>
