@@ -23,7 +23,7 @@ class StudentController extends Controller
                     'photo' => $request->user()->photo,
                     'birth_place' => $request->user()->birth_place,
                     'birth_date' => $request->user()->birth_date,
-                    'gender'=> $request->user()->gender,
+                    'gender' => $request->user()->gender,
                     "academic_year" => AcademicYear::where('id', $request->user()->academic_year_id)->first()->year_name,
                     "semester" => Semester::where('id', $request->user()->semester_id)->first()->semester_name,
                     'student_class' => Classes::where('class_id', $request->user()->class_id)->first()->class_name,
@@ -40,7 +40,7 @@ class StudentController extends Controller
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'birth_place' => 'required|string|max:255',
             'birth_date' => 'required|date',
-            'password' => 'nulable|string|min:8|confirmed',
+            'password' => 'nullable|string|min:8',
         ]);
         $student = $request->user();
         $student->fullname = $request->fullname;
@@ -53,8 +53,8 @@ class StudentController extends Controller
         if ($request->hasFile('photo')) {
             $file = $request->file('photo');
             $filename = time() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('images/students'), $filename);
-            $student->photo = 'images/students/' . $filename;
+            $path = $file->storeAs('profiles', $filename, 'public');
+            $student->photo = $path;
         }
         $student->save();
         return response()->json([
@@ -65,7 +65,7 @@ class StudentController extends Controller
                     'id_student' => $student->id_student,
                     'fullname' => $student->fullname,
                     'parent_phonecell' => $student->parent_phonecell,
-                    'photo' => $student->photo ? asset($student->photo) : null,
+                    'photo' => $student->photo ?? null,
                     'birth_place' => $student->birth_place,
                     'birth_date' => $student->birth_date,
                 ]

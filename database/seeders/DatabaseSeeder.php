@@ -50,25 +50,25 @@ class DatabaseSeeder extends Seeder
         //     'semester_id'      => 1,
         // ]);
 
-        // DB::table('book_loans')->insert([
-        //     'id_student' => 'STD002',
-        //     'book_id' => 6,
-        //     'loan_date' => Carbon::create('2025', '05', '01'),
-        //     'due_date' => Carbon::create('2025', '05', '15'),
-        //     'return_date' => Carbon::create('2025', '05', '10'),
-        //     'status' => 'returned',
-        //     'academic_year_id' => 9,
-        //     'semester_id' => 1,
-        // ]);
+        DB::table('book_loans')->insert([
+            'id_student' => 'STD002',
+            'book_id' => 6,
+            'loan_date' => Carbon::create('2025', '05', '01'),
+            'due_date' => Carbon::create('2025', '05', '15'),
+            'return_date' => Carbon::create('2025', '05', '10'),
+            'status' => 'returned',
+            'academic_year_id' => 9,
+            'semester_id' => 1,
+        ]);
 
-        // DB::table('student_achievements')->insert([
-        //     'id_student' => 'STD002',
-        //     'subject_id' => 1,
-        //     'score' => 90,
-        //     'semester_id' => 1,
-        //     'student_rank' => 2,
-        //     'remark' => 'Mantap Teruskan Ya '
-        // ]);
+        DB::table('student_achievements')->insert([
+            'id_student' => 'STD002',
+            'subject_id' => 1,
+            'score' => 90,
+            'semester_id' => 1,
+            'student_rank' => 2,
+            'remark' => 'Mantap Teruskan Ya '
+        ]);
 
         DB::table('rapor')->insert([
             'id_student' => 'STD002',

@@ -45,16 +45,6 @@ class StudentAchievementController extends Controller
                     ];
                 });
 
-            if ($acchievement->isEmpty() || $rapor->isEmpty()) {
-                return response()->json([
-                    'message' => 'No Data Found',
-                    'data' => null,
-                    'code' => 404,
-                    'status' => 'error'
-                ]);
-            }
-
-
             return response()->json([
                 'message' => 'Get History Books Loan',
                 'data' => [

@@ -7,7 +7,11 @@ use App\Models\Classes;
 use App\Models\AcademicYear;
 use App\Models\Semester;
 use Illuminate\Http\Request;
+<<<<<<< HEAD
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+=======
+use Illuminate\Support\Facades\Hash;
+>>>>>>> f6a7c6b8249fc3a461626d7a61c07971ca679081
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -91,7 +95,7 @@ class StudentController extends Controller
             Student::create([
                 'id_student' => $request->id_student,
                 'fullname' => $request->fullname,
-                'password' => bcrypt($request->password),
+                'password' => Hash::make($request->password),
                 'birth_place' => $request->birth_place,
                 'birth_date' => $request->birth_date,
                 'gender' => $request->gender,
