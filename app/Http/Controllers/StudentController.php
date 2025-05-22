@@ -7,11 +7,7 @@ use App\Models\Classes;
 use App\Models\AcademicYear;
 use App\Models\Semester;
 use Illuminate\Http\Request;
-<<<<<<< HEAD
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
-=======
 use Illuminate\Support\Facades\Hash;
->>>>>>> f6a7c6b8249fc3a461626d7a61c07971ca679081
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 

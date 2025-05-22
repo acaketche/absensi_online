@@ -214,107 +214,68 @@
                 </div>
             </div>
 
-            <!-- Metric Cards -->
-            <div class="metrics">
-                <div class="metric-card">
-                    <div class="metric-card-content">
-                        <div class="metric-icon">
-                            <i class="fas fa-user-graduate"></i>
-                        </div>
-                        <div class="metric-info">
-                            <h3>Siswa</h3>
-                            <p>10</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-card-content">
-                        <div class="metric-icon">
-                            <i class="fas fa-chalkboard-teacher"></i>
-                        </div>
-                        <div class="metric-info">
-                            <h3>Pegawai</h3>
-                            <p>10</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-card-content">
-                        <div class="metric-icon">
-                            <i class="fas fa-user-check"></i>
-                        </div>
-                        <div class="metric-info">
-                            <h3>Pegawai hadir hari ini</h3>
-                            <p>10</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-card-content">
-                        <div class="metric-icon">
-                            <i class="fas fa-user-check"></i>
-                        </div>
-                        <div class="metric-info">
-                            <h3>Siswa hadir hari ini</h3>
-                            <p>10</p>
-                        </div>
-                    </div>
-                </div>
+<div class="metrics">
+    <div class="metric-card">
+        <div class="metric-card-content">
+            <div class="metric-icon">
+                <i class="fas fa-user-graduate"></i>
             </div>
-
-            <!-- Graph Section -->
-            <div class="graph-section">
-                <h2 class="graph-title">Grafik Presensi Hari ini</h2>
-                <div style="height: 300px; background: #f9f9f9; border-radius: 8px;">
-                    <!-- Placeholder for graph -->
-                </div>
-            </div>
-
-            <!-- Bottom Grid -->
-            <div class="bottom-grid">
-                <div class="calendar-section">
-                    <div class="calendar-header">
-                        <h2>School Calendar</h2>
-                        <div class="month-selector">
-                            March 2025
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                    </div>
-                    <!-- Calendar content would go here -->
-                </div>
-
-                <div class="activity-section">
-                    <h2 style="margin-bottom: 20px;">Aktivitas Terakhir</h2>
-                    <table class="activity-table">
-                        <thead>
-                            <tr>
-                                <th>Program</th>
-                                <th>Aktivitas Terakhir</th>
-                                <th>Waktu</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Pegawai TU</td>
-                                <td>Login ke aplikasi</td>
-                                <td>1 detik yang lalu</td>
-                            </tr>
-                            <tr>
-                                <td>Pegawai Piket</td>
-                                <td>Keluar dari aplikasi</td>
-                                <td>2 detik yang lalu</td>
-                            </tr>
-                            <tr>
-                                <td>Pegawai Pendidik</td>
-                                <td>Login ke aplikasi</td>
-                                <td>3 detik yang lalu</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="metric-info">
+                <h3>Siswa</h3>
+                <p>{{ $totalSiswa }}</p>
             </div>
         </div>
     </div>
+    <div class="metric-card">
+        <div class="metric-card-content">
+            <div class="metric-icon">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <div class="metric-info">
+                <h3>Pegawai</h3>
+                <p>{{ $totalPegawai }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-card-content">
+            <div class="metric-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="metric-info">
+                <h3>Pegawai hadir hari ini</h3>
+                <p>{{ $pegawaiHadir }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-card-content">
+            <div class="metric-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="metric-info">
+                <h3>Siswa hadir hari ini</h3>
+                <p>{{ $siswaHadir }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+          <!-- Graph Section -->
+<div class="graph-section">
+    <h2 class="graph-title">Grafik Presensi Hari ini</h2>
+    <div style="height: 300px; background: #f9f9f9; border-radius: 8px;">
+        <canvas id="attendanceChart"></canvas>
+    </div>
+</div>
+            <!-- Bottom Grid -->
+            <div class="bottom-grid">
+                <div class="calendar-section">
+                   <div id="calendar"></div>
+                    </div>
+
+
 
     <!-- Change Password Modal -->
     <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
@@ -353,4 +314,132 @@
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Semua tanggal holiday
+    const holidays = @json($holidays->pluck('date'));  // e.g. ["2024-08-17", "2024-12-25"]
+
+    // Tanggal merah (holiday akademik) - should contain all academic year dates
+    const academicDates = @json($redDates); // misal ["2024-07-15", "2024-07-16", ...]
+
+    const month = {{ $month }};
+    const year = {{ $year }};
+
+    function renderCalendar(month, year) {
+        const calendarEl = document.getElementById('calendar');
+        calendarEl.innerHTML = '';
+
+        const daysInMonth = new Date(year, month, 0).getDate();
+
+        let html = '<div class="calendar-header"><h2>School Calendar</h2>';
+        html += `<div class="month-selector">${getMonthName(month)} ${year} <i class="fas fa-chevron-down"></i></div></div>`;
+        html += '<table class="table table-bordered"><thead><tr>';
+
+        // Header hari
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        for(let d of days){
+            html += `<th>${d}</th>`;
+        }
+        html += '</tr></thead><tbody><tr>';
+
+        let firstDay = new Date(year, month - 1, 1).getDay();
+
+        for(let i=0; i<firstDay; i++){
+            html += '<td></td>';
+        }
+
+        for(let day=1; day <= daysInMonth; day++){
+            const fullDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+            const dateObj = new Date(year, month - 1, day);
+            const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
+            const isHoliday = holidays.includes(fullDate);
+            const isAcademicDate = academicDates.includes(fullDate);
+
+            if ((day + firstDay - 1) % 7 === 0 && day !== 1){
+                html += '</tr><tr>';
+            }
+
+            let style = '';
+            let classes = '';
+            let title = '';
+
+            if(isAcademicDate) {
+                style = 'background-color:#ff6666; color:white;'; // merah untuk tanggal akademik
+                title = 'Academic Year Date';
+            } else if(isHoliday) {
+                style = 'background-color:#ffcccc;'; // merah muda untuk libur umum
+                title = 'Public Holiday';
+            } else if(isWeekend) {
+                classes = 'text-muted'; // weekend grayed out
+            }
+
+            html += `<td style="${style}" class="${classes}" title="${title}">${day}</td>`;
+        }
+
+        let endDay = (daysInMonth + firstDay) % 7;
+        if(endDay !== 0){
+            for(let i=endDay; i<7; i++){
+                html += '<td></td>';
+            }
+        }
+
+        html += '</tr></tbody></table>';
+
+        calendarEl.innerHTML = html;
+    }
+
+    function getMonthName(month) {
+        const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+        return months[month - 1];
+    }
+
+    renderCalendar(month, year);
+     const ctx = document.getElementById('attendanceChart').getContext('2d');
+
+        // Employee data
+        const employeeLabels = @json(array_keys($employeeChartData));
+        const employeeData = @json(array_values($employeeChartData));
+
+        // Student data
+        const studentLabels = @json(array_keys($studentChartData));
+        const studentData = @json(array_values($studentChartData));
+
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: employeeLabels,
+                datasets: [
+                    {
+                        label: 'Pegawai',
+                        data: employeeData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Siswa',
+                        data: studentData,
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+
+</script>
+
     @endif

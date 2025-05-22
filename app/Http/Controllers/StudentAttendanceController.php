@@ -24,19 +24,37 @@ class StudentAttendanceController extends Controller
         $academicYearId = $request->get('academic_year_id', $activeAcademicYear->id ?? null);
         $semesterId = $request->get('semester_id', $activeSemester->id ?? null);
 
-        $students = Student::where('academic_year_id', $academicYearId)
-                            ->when($semesterId, function ($query) use ($semesterId) {
-                                return $query->where('semester_id', $semesterId);
-                            })
-                            ->get();
+       $search = $request->get('search');
+
+$students = Student::where('academic_year_id', $academicYearId)
+    ->when($semesterId, function ($query) use ($semesterId) {
+        return $query->where('semester_id', $semesterId);
+    })
+    ->when($search, function ($query) use ($search) {
+        return $query->where(function ($q) use ($search) {
+            $q->where('id', 'like', "%{$search}%")
+              ->orWhere('name', 'like', "%{$search}%");
+        });
+    })
+    ->get();
+
+// Ambil class_id jika hanya satu siswa ditemukan
+$classIdFromStudent = null;
+if ($students->count() === 1) {
+    $classIdFromStudent = $students->first()->class_id ?? null;
+}
+
 
         $academicYears = AcademicYear::all();
         $semesters = Semester::all();
         $classes = Classes::all();
         $statuses = AttendanceStatus::orderBy('created_at', 'desc')->get();
         $attendances = StudentAttendance::with(['student', 'class', 'subject', 'status'])->get();
-        return view('students.absensisiswa', compact('students', 'classes', 'activeAcademicYear', 'activeSemester',
-            'academicYears', 'semesters', 'academicYearId', 'semesterId','attendances','statuses'));
+      return view('students.absensisiswa', compact(
+    'students', 'classes', 'activeAcademicYear', 'activeSemester',
+    'academicYears', 'semesters', 'academicYearId', 'semesterId',
+    'attendances', 'statuses', 'search', 'classIdFromStudent'
+));
     }
 
     /**
@@ -52,12 +70,12 @@ class StudentAttendanceController extends Controller
      */
     public function store(Request $request)
     {
+
+        try {
         $request->validate([
             'id_student' => 'required|exists:students,id_student',
-            'class_id' => 'required|exists:classes,id',
-            'subject_id' => 'required|exists:subjects,id',
+            'class_id' => 'nullable|exists:classes,id',
             'attendance_date' => 'required|date',
-            'attendance_time' => 'nullable|date_format:H:i:s',
             'check_in_time' => 'nullable|date_format:H:i:s',
             'check_out_time' => 'nullable|date_format:H:i:s',
             'status_id' => 'required|exists:statuses,id',
@@ -77,9 +95,7 @@ class StudentAttendanceController extends Controller
         StudentAttendance::create([
             'id_student' => $request->id_student,
             'class_id' => $request->class_id,
-            'subject_id' => $request->subject_id,
             'attendance_date' => $request->attendance_date,
-            'attendance_time' => $request->attendance_time,
             'check_in_time' => $request->check_in_time,
             'check_out_time' => $request->check_out_time,
             'status_id' => $request->status_id,
@@ -90,8 +106,17 @@ class StudentAttendanceController extends Controller
             'document' => $documentPath
         ]);
 
-        return redirect()->route('attendances.index')->with('success', 'Absensi berhasil ditambahkan.');
+      return redirect()
+            ->route('student-attendance.index')
+            ->with('success', 'Absensi berhasil ditambahkan.');
+
+    } catch (\Exception $e) {
+        return redirect()
+            ->back()
+            ->withInput()
+            ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
     }
+}
 
     /**
      * Menampilkan detail absensi.
@@ -150,37 +175,30 @@ class StudentAttendanceController extends Controller
         return redirect()->route('attendances.index')->with('success', 'Absensi berhasil dihapus.');
     }
 
-  public function searchById(Request $request)
-    {
-        $id = $request->query('id_student');
+// StudentAttendanceController.php
+public function searchStudent(Request $request)
+{
+    $request->validate(['id_student' => 'required']);
 
-        if (!$id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Parameter id_student diperlukan',
-            ], 400);
-        }
+    $student = Student::with('class')
+        ->where('id_student', $request->id_student)
+        ->first();
 
-        $student = Student::with('class') // pastikan relasi `class` ada
-            ->where('id_student', $id)
-            ->first();
-
-        if (!$student) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Siswa tidak ditemukan',
-            ]);
-        }
-
+    if (!$student) {
         return response()->json([
-            'success' => true,
-            'student' => [
-                'id_student' => $student->id_student,
-                'fullname' => $student->fullname,
-                'class_name' => $student->class->class_name ?? '-',
-                'class_id' => $student->class->class_id ?? null,
-            ]
+            'success' => false,
+            'message' => 'Siswa tidak ditemukan'
         ]);
     }
-}
 
+    return response()->json([
+        'success' => true,
+        'student' => [
+            'id_student' => $student->id_student,
+            'fullname' => $student->fullname,
+            'class_id' => $student->class_id,
+            'class_name' => $student->class->class_name ?? '-'
+        ]
+    ]);
+}
+}

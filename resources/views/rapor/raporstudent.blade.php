@@ -258,6 +258,7 @@
                 <div>
                     <i class="fas fa-users me-2"></i> Daftar Siswa
                 </div>
+
             </div>
             <div class="card-body">
                 @if($students->count() > 0)
@@ -323,20 +324,28 @@
                                 $rapor = $student->rapor ? $student->rapor->first() : null;
                             @endphp
 
-                            <td class="text-center">
-                                <div class="action-buttons">
-                                    @if($rapor)
-                                        <a href="{{ route('rapor.edit', $rapor->id) }}" class="btn btn-sm btn-primary" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                    <form action="{{ route('rapor.destroy', $rapor->id) }}" method="POST" style="display:inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus rapor ini?')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                @else
+                         <td>
+    <div class="d-flex gap-1">
+        @if($rapor)
+            @if($rapor->file_path)
+                <!-- Tombol Lihat -->
+                <a href="{{ asset('storage/' . $rapor->file_path) }}" target="_blank" class="btn btn-sm btn-info">
+                    <i class="fas fa-eye me-1"></i>
+                </a>
+            @endif
+
+            <!-- Tombol Edit -->
+            <a href="{{ route('rapor.edit', $rapor->id) }}" class="btn btn-sm btn-warning">
+                <i class="fas fa-edit me-1"></i>
+            </a>
+
+            <!-- Tombol Hapus -->
+            <button type="button" class="btn btn-sm btn-danger delete-rapor"
+                    data-rapor-id="{{ $rapor->id }}">
+                <i class="fas fa-trash me-1"></i>
+            </button>
+        @else
+            <!-- Tombol Upload -->
             <button type="button" class="btn btn-sm btn-success upload-rapor-btn"
                     data-bs-toggle="modal"
                     data-bs-target="#uploadRaporModal"
@@ -344,10 +353,18 @@
                     data-student-name="{{ $student->fullname }}"
                     data-student-nis="{{ $student->id_student }}"
                     data-class-id="{{ $class->class_id }}">
-                <i class="fas fa-upload"></i>
+                <i class="fas fa-upload me-1"></i>
             </button>
         @endif
     </div>
+
+    @if($rapor)
+        <!-- Form Hapus -->
+        <form class="delete-rapor-form" action="{{ route('rapor.destroy', $rapor->id) }}" method="POST" style="display: none;">
+            @csrf
+            @method('DELETE')
+        </form>
+    @endif
 </td>
 
                                 </tr>
@@ -434,6 +451,8 @@
         </div>
     </div>
 </div>
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -467,14 +486,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Auto-dismiss alerts after 5 seconds
-    setTimeout(function() {
-        const alerts = document.querySelectorAll('.alert');
-        alerts.forEach(alert => {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
+  document.querySelectorAll('.delete-rapor').forEach(button => {
+        button.addEventListener('click', function () {
+            const raporId = this.dataset.raporId;
+            const form = this.closest('td').querySelector('.delete-rapor-form');
+
+            Swal.fire({
+                title: 'Hapus Rapor?',
+                text: "Data rapor yang dihapus tidak bisa dikembalikan.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
         });
-    }, 5000);
+    });
 });
 </script>
 </body>

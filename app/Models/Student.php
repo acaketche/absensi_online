@@ -82,5 +82,10 @@ protected $fillable = [
                         ->whereNull('return_date'); // pastikan ada kolom returned_at untuk peminjaman yang belum dikembalikan
         }
 
+public function attendances()
+{
+    return $this->hasMany(StudentAttendance::class, 'id_student', 'id_student');
+}
+
 
 }
