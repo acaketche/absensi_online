@@ -28,6 +28,9 @@
                 <a href="{{ route('students.create') }}" class="btn btn-primary">+ Tambah Siswa</a>
             </div>
         </header>
+        @if(session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">Pilih Kelas</div>
             <div class="card-body">
