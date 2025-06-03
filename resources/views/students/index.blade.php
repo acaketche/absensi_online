@@ -100,6 +100,7 @@
                                 <th>No Orang Tua</th>
                                 <th>Kelas</th>
                                 <th>Foto</th>
+                                <th>QrCode</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -118,6 +119,13 @@
                                 <td>
                                     @if ($student->photo)
                                     <img src="{{ asset('storage/' . $student->photo) }}" width="50">
+                                    @else
+                                    <i class="fas fa-user"></i>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($student->qr_code)
+                                    <img src="{{ asset('storage/' . $student->qr_code) }}" width="50">
                                     @else
                                     <i class="fas fa-user"></i>
                                     @endif

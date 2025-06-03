@@ -37,6 +37,10 @@ public function position()
 {
     return $this->belongsTo(Position::class, 'position_id', 'id');
 }
+ public function attendances()
+    {
 
+        return $this->hasMany(EmployeeAttendance::class, 'id_employee', 'id_employee');
+    }
 
 }

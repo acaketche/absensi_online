@@ -9,10 +9,15 @@ class EmployeeAttendance extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'id_employee', 'status_id', 'attendance_date', 'check_in',
-        'check_out', 'latitude_in', 'longitude_in', 'latitude_out', 'longitude_out',
-    ];
+   protected $fillable = [
+    'id_employee',
+    'status_id',
+    'attendance_date',
+    'check_in',
+    'check_out',
+    'academic_year_id',
+    'semester_id',
+];
 
     public function employee()
 {
@@ -21,7 +26,16 @@ class EmployeeAttendance extends Model
 
 public function status()
 {
-    return $this->belongsTo(Status::class, 'status_id');
+    return $this->belongsTo(AttendanceStatus::class, 'status_id');
 }
+ public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class, 'academic_year_id');
+    }
 
+
+    public function semester()
+    {
+        return $this->belongsTo(Semester::class, 'semester_id');
+    }
 }

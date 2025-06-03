@@ -91,53 +91,6 @@
         </a>
     </header>
 
-    <!-- Informasi Kelas -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <i class="fas fa-info-circle me-1"></i> Informasi Kelas
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="row mb-3">
-                        <div class="col-md-4 fw-bold">Nama Kelas</div>
-                        <div class="col-md-8">{{ $class->class_name }}</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4 fw-bold">Tahun Ajaran</div>
-                        <div class="col-md-8">{{ $class->academicYear?->year_name ?? 'Tidak Ada Data' }}</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4 fw-bold">Semester</div>
-                        <div class="col-md-8">{{ $class->semester?->semester_name ?? 'Tidak Ada Data' }}</div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="teacher-info">
-                        <h6 class="mb-3">Wali Kelas</h6>
-                        <div class="d-flex align-items-center">
-                            @if($class->employee && $class->employee->photo)
-                                <img src="{{ asset('storage/' . $class->employee->photo) }}"
-                                    alt="Foto {{ $class->employee->fullname }}"
-                                    class="rounded-circle me-3"
-                                    width="100" height="120">
-                            @else
-                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3"
-                                    style="width: 50px; height: 50px;">
-                                    {{ $class->employee ? substr($class->employee->fullname, 0, 1) : 'N' }}
-                                </div>
-                            @endif
-                            <div>
-                                <div class="fw-bold">{{ $class->employee->fullname ?? 'Tidak Ada Data' }}</div>
-                                <small class="text-muted">NIP: {{ $class->employee->id_employee ?? '-' }}</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Daftar Siswa -->
     <div class="card">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
@@ -257,10 +210,60 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Fungsi cetak daftar siswa
-    document.getElementById('printStudentList').addEventListener('click', function() {
-        window.print();
+   document.getElementById('printStudentList').addEventListener('click', function() {
+    // Dapatkan tabel asli
+    const table = document.getElementById('studentTable');
+
+    // Clone tabel agar tidak mengubah tampilan halaman utama
+    const cloneTable = table.cloneNode(true);
+
+    // Hapus kolom 'Aksi' dari cloneTable
+    // Pertama, cari index kolom 'Aksi' di thead
+    const ths = cloneTable.querySelectorAll('thead th');
+    let aksiIndex = -1;
+    ths.forEach((th, index) => {
+        if (th.textContent.trim().toLowerCase() === 'aksi') {
+            aksiIndex = index;
+        }
     });
+
+    if (aksiIndex !== -1) {
+        // Hapus header kolom aksi
+        cloneTable.querySelector('thead tr').children[aksiIndex].remove();
+
+        // Hapus sel kolom aksi di setiap baris tbody
+        cloneTable.querySelectorAll('tbody tr').forEach(row => {
+            if (row.children[aksiIndex]) {
+                row.children[aksiIndex].remove();
+            }
+        });
+    }
+// Perkecil foto di cloneTable
+cloneTable.querySelectorAll('img').forEach(img => {
+    img.style.width = '30px';
+    img.style.height = '40px';
+});
+
+// Buat jendela baru untuk cetak
+const printWindow = window.open('', '', 'height=600,width=800');
+
+printWindow.document.write('<html><head><title>Daftar Siswa</title>');
+printWindow.document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">');
+// Bisa juga letakkan style di sini sebagai alternatif:
+// printWindow.document.write('<style> img { width: 50px; height: auto; } </style>');
+printWindow.document.write('</head><body>');
+
+printWindow.document.write('<h3>Daftar Siswa</h3>');
+printWindow.document.write(cloneTable.outerHTML);
+
+printWindow.document.write('</body></html>');
+
+printWindow.document.close();
+printWindow.focus();
+
+printWindow.print();
+printWindow.close();
+});
 });
 </script>
 

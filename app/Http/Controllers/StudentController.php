@@ -9,6 +9,7 @@ use App\Models\Semester;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class StudentController extends Controller
 {
@@ -20,17 +21,12 @@ class StudentController extends Controller
 
         $academicYearId = $request->get('academic_year_id', $activeAcademicYear->id ?? null);
         $semesterId = $request->get('semester_id', $activeSemester->id ?? null);
-        $classId = $request->get('class_id', null); // Tangkap filter kelas
+        $classId = $request->get('class_id', null);
 
-        // Query siswa berdasarkan filter
         $students = Student::where('academic_year_id', $academicYearId)
-                            ->when($semesterId, function ($query) use ($semesterId) {
-                                return $query->where('semester_id', $semesterId);
-                            })
-                            ->when($classId, function ($query) use ($classId) {
-                                return $query->where('class_id', $classId);
-                            }) // Tambahkan filter class_id
-                            ->get();
+            ->when($semesterId, fn($q) => $q->where('semester_id', $semesterId))
+            ->when($classId, fn($q) => $q->where('class_id', $classId))
+            ->get();
 
         $academicYears = AcademicYear::all();
         $semesters = Semester::all();
@@ -41,7 +37,7 @@ class StudentController extends Controller
             'academicYears', 'semesters', 'academicYearId', 'semesterId', 'classId'
         ));
     }
-    // Menampilkan form untuk membuat siswa baru
+
     public function create()
     {
         $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
@@ -58,59 +54,62 @@ class StudentController extends Controller
     }
 
     public function store(Request $request)
-{
-    $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
-    $activeSemester = Semester::where('is_active', 1)->first();
+    {
+        try {
+            $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
+            $activeSemester = Semester::where('is_active', 1)->first();
 
-    if (!$activeAcademicYear || !$activeSemester) {
-        return redirect()->back()->with('error', 'Tahun Ajaran atau Semester aktif tidak ditemukan.');
-    }
+            if (!$activeAcademicYear || !$activeSemester) {
+                return redirect()->back()->with('error', 'Tahun Ajaran atau Semester aktif tidak ditemukan.');
+            }
 
-    // Validasi input
-    $request->validate([
-        'id_student' => 'required|numeric|digits_between:5,20|unique:students,id_student',
-        'fullname' => 'required|string|max:100',
-        'class_id' => 'required|string|max:50',
-        'parent_phonecell' => 'required|string|max:15',
-        'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        'birth_place' => 'required|string|max:255',
-        'birth_date' => 'required|date',
-        'gender' => 'required|in:L,P',
-        'password' => 'required|string|min:6'
-    ]);
+            $request->validate([
+                'id_student' => 'required|numeric|unique:students,id_student',
+                'fullname' => 'required|string|max:100',
+                'class_id' => 'required|string|max:50',
+                'parent_phonecell' => 'required|string|max:15',
+                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'qr_code' => 'nullable|image|mimes:png|max:1024',
+                'birth_place' => 'required|string|max:255',
+                'birth_date' => 'required|date',
+                'gender' => 'required|in:L,P',
+                'password' => 'required|string|min:6'
+            ]);
 
-    try {
-        \DB::beginTransaction();
+           $photoPath = null;
+            $qrPath = null;
 
-        $photoPath = null;
         if ($request->hasFile('photo')) {
+            // Almacenar directamente en storage/app/public sin 'public/' al inicio
             $photoPath = $request->file('photo')->store('photo_siswa', 'public');
         }
 
-        $student = new Student([
-            'id_student' => $request->id_student,
-            'fullname' => $request->fullname,
-            'password' => $request->password, // Mutator akan otomatis hash
-            'birth_place' => $request->birth_place,
-            'birth_date' => $request->birth_date,
-            'gender' => $request->gender,
-            'parent_phonecell' => $request->parent_phonecell,
-            'class_id' => $request->class_id,
-            'academic_year_id' => $activeAcademicYear->id,
-            'semester_id' => $activeSemester->id,
-            'photo' => $photoPath,
-        ]);
+        if ($request->hasFile('qr_code')) {
+            // Almacenar directamente en storage/app/public sin 'public/' al inicio
+            $qrPath = $request->file('qr_code')->store('qrcode_siswa', 'public');
+        }
 
-        $student->save();
+            Student::create([
+                'id_student' => $request->id_student,
+                'fullname' => $request->fullname,
+                'password' => Hash::make($request->password),
+                'birth_place' => $request->birth_place,
+                'birth_date' => $request->birth_date,
+                'gender' => $request->gender,
+                'parent_phonecell' => $request->parent_phonecell,
+                'class_id' => $request->class_id,
+                'academic_year_id' => $activeAcademicYear->id,
+                'semester_id' => $activeSemester->id,
+                'photo' => $photoPath,
+                'qr_code' => $qrPath,
+            ]);
 
-        \DB::commit();
-
-        return redirect()->route('students.index')->with('success', 'Siswa berhasil ditambahkan.');
-    } catch (\Exception $e) {
-        \DB::rollBack();
-        return back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
+            return redirect()->route('students.index')->with('success', 'Siswa berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            dd($e->getMessage());
+            return back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
+        }
     }
-}
 
     public function edit($id)
 {
@@ -123,71 +122,44 @@ class StudentController extends Controller
 }
 
 
-    // API endpoint untuk mendapatkan data siswa dalam format JSON
-    public function getStudentData($id)
-    {
-        $student = Student::findOrFail($id);
-        return response()->json($student);
-    }
-
     public function update(Request $request, $id)
-{
-    $student = Student::findOrFail($id);
+    {
+        try {
+            $student = Student::findOrFail($id);
 
-    $request->validate([
-        'id_student' => 'required|numeric|digits_between:5,20|unique:students,id_student,' . $id . ',id_student',
-        'fullname' => 'required|string|max:100',
-        'class_id' => 'required|string|max:50',
-        'parent_phonecell' => 'required|string|max:15',
-        'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        'birth_place' => 'required|string|max:255',
-        'birth_date' => 'required|date',
-        'gender' => 'required|in:L,P',
-        'password' => 'nullable|string|min:6',
-        'academic_year_id' => 'nullable|exists:academic_years,id',
-        'semester_id' => 'nullable|exists:semesters,id',
-    ]);
+            $request->validate([
+                'id_student' => 'required|numeric|unique:students,id_student,' . $id . ',id_student',
+                'fullname' => 'required|string|max:100',
+                'class_id' => 'required|string|max:50',
+                'parent_phonecell' => 'required|string|max:15',
+                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'birth_place' => 'required|string|max:255',
+                'birth_date' => 'required|date',
+                'gender' => 'required|in:L,P',
+                'password' => 'nullable|string|min:6'
+            ]);
 
-    try {
-        \DB::beginTransaction();
+            $data = $request->except(['photo', 'password']);
 
-        $student->id_student = $request->id_student;
-        $student->fullname = $request->fullname;
-        $student->birth_place = $request->birth_place;
-        $student->birth_date = $request->birth_date;
-        $student->gender = $request->gender;
-        $student->parent_phonecell = $request->parent_phonecell;
-        $student->class_id = $request->class_id;
-
-        if ($request->filled('academic_year_id')) {
-            $student->academic_year_id = $request->academic_year_id;
-        }
-
-        if ($request->filled('semester_id')) {
-            $student->semester_id = $request->semester_id;
-        }
-
-        if ($request->filled('password')) {
-            $student->password = $request->password;
-        }
-
-        if ($request->hasFile('photo')) {
-            if ($student->photo) {
-                Storage::disk('public')->delete($student->photo);
+            if ($request->filled('password')) {
+                $data['password'] = bcrypt($request->password);
             }
-            $student->photo = $request->file('photo')->store('photo_siswa', 'public');
+
+            if ($request->hasFile('photo')) {
+                if ($student->photo) {
+                    Storage::disk('public')->delete($student->photo);
+                }
+                $data['photo'] = $request->file('photo')->store('photo_siswa', 'public');
+            }
+
+            $student->update($data);
+
+            return redirect()->route('students.index')->with('success', 'Siswa berhasil diperbarui.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
         }
-
-        $student->save();
-
-        \DB::commit();
-
-        return redirect()->route('students.index')->with('success', 'Data siswa berhasil diperbarui.');
-    } catch (\Exception $e) {
-        \DB::rollBack();
-        return back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
     }
-}
+
 
 
     public function destroy($id)
@@ -196,6 +168,12 @@ class StudentController extends Controller
 
         if ($student->photo) {
             Storage::disk('public')->delete($student->photo);
+
+        }
+
+        if ($student->qr_code) {
+            Storage::disk('public')->delete($student->qr_code);
+
         }
 
         $student->delete();
@@ -203,20 +181,24 @@ class StudentController extends Controller
         return redirect()->route('students.index')->with('success', 'Siswa berhasil dihapus.');
     }
 
+    public function getStudentData($id)
+    {
+        $student = Student::findOrFail($id);
+        return response()->json($student);
+    }
+
     public function search(Request $request)
     {
-        $nis = $request->query('nis'); // Ambil input NIS dari request
+        $nis = $request->query('nis');
 
-        $student = Student::where('id_student', $nis)
-            ->with('class') // Ambil data kelas dari relasi
-            ->first();
+        $student = Student::where('id_student', $nis)->with('class')->first();
 
         if ($student) {
             return response()->json([
                 'success' => true,
                 'student' => [
                     'full_name' => $student->fullname,
-                    'class_name' => $student->class->class_name ?? 'Tidak Ada Kelas' // Pastikan relasi tidak null
+                    'class_name' => $student->class->class_name ?? 'Tidak Ada Kelas'
                 ]
             ]);
         } else {

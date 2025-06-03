@@ -122,6 +122,7 @@
         button:active {
             transform: scale(0.95);
         }
+
     </style>
 </head>
 <body class="bg-light">
@@ -143,76 +144,63 @@
             </div>
         </header>
 
-        <!-- Alert for success message -->
-        @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        @endif
+    @if($errors->any())
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <strong>Terjadi kesalahan!</strong> Silakan periksa form berikut:
+    <ul class="mb-0">
+        @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
 
-        <!-- Filter Section -->
-        <div class="filter-section mb-4">
-            <h5 class="mb-3">Filter Data Kehadiran</h5>
-            <form id="filterForm" action="{{ route('student-attendance.index') }}" method="GET" class="row g-3">
-                <div class="col-md-3">
-                    <label for="attendance_date" class="form-label">Tanggal</label>
-                    <input type="date" class="form-control" id="attendance_date" name="attendance_date" value="{{ request('attendance_date') }}">
-                </div>
-                <div class="col-md-3">
-                    <label for="class_id" class="form-label">Kelas</label>
-                    <select name="class_id" class="form-control" id="class_id">
-                        <option value="">-- Pilih Kelas --</option>
-                        @foreach ($classes as $class)
-                            <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
-                                {{ $class->class_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="academic_year_id" class="form-label">Tahun Akademik</label>
-                    <select class="form-control" id="academic_year_id" name="academic_year_id">
-                        <option value="">-- Pilih Tahun Akademik --</option>
-                        @foreach($academicYears as $year)
-                            <option value="{{ $year->id }}" {{ $academicYearId == $year->id ? 'selected' : '' }}>
-                                {{ $year->year_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="semester_id" class="form-label">Semester</label>
-                    <select class="form-control" id="semester_id" name="semester_id">
-                        <option value="">-- Pilih Semester --</option>
-                        @foreach($semesters as $semester)
-                            <option value="{{ $semester->id }}" {{ $semesterId == $semester->id ? 'selected' : '' }}>
-                                {{ $semester->semester_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="status_id" class="form-label">Status</label>
-                    <select class="form-select" id="status_id" name="status_id">
-                        <option value="">Semua Status</option>
-                        @foreach($statuses as $status)
-                            <option value="{{ $status->id }}" {{ request('status_id') == $status->id ? 'selected' : '' }}>
+       <div class="filter-section mb-4">
+    <h5 class="mb-3">Filter Data Kehadiran</h5>
+    <form id="filterForm" action="{{ route('student-attendance.index') }}" method="GET" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label for="start_date" class="form-label">Tanggal Mulai</label>
+            <input type="date" id="start_date" name="start_date" class="form-control" value="{{ request('start_date') }}">
+        </div>
+        <div class="col-md-3">
+            <label for="end_date" class="form-label">Tanggal Selesai</label>
+            <input type="date" id="end_date" name="end_date" class="form-control" value="{{ request('end_date') }}">
+        </div>
+        <div class="col-md-3">
+            <label for="class_id" class="form-label">Kelas</label>
+            <select name="class_id" id="class_id" class="form-select">
+                <option value="">-- Pilih Kelas --</option>
+                @foreach ($classes as $class)
+                    <option value="{{ $class->id }}" {{ request('class_id') == $class->class_id ? 'selected' : '' }}>
+                        {{ $class->class_name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="status_id" class="form-label">Status</label>
+            <select name="status_id" id="status_id" class="form-select">
+                <option value="">Semua Status</option>
+                @foreach($statuses as $status)
+                   <option value="{{ $status->status_id }}"
+                                {{ request('status') == $status->status_id ? 'selected' : '' }}>
                                 {{ $status->status_name }}
                             </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-12 mt-3">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-filter me-1"></i> Terapkan Filter
-                    </button>
-                    <a href="{{ route('student-attendance.index') }}" class="btn btn-secondary ms-2">
-                        <i class="fas fa-sync-alt me-1"></i> Reset
-                    </a>
-                </div>
-            </form>
+                @endforeach
+            </select>
         </div>
+
+        <div class="col-12 mt-3">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-filter me-1"></i> Terapkan Filter
+            </button>
+            <a href="{{ route('student-attendance.index') }}" class="btn btn-secondary ms-2">
+                <i class="fas fa-sync-alt me-1"></i> Reset
+            </a>
+        </div>
+    </form>
+</div>
 
         <!-- Attendance Tabs -->
         <ul class="nav nav-tabs mb-4 attendance-tabs" id="attendanceTabs" role="tablist">
@@ -244,7 +232,6 @@
                                         <th>No</th>
                                         <th>Siswa</th>
                                         <th>Kelas</th>
-                                        <th>Mata Pelajaran</th>
                                         <th>Tanggal</th>
                                         <th>Jam Masuk</th>
                                         <th>Status</th>
@@ -264,7 +251,6 @@
                                                 <td>{{ $morningCount++ }}</td>
                                                 <td>{{ $attendance->student->fullname ?? '-' }}</td>
                                                 <td>{{ $attendance->class->name ?? '-' }}</td>
-                                                <td>{{ $attendance->subject->name ?? '-' }}</td>
                                                 <td>{{ \Carbon\Carbon::parse($attendance->attendance_date)->format('d/m/Y') }}</td>
                                                 <td>{{ $checkInTime }}</td>
                                                 <td>
@@ -324,7 +310,6 @@
                                         <th>No</th>
                                         <th>Siswa</th>
                                         <th>Kelas</th>
-                                        <th>Mata Pelajaran</th>
                                         <th>Tanggal</th>
                                         <th>Jam Keluar</th>
                                         <th>Status</th>
@@ -344,7 +329,6 @@
                                                 <td>{{ $afternoonCount++ }}</td>
                                                 <td>{{ $attendance->student->fullname ?? '-' }}</td>
                                                 <td>{{ $attendance->class->name ?? '-' }}</td>
-                                                <td>{{ $attendance->subject->name ?? '-' }}</td>
                                                 <td>{{ \Carbon\Carbon::parse($attendance->attendance_date)->format('d/m/Y') }}</td>
                                                 <td>{{ $checkOutTime }}</td>
                                                 <td>
@@ -393,44 +377,50 @@
 
         <!-- Add Attendance Modal -->
         <div class="modal fade" id="addAttendanceModal" tabindex="-1" aria-labelledby="addAttendanceModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="addAttendanceModalLabel">Tambah Data Absensi</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAttendanceModalLabel">Tambah Data Absensi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Search Student -->
+                <div class="mb-4">
+                    <div class="d-flex gap-2 mb-3">
+                        <div class="flex-grow-1">
+                            <label for="nisSearch" class="form-label">NIS Siswa</label>
+                            <input type="text" class="form-control" id="nisSearch" placeholder="Masukkan NIS" autocomplete="off">
+                        </div>
+                        <div class="align-self-end">
+                            <button type="button" class="btn btn-primary" id="searchStudentBtn">
+                                <i class="fas fa-search me-1"></i> Cari
+                            </button>
+                        </div>
                     </div>
-                    <div class="modal-body">
-                        <!-- Search Student -->
-                        <div class="mb-4">
-                            <div class="d-flex gap-2 mb-3">
-                                <div class="flex-grow-1">
-                                    <label for="nisSearch" class="form-label">NIS Siswa</label>
-                                    <input type="text" class="form-control" id="nisSearch" placeholder="Masukkan NIS">
-                                </div>
-                                <div class="align-self-end">
-                                    <button type="button" class="btn btn-primary" id="searchStudentBtn">Cari</button>
-                                </div>
-                            </div>
 
-                            <div id="studentInfo" class="bg-light p-3 rounded mb-3 d-none">
-                                <h6 class="fw-bold">Data Siswa:</h6>
-                                <div class="row g-2 mt-2">
-                                    <div class="col-md-4">
-                                        <span class="text-muted small">NIS:</span>
-                                        <p id="studentNIS" class="mb-0">-</p>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <span class="text-muted small">Nama:</span>
-                                        <p id="studentName" class="mb-0">-</p>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <span class="text-muted small">Kelas:</span>
-                                        <p id="studentClass" class="mb-0">-</p>
-                                    </div>
-                                </div>
+                    <div id="studentInfo" class="bg-light p-3 rounded mb-3 d-none">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="fw-bold mb-0">Data Siswa:</h6>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="hideStudentInfo()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="row g-2 mt-2">
+                            <div class="col-md-4">
+                                <span class="text-muted small">NIS:</span>
+                                <p id="studentNIS" class="mb-0 fw-semibold">-</p>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="text-muted small">Nama:</span>
+                                <p id="studentName" class="mb-0 fw-semibold">-</p>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="text-muted small">Kelas:</span>
+                                <p id="studentClass" class="mb-0 fw-semibold">-</p>
                             </div>
                         </div>
-
+                    </div>
+                </div>
                         <form id="attendanceForm" action="{{ route('student-attendance.store') }}" method="POST" enctype="multipart/form-data" class="d-none">
                             @csrf
                             <input type="hidden" id="id_student" name="id_student">
@@ -438,31 +428,9 @@
                             <hr>
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="class_id" class="form-label">Kelas</label>
-                                    <select class="form-select" id="class_id" name="class_id" required>
-                                        <option value="">-- Pilih Kelas --</option>
-                                        @foreach($classes as $class)
-                                            <option value="{{ $class->id }}">{{ $class->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="subject_id" class="form-label">Mata Pelajaran</label>
-                                    <select class="form-select" id="subject_id" name="subject_id" required>
-                                        <option value="">-- Pilih Mata Pelajaran --</option>
-                                        <!-- Subjects will be loaded dynamically -->
-                                    </select>
-                                </div>
-
-                                <div class="col-md-6">
                                     <label for="attendance_date" class="form-label">Tanggal Absensi</label>
                                     <input type="date" class="form-control" id="attendance_date" name="attendance_date" required>
                                 </div>
-                                <div class="col-md-6">
-                                    <label for="attendance_time" class="form-label">Waktu Absensi</label>
-                                    <input type="time" class="form-control" id="attendance_time" name="attendance_time">
-                                </div>
-
                                 <div class="col-md-6">
                                     <label for="check_in_time" class="form-label">Waktu Masuk</label>
                                     <input type="time" class="form-control" id="check_in_time" name="check_in_time">
@@ -505,30 +473,8 @@
                                         </button>
                                     </div>
                                 </div>
-
-                                <div class="col-md-6">
-                                    <label for="academic_year_id" class="form-label">Tahun Akademik</label>
-                                    <select class="form-select" id="academic_year_id" name="academic_year_id" required>
-                                        <option value="">-- Pilih Tahun Akademik --</option>
-                                        @foreach($academicYears as $year)
-                                            <option value="{{ $year->id }}" {{ $activeAcademicYear && $activeAcademicYear->id == $year->id ? 'selected' : '' }}>
-                                                {{ $year->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label for="semester_id" class="form-label">Semester</label>
-                                    <select class="form-select" id="semester_id" name="semester_id" required>
-                                        <option value="">-- Pilih Semester --</option>
-                                        @foreach($semesters as $semester)
-                                            <option value="{{ $semester->id }}" {{ $activeSemester && $activeSemester->id == $semester->id ? 'selected' : '' }}>
-                                                {{ $semester->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                                    <input type="hidden" name="academic_year_id" value="{{ $activeAcademicYear->id ?? '' }}">
+                                     <input type="hidden" name="semester_id" value="{{ $activeSemester->id ?? '' }}">
 
                                 <div class="col-12 mt-3">
                                     <button type="submit" class="btn btn-primary">
@@ -546,108 +492,115 @@
         </div>
 
         <script>
-            document.getElementById('searchStudentBtn').addEventListener('click', function () {
-    let id_student = document.getElementById('nisSearch').value;
+         document.addEventListener('DOMContentLoaded', function() {
+    // Search student by NIS
+    document.getElementById('searchStudentBtn').addEventListener('click', function() {
+        const nis = document.getElementById('nisSearch').value.trim();
 
-    if (id_student.trim() === '') {
-        alert('Masukkan ID Student terlebih dahulu!');
-        return;
+        if (!nis) {
+            alert('Masukkan NIS siswa terlebih dahulu!');
+            return;
+        }
+
+        // Tampilkan loading state
+        const searchBtn = this;
+        searchBtn.disabled = true;
+        searchBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Mencari...';
+
+        fetch(`/student/search?id_student=${encodeURIComponent(nis)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.student) {
+                    // Tampilkan informasi siswa
+                    const studentInfo = document.getElementById('studentInfo');
+                    studentInfo.classList.remove('d-none');
+
+                    // Isi data siswa
+                    document.getElementById('studentNIS').textContent = data.student.id_student;
+                    document.getElementById('studentName').textContent = data.student.fullname;
+                    document.getElementById('studentClass').textContent = data.student.class_name;
+
+                    // Set nilai untuk form
+                    document.getElementById('id_student').value = data.student.id_student;
+                    document.getElementById('attendanceForm').classList.remove('d-none');
+
+                    // Jika ada class_id, preload subject
+                    if (data.student.class_id) {
+                        document.getElementById('class_id').value = data.student.class_id;
+
+                    }
+                } else {
+                    alert(data.message || 'Siswa tidak ditemukan');
+                    hideStudentInfo();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat mencari data siswa');
+                hideStudentInfo();
+            })
+            .finally(() => {
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = 'Cari';
+            });
+    });
+
+    // Fungsi untuk menyembunyikan info siswa
+    function hideStudentInfo() {
+        document.getElementById('studentInfo').classList.add('d-none');
+        document.getElementById('attendanceForm').classList.add('d-none');
     }
 
-    // Menggunakan id_student sebagai parameter pencarian
-    fetch(`/api/students/search?id_student=${id_student}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Tampilkan informasi siswa
-                document.getElementById('studentInfo').classList.remove('d-none');
-                document.getElementById('studentNIS').textContent = data.student.id_student;
-                document.getElementById('studentName').textContent = data.student.fullname;
-                document.getElementById('studentClass').textContent = data.student.class_name;
+    // Event ketika kelas diubah
+    document.getElementById('class_id').addEventListener('change', function() {
+        const classId = this.value;
+        loadSubjects(classId);
+    });
 
-                // Set nilai hidden input
-                document.getElementById('id_student').value = data.student.id_student;
+    // Get location button functionality
+    document.getElementById('getLocationBtn')?.addEventListener('click', function() {
+        const locationBtn = this;
+        locationBtn.disabled = true;
+        locationBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Mendapatkan...';
 
-                // Tampilkan form absensi
-                document.getElementById('attendanceForm').classList.remove('d-none');
-
-                // Jika ada class_id, preload subject
-                if (data.student.class_id) {
-                    document.getElementById('class_id').value = data.student.class_id;
-                    loadSubjects(data.student.class_id);
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    document.getElementById('latitude').value = position.coords.latitude;
+                    document.getElementById('longitude').value = position.coords.longitude;
+                    locationBtn.disabled = false;
+                    locationBtn.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i> Dapatkan Lokasi';
+                },
+                function(error) {
+                    console.error("Error getting location:", error);
+                    alert("Gagal mendapatkan lokasi: " + error.message);
+                    locationBtn.disabled = false;
+                    locationBtn.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i> Dapatkan Lokasi';
                 }
-            } else {
-                alert('Siswa tidak ditemukan');
-                document.getElementById('studentInfo').classList.add('d-none');
-                document.getElementById('attendanceForm').classList.add('d-none');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat mencari data siswa');
+            );
+        } else {
+            alert("Geolocation tidak didukung oleh browser ini.");
+            locationBtn.disabled = false;
+            locationBtn.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i> Dapatkan Lokasi';
+        }
+    });
+
+    // Search functionality for tables
+    document.getElementById('searchInput').addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const tables = document.querySelectorAll('.tab-pane.active table tbody tr');
+
+        tables.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
         });
+    });
 });
-                // Load subjects based on class selection
-                function loadSubjects(classId) {
-                    // Replace with actual endpoint
-                    fetch(`/api/students/search?id=${id_student}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            const subjectSelect = document.getElementById('subject_id');
-                            subjectSelect.innerHTML = '<option value="">-- Pilih Mata Pelajaran --</option>';
-
-                            if (data.subjects && data.subjects.length > 0) {
-                                data.subjects.forEach(subject => {
-                                    const option = document.createElement('option');
-                                    option.value = subject.id;
-                                    option.textContent = subject.name;
-                                    subjectSelect.appendChild(option);
-                                });
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error loading subjects:', error);
-                        });
-                }
-
-                // Class change event
-                document.getElementById('class_id').addEventListener('change', function() {
-                    const classId = this.value;
-                    if (classId) {
-                        loadSubjects(classId);
-                    }
-                });
-
-                // Get location button functionality
-                document.getElementById('getLocationBtn')?.addEventListener('click', function() {
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(function(position) {
-                            document.getElementById('latitude').value = position.coords.latitude;
-                            document.getElementById('longitude').value = position.coords.longitude;
-                        }, function(error) {
-                            console.error("Error getting location:", error);
-                            alert("Gagal mendapatkan lokasi: " + error.message);
-                        });
-                    } else {
-                        alert("Geolocation tidak didukung oleh browser ini.");
-                    }
-                });
-
-                // Search functionality for tables
-                document.getElementById('searchInput').addEventListener('keyup', function() {
-                    const searchTerm = this.value.toLowerCase();
-                    const tables = document.querySelectorAll('.tab-pane table tbody tr');
-
-                    tables.forEach(row => {
-                        const text = row.textContent.toLowerCase();
-                        if (text.includes(searchTerm)) {
-                            row.style.display = '';
-                        } else {
-                            row.style.display = 'none';
-                        }
-                    });
-                });
-            });
         </script>
     </main>
 </div>

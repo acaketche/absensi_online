@@ -10,6 +10,8 @@ use App\Models\Employee;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
 
 class EmployeeLoginController extends Controller
 {
@@ -26,32 +28,44 @@ class EmployeeLoginController extends Controller
     ]);
 
     if (Auth::guard('employee')->attempt([
-        'id_employee' => $request->id_employee,
-        'password' => $request->password
-    ], $request->has('remember'))) {
+    'id_employee' => $request->id_employee,
+    'password' => $request->password
+], $request->has('remember'))) {
 
-        $employee = Auth::guard('employee')->user();
-        $roleName = $employee->role->role_name;
+    $employee = Auth::guard('employee')->user();
+    $roleName = $employee->role->role_name ?? 'Tidak diketahui';
 
-        if ($roleName === 'Super Admin') {
-            return redirect()->route('dashboard.admin');
-        } elseif ($roleName === 'Admin Pegawai Tata Usaha') {
-            return redirect()->route('dashboard.TU');
-        } elseif ($roleName === 'Admin Pegawai Piket') {
-            return redirect()->route('dashboard.piket');
-        } elseif ($roleName === 'Admin Pegawai Perpustakaan') {
-            return redirect()->route('dashboard.perpus');
-        }
+    // Tambahkan log login di sini
+  Log::info('Aktivitas login berhasil', [
+    'program' => $roleName ?? 'Tidak diketahui',
+    'aktivitas' => 'Login ke aplikasi',
+    'waktu' => now()->toDateTimeString(),
+    'id_employee' => $employee->id_employee,
+    'nama' => $employee->fullname ?? '-',
+    'ip' => $request->ip(),
+]);
 
-        return redirect()->route('dashboard.default')->with('warning', 'Role tidak dikenali.');
+
+    // Redirect berdasarkan role
+    if ($roleName === 'Super Admin') {
+        return redirect()->route('dashboard.admin');
+    } elseif ($roleName === 'Admin Tata Usaha') {
+        return redirect()->route('dashboard.TU');
+    } elseif ($roleName === 'Admin Pegawai Piket') {
+        return redirect()->route('dashboard.piket');
+    } elseif ($roleName === 'Admin Perpustakaan') {
+        return redirect()->route('dashboard.perpus');
     }
 
-    return back()->withErrors([
-        'id_employee' => 'NIP atau password salah.'
-    ])->withInput();
+    return redirect()->route('dashboard.default')->with('warning', 'Role tidak dikenali.');
 }
 
-    public function logout(Request $request)
+return back()->withErrors([
+    'id_employee' => 'NIP atau password salah.'
+])->withInput();
+}
+
+ public function logout(Request $request)
     {
         Auth::guard('employee')->logout();
         $request->session()->invalidate();

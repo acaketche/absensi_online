@@ -18,10 +18,22 @@ class Student extends Authenticatable
     public $incrementing = false;
     public $timestamps = true;
 
-    protected $fillable = [
-        'id_student', 'fullname', 'class_id', 'parent_phonecell', 'photo', 'password',
-        'birth_place', 'birth_date', 'gender', 'academic_year_id', 'semester_id'
-    ];
+
+protected $fillable = [
+    'id_student',
+    'fullname',
+    'password',
+    'birth_place',
+    'birth_date',
+    'gender',
+    'parent_phonecell',
+    'class_id',
+    'academic_year_id',
+    'semester_id',
+    'photo',
+    'qrcode'
+];
+
 
     protected $hidden = [
         'password',
@@ -69,6 +81,11 @@ class Student extends Authenticatable
                         ->where('due_date', '<', now())
                         ->whereNull('return_date'); // pastikan ada kolom returned_at untuk peminjaman yang belum dikembalikan
         }
+
+public function attendances()
+{
+    return $this->hasMany(StudentAttendance::class, 'id_student', 'id_student');
+}
 
 
 }

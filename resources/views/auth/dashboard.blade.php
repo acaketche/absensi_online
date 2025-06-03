@@ -3,9 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-School</title>
+    <title>E-School - Dashboard</title>
+
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- FullCalendar -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css">
+    <!-- Custom CSS -->
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <style>
         .main-content {
@@ -99,7 +105,7 @@
         /* Bottom Grid */
         .bottom-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: 2fr 1fr;
             gap: 20px;
         }
 
@@ -173,6 +179,46 @@
             color: #4266B9 !important;
         }
 
+        /* Calendar adjustments */
+        #calendar {
+            font-size: 0.9em;
+        }
+
+        .fc .fc-toolbar-title {
+            font-size: 1.2em;
+        }
+
+        .fc .fc-col-header-cell-cushion {
+            font-size: 0.8em;
+            padding: 2px 4px;
+        }
+
+        .fc .fc-daygrid-day-frame {
+            min-height: 2em;
+        }
+
+        .fc .fc-daygrid-day-number {
+            font-size: 0.8em;
+            padding: 2px;
+        }
+
+        .holiday-list {
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+
+        .holiday-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .holiday-date {
+            font-weight: bold;
+            color: #4266B9;
+        }
+
         @media (max-width: 1024px) {
             .metrics {
                 grid-template-columns: repeat(2, 1fr);
@@ -202,155 +248,233 @@
 @if(Auth::guard('employee')->check())
 <body class="bg-light">
     <div class="d-flex">
-        <!-- Sidebar -->
         @include('components.sidebar')
 
-        <!-- Main Content -->
         <div class="main-content">
             <div class="header">
                 <h1>Dashboard</h1>
                 <div class="dropdown">
-                   @include('components.profiladmin')
+                    @include('components.profiladmin')
                 </div>
             </div>
 
-            <!-- Metric Cards -->
+            <!-- Metrics -->
             <div class="metrics">
                 <div class="metric-card">
                     <div class="metric-card-content">
-                        <div class="metric-icon">
-                            <i class="fas fa-user-graduate"></i>
-                        </div>
+                        <div class="metric-icon"><i class="fas fa-user-graduate"></i></div>
                         <div class="metric-info">
-                            <h3>Siswa</h3>
-                            <p>10</p>
+                            <h3>Siswa</h3><p>{{ $totalSiswa }}</p>
                         </div>
                     </div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-card-content">
-                        <div class="metric-icon">
-                            <i class="fas fa-chalkboard-teacher"></i>
-                        </div>
+                        <div class="metric-icon"><i class="fas fa-chalkboard-teacher"></i></div>
                         <div class="metric-info">
-                            <h3>Pegawai</h3>
-                            <p>10</p>
+                            <h3>Pegawai</h3><p>{{ $totalPegawai }}</p>
                         </div>
                     </div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-card-content">
-                        <div class="metric-icon">
-                            <i class="fas fa-user-check"></i>
-                        </div>
+                        <div class="metric-icon"><i class="fas fa-user-check"></i></div>
                         <div class="metric-info">
-                            <h3>Pegawai hadir hari ini</h3>
-                            <p>10</p>
+                            <h3>Pegawai hadir hari ini</h3><p>{{ $pegawaiHadir }}</p>
                         </div>
                     </div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-card-content">
-                        <div class="metric-icon">
-                            <i class="fas fa-user-check"></i>
-                        </div>
+                        <div class="metric-icon"><i class="fas fa-user-check"></i></div>
                         <div class="metric-info">
-                            <h3>Siswa hadir hari ini</h3>
-                            <p>10</p>
+                            <h3>Siswa hadir hari ini</h3><p>{{ $siswaHadir }}</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Graph Section -->
+            <!-- Chart -->
             <div class="graph-section">
                 <h2 class="graph-title">Grafik Presensi Hari ini</h2>
-                <div style="height: 300px; background: #f9f9f9; border-radius: 8px;">
-                    <!-- Placeholder for graph -->
+                <div>
+                    <canvas id="attendanceChart" height="100"></canvas>
                 </div>
             </div>
 
-            <!-- Bottom Grid -->
+            <!-- Bottom Section -->
             <div class="bottom-grid">
-                <div class="calendar-section">
-                    <div class="calendar-header">
-                        <h2>School Calendar</h2>
-                        <div class="month-selector">
-                            March 2025
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                    </div>
-                    <!-- Calendar content would go here -->
-                </div>
-
+                <!-- Aktivitas -->
                 <div class="activity-section">
-                    <h2 style="margin-bottom: 20px;">Aktivitas Terakhir</h2>
-                    <table class="activity-table">
+                    <h2>Aktivitas Terakhir</h2>
+                    <table class="activity-table table table-bordered">
                         <thead>
-                            <tr>
-                                <th>Program</th>
-                                <th>Aktivitas Terakhir</th>
-                                <th>Waktu</th>
-                            </tr>
+                            <tr><th>Program</th><th>Aktivitas Terakhir</th><th>Waktu</th></tr>
                         </thead>
                         <tbody>
+                            @forelse ($activities as $activity)
                             <tr>
-                                <td>Pegawai TU</td>
-                                <td>Login ke aplikasi</td>
-                                <td>1 detik yang lalu</td>
+                                <td>{{ $activity['program'] ?? '-' }}</td>
+                                <td>{{ $activity['aktivitas'] ?? '-' }}</td>
+                                <td>{{ isset($activity['waktu']) ? \Carbon\Carbon::parse($activity['waktu'])->diffForHumans() : '-' }}</td>
                             </tr>
+                            @empty
                             <tr>
-                                <td>Pegawai Piket</td>
-                                <td>Keluar dari aplikasi</td>
-                                <td>2 detik yang lalu</td>
+                                <td colspan="3" class="text-center">Tidak ada aktivitas terbaru.</td>
                             </tr>
-                            <tr>
-                                <td>Pegawai Pendidik</td>
-                                <td>Login ke aplikasi</td>
-                                <td>3 detik yang lalu</td>
-                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Change Password Modal -->
-    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="changePasswordModalLabel">Ubah Password</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form action="#" method="POST">
-                        @csrf
-                        @method('PUT')
-                        <div class="mb-3">
-                            <label for="current_password" class="form-label">Password Saat Ini</label>
-                            <input type="password" class="form-control" id="current_password" name="current_password" required>
-                            @error('current_password')
-                                <div class="text-danger">{{ $message }}</div>
-                            @enderror
+                <!-- Calendar and Holidays -->
+                <div class="calendar-section">
+                    <div id="calendar"></div>
+                    <div class="holiday-list">
+                        <h5>Libur Bulan Ini</h5>
+                        <div id="holidays-container">
+                            <!-- Holiday items will be added here by JavaScript -->
                         </div>
-                        <div class="mb-3">
-                            <label for="new_password" class="form-label">Password Baru</label>
-                            <input type="password" class="form-control" id="new_password" name="new_password" required>
-                            @error('new_password')
-                                <div class="text-danger">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="new_password_confirmation" class="form-label">Konfirmasi Password Baru</label>
-                            <input type="password" class="form-control" id="new_password_confirmation" name="new_password_confirmation" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Ubah Password</button>
-                    </form>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
+
+            <!-- Change Password Modal -->
+            <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="changePasswordModalLabel">Ubah Password</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form action="#" method="POST">
+                                @csrf
+                                @method('PUT')
+                                <div class="mb-3">
+                                    <label for="current_password" class="form-label">Password Saat Ini</label>
+                                    <input type="password" class="form-control" id="current_password" name="current_password" required>
+                                    @error('current_password')
+                                        <div class="text-danger">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label">Password Baru</label>
+                                    <input type="password" class="form-control" id="new_password" name="new_password" required>
+                                    @error('new_password')
+                                        <div class="text-danger">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="mb-3">
+                                    <label for="new_password_confirmation" class="form-label">Konfirmasi Password Baru</label>
+                                    <input type="password" class="form-control" id="new_password_confirmation" name="new_password_confirmation" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Ubah Password</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- End main-content -->
+    </div> <!-- End d-flex -->
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    @endif
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+    <script>
+        // Grafik Presensi
+        const ctx = document.getElementById('attendanceChart').getContext('2d');
+        const attendanceChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Siswa', 'Pegawai'],
+                datasets: [{
+                    label: 'Jumlah Hadir',
+                    data: [{{ $siswaHadir }}, {{ $pegawaiHadir }}],
+                    backgroundColor: ['#4266B9', '#58A6FF']
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Kalender dan Hari Libur
+        document.addEventListener('DOMContentLoaded', function () {
+            const calendarEl = document.getElementById('calendar');
+            const holidaysContainer = document.getElementById('holidays-container');
+
+            // Sample holiday data - replace with your actual data
+            const holidays = {
+                '2023-11-01': 'Libur Nasional - Hari Libur Contoh 1',
+                '2023-11-10': 'Hari Pahlawan',
+                '2023-11-25': 'Libur Akhir Semester'
+            };
+
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                events: {!! $calendarEvents ?? '[]' !!},
+                locale: 'id',
+                headerToolbar: {
+                    left: 'title',
+                    center: '',
+                    right: 'prev,next'
+                },
+                height: 'auto',
+                dayCellContent: function(arg) {
+                    return { html: '<div class="fc-daygrid-day-number">' + arg.dayNumberText + '</div>' };
+                },
+                datesSet: function(info) {
+                    // Update holidays display when month changes
+                    updateHolidaysDisplay(info.start, info.end);
+                }
+            });
+
+            calendar.render();
+
+            // Function to update holidays display
+            function updateHolidaysDisplay(start, end) {
+                holidaysContainer.innerHTML = '';
+
+                // Filter holidays for the current month view
+                const currentMonthHolidays = Object.entries(holidays).filter(([dateStr]) => {
+                    const date = new Date(dateStr);
+                    return date >= start && date <= end;
+                });
+
+                if (currentMonthHolidays.length === 0) {
+                    holidaysContainer.innerHTML = '<p>Tidak ada hari libur bulan ini.</p>';
+                    return;
+                }
+
+                currentMonthHolidays.forEach(([dateStr, description]) => {
+                    const date = new Date(dateStr);
+                    const holidayItem = document.createElement('div');
+                    holidayItem.className = 'holiday-item';
+
+                    const dateElement = document.createElement('span');
+                    dateElement.className = 'holiday-date';
+                    dateElement.textContent = date.getDate() + ' ' + date.toLocaleString('id-ID', { month: 'long' });
+
+                    const descElement = document.createElement('span');
+                    descElement.textContent = description;
+
+                    holidayItem.appendChild(dateElement);
+                    holidayItem.appendChild(descElement);
+                    holidaysContainer.appendChild(holidayItem);
+                });
+            }
+
+            // Initial holidays display
+            const currentView = calendar.view;
+            updateHolidaysDisplay(currentView.activeStart, currentView.activeEnd);
+        });
+    </script>
+</body>
+@endif
+</html>

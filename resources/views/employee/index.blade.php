@@ -156,20 +156,21 @@
                                         <span class="text-muted">No QR</span>
                                         @endif
                                     </td>
-                                    <td>
-                                            <!-- Tombol Edit -->
-                                            <a href="{{ route('employees.edit', $employee->id_employee) }}" class="btn btn-sm btn-warning">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
+                                 <td>
+                                    <div class="d-flex">
+                                        <!-- Tombol Edit -->
+                                        <a href="{{ route('employees.edit', $employee->id_employee) }}" class="btn btn-sm btn-warning me-2">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
 
-                                            <!-- Tombol Hapus -->
-                                            <button class="btn btn-sm btn-danger delete-employee"
-                                                    data-employee-id="{{ $employee->id_employee }}"
-                                                    data-employee-name="{{ $employee->fullname }}">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
+                                        <!-- Tombol Hapus -->
+                                        <button class="btn btn-sm btn-danger delete-employee"
+                                                data-employee-id="{{ $employee->id_employee }}"
+                                                data-employee-name="{{ $employee->fullname }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
                                 </tr>
                                 @endforeach
                             </tbody>

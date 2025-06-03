@@ -167,7 +167,6 @@
                             <div class="col-md-6 mb-3">
                                 <label for="qr_code" class="form-label">QR Code <small class="text-muted">(Opsional)</small></label>
                                 <input type="file" class="form-control @error('qr_code') is-invalid @enderror" id="qr_code" name="qr_code" accept="image/png">
-                                <small class="form-text text-muted">Jika tidak diunggah, sistem akan membuatkan QR Code secara otomatis. Format PNG, maks 1MB.</small>
                                 @error('qr_code')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

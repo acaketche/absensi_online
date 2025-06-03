@@ -5,12 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\BookLoan;
 use App\Models\Book;
 use App\Models\Student;
-use App\Models\Classes; // Perubahan nama model Kelas
+use App\Models\Classes;
 use Illuminate\Http\Request;
 use App\Models\AcademicYear;
 use App\Models\Semester;
 use Carbon\Carbon;
-
 
 
 class BookLoanController extends Controller
@@ -79,7 +78,7 @@ class BookLoanController extends Controller
                 'id_student' => 'required|string',
                 'book_id' => 'required|integer',
                 'loan_date' => 'required|date',
-                'due_date' => 'required|date',
+                'due_date' => 'nullable|date',
                 'status' => 'required|string|in:Dipinjam,Dikembalikan',
                 'academic_year_id' => 'required|integer',
                 'semester_id' => 'required|integer',
@@ -142,6 +141,8 @@ class BookLoanController extends Controller
 
     public function studentBooks($id)
     {
+        $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
+        $activeSemester = Semester::where('is_active', 1)->first();
         $student = Student::with('class')->findOrFail($id);
 
         $bookLoans = BookLoan::with('book')
@@ -159,9 +160,52 @@ class BookLoanController extends Controller
         $academicYears = AcademicYear::all();
         $semesters = Semester::all();
 
-        return view('books.studentbook', compact('student', 'bookLoans', 'overdueCount', 'books', 'academicYears', 'semesters'));
+        return view('books.studentbook', compact('student', 'bookLoans', 'overdueCount', 'books',
+        'academicYears', 'semesters','activeAcademicYear', 'activeSemester'));
     }
 
+public function markAsReturned($id)
+{
+    $loan = BookLoan::findOrFail($id);
 
+    if ($loan->status === 'Dipinjam') {
+        $loan->status = 'Dikembalikan';
+        $loan->return_date = Carbon::now();
+        $loan->save();
+    }
 
+    return redirect()->back()->with('success', 'Buku berhasil ditandai sebagai dikembalikan.');
+}
+
+public function markAsUnreturned($id)
+{
+    $loan = BookLoan::findOrFail($id);
+
+    if ($loan->status === 'Dikembalikan') {
+        $loan->status = 'Dipinjam';
+        $loan->return_date = null; // kosongkan tanggal pengembalian
+        $loan->save();
+    }
+
+    return redirect()->back()->with('success', 'Status dikembalikan menjadi Dipinjam.');
+}
+public function print($id_student)
+{
+    $student = Student::where('id_student', $id_student)->firstOrFail();
+    $bookLoans = BookLoan::with(['book', 'student'])
+        ->where('id_student', $id_student)
+        ->orderBy('loan_date', 'desc')
+        ->get();
+
+    $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
+
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('books.printbookloans', [
+        'student' => $student,
+        'bookLoans' => $bookLoans,
+        'activeAcademicYear' => $activeAcademicYear,
+        'printDate' => now()->format('d F Y')
+    ]);
+
+    return $pdf->download('laporan-peminjaman-'.$student->id_student.'.pdf');
+}
 }

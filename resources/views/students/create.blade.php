@@ -29,6 +29,9 @@
                     <i class="fas fa-arrow-left me-2"></i> Kembali
                 </a>
             </header>
+        @if(session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
 
             <!-- Form Tambah Siswa -->
             <div class="card">
@@ -93,10 +96,18 @@
                                     <input type="file" class="form-control" id="photo" name="photo">
                                     <div class="mt-2">
                                         <img id="preview_photo" src="/placeholder.svg" style="display: none; max-width: 200px; max-height: 200px;">
+
+                                <label for="qr_code" class="form-label">QR Code <small class="text-muted">(Opsional)</small></label>
+                                <input type="file" class="form-control @error('qr_code') is-invalid @enderror" id="qr_code" name="qr_code" accept="image/png">
+                                <small class="form-text text-muted">Jika tidak diunggah, sistem akan membuatkan QR Code secara otomatis. Format PNG, maks 1MB.</small>
+                                @error('qr_code')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                                     </div>
-                                </div>
                             </div>
                         </div>
+
 
                         <!-- Input hidden untuk Tahun Ajaran & Semester Aktif -->
                         <input type="hidden" name="academic_year_id" value="{{ $activeAcademicYear->id ?? '' }}">

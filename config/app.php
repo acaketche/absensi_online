@@ -150,7 +150,7 @@ return [
 
     // Tambahkan RouteServiceProvider di sini
     App\Providers\RouteServiceProvider::class,
+    Maatwebsite\Excel\ExcelServiceProvider::class,
 ],
-
 
 ];
