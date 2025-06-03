@@ -29,4 +29,18 @@ class Spp extends Model
     // Bisa menambahkan mutator untuk otomatis mengisi `updated_at`
     // Misal ketika kamu update atau buat data baru, bisa otomatis mengisi
     protected $dates = ['created_at', 'updated_at'];
+
+ public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class, 'academic_year_id', 'id');
+    }
+    public function semester()
+{
+    return $this->belongsTo(Semester::class, 'semester_id');
+}
+public function classes()
+{
+    return $this->belongsTo(Classes::class, 'class_id');
+}
+
 }

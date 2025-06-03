@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\Payment;
@@ -8,178 +9,345 @@ use App\Models\Student;
 use App\Models\Classes;
 use App\Models\AcademicYear;
 use App\Models\Semester;
+use App\Models\Spp;
 
 class PaymentController extends Controller
 {
+  public function bayar(Request $request)
+{
+    $request->validate([
+        'id_siswa' => 'required|exists:students,id_student',
+        'amount' => 'required|numeric|min:1000',
+        'month' => 'required|numeric|between:1,12'
+    ]);
 
-public function bayar(Request $request){
-    $id_student = $request->post("id_siswa");
-    $amount = $request->post("amount");
-    $id_spp = $request->post("id_spp");
-    $academic_year_id = $request->post("academic_year_id");
-    $semester_id = $request->post("semester_id");
-    DB::statement ("INSERT INTO `payments`
-SET
-  `id_student` = '$id_student',
-  `academic_year_id` = '$academic_year_id',
-  `semester_id` = '$semester_id',
-  `id_spp` = '$id_spp',
-  `amount` = '$amount',
-  `status` = 'lunas',
-  `last_update` = NOW(),
-  `notes` = ''
-");
+    try {
+        $activeAcademicYear = AcademicYear::where('is_active', true)->first();
+        $activeSemester = Semester::where('is_active', true)->first();
 
-
-}
-
-public function batalbayar(Request $request){
-    $id_student = $request->post("id_siswa");
-    $amount = $request->post("amount");
-    $id_spp = $request->post("id_spp");
-    $academic_year_id = $request->post("academic_year_id");
-    $semester_id = $request->post("semester_id");
-    DB::statement ("DELETE FROM `payments`
-WHERE
-  `id_student` = '$id_student' AND
-  `academic_year_id` = '$academic_year_id' AND
-  `semester_id` = '$semester_id' AND
-  `id_spp` = '$id_spp'
-");
-
-}
-
-    // Menampilkan form tambah pembayaran
-    public function create(Request $request)
-    {
-        //dd($request);
-        $academicYears = AcademicYear::all();
-     $semesters = Semester::all();
-     $classes = Classes::all();
-
-     if ($request->has('simpan')) {
-        // Handle the form submission
-        $id = uniqid();
-        DB::statement("INSERT INTO `spp`
-        SET
-        `id` = ?,
-          `academic_year_id` = ?,
-          `semester_id` = ?,
-          `class_id` = ?,
-          `amount` = ?,
-          `created_at` = ?
-
-        ", [
-            $id, $request->post('academic_year_id'), $request->post('semester_id'),
-             $request->post('class_id'), $request->post('nominal'), date('Y-m-d H:i:s')
-        ]);
-        return redirect('/payment/kelola/'.$id);
-    }
-        return view('spp.create', compact('academicYears', 'semesters','classes'));
-    }
-
-
-    public function listData()
-    {
-        $data = DB::select("SELECT a.*, b.`year_name`, c.`semester_name`, d.`class_name` FROM spp a
-        JOIN academic_years b ON a.`academic_year_id` = b.`id`
-        JOIN semesters c ON a.`semester_id` = c.`id`
-        JOIN classes d ON a.`class_id` = d.`class_id`
-        WHERE 1 ");
-
-        return view('spp.list', compact('data'));
-    }
-
-
-    public function kelola($id)
-    {
-        $data = DB::select("SELECT a.*, b.`year_name`, c.`semester_name`, d.`class_name` FROM spp a
-        JOIN academic_years b ON a.`academic_year_id` = b.`id`
-        JOIN semesters c ON a.`semester_id` = c.`id`
-        JOIN classes d ON a.`class_id` = d.`class_id`
-        WHERE a.`id` = ?", [$id]);
-        $data = $data[0];
-
-        $siswa = DB::select("SELECT * FROM students a WHERE a.`class_id` = ?", [$data->class_id]);
-        $bnt = DB::select("SELECT a.`id`, a.`amount`, a.`id_student` FROM payments a WHERE a.`id_spp` = ?",[$data->id]);
-        $bayar = array();
-        foreach($bnt as $a=>$b){
-            $bayar[$b->id_student] = $b;
+        if (!$activeAcademicYear || !$activeSemester) {
+            return response()->json(['success' => false, 'message' => 'Tahun ajaran atau semester aktif tidak ditemukan.'], 400);
         }
-        return view('spp.kelola', compact('data','siswa','bayar'));
 
+        // Ambil data siswa beserta kelas
+        $student = Student::with('class')->find($request->id_siswa);
+        if (!$student || !$student->class) {
+            return response()->json(['success' => false, 'message' => 'Data siswa atau kelas tidak ditemukan.'], 404);
+        }
 
-    }
+        // Ambil data SPP berdasarkan kelas, tahun ajaran, dan semester
+        $spp = Spp::where('class_id', $student->class->class_id)
+            ->where('academic_year_id', $activeAcademicYear->id)
+            ->where('semester_id', $activeSemester->id)
+            ->first();
 
-    // Menyimpan pembayaran baru
-    public function store(Request $request)
-    {
-        $request->validate([
-            'id_student' => 'required',
-            'academic_year_id' => 'required',
-            'amount' => 'required|numeric',
-            'status' => 'required',
-            'notes' => 'nullable|string'
-        ]);
+        if (!$spp) {
+            return response()->json(['success' => false, 'message' => 'Data SPP tidak ditemukan untuk kelas dan tahun ajaran ini.'], 404);
+        }
+
+        // Cek apakah pembayaran bulan ini sudah dilakukan
+        $existingPayment = Payment::where('id_student', $request->id_siswa)
+            ->where('month', $request->month)
+            ->where('academic_year_id', $activeAcademicYear->id)
+            ->where('semester_id', $activeSemester->id)
+            ->exists();
+
+        if ($existingPayment) {
+            return response()->json(['success' => false, 'message' => 'Pembayaran untuk bulan ini sudah dilakukan.'], 400);
+        }
 
         Payment::create([
-            'id_student' => $request->id_student,
-            'academic_year_id' => $request->academic_year_id,
+            'id_student' => $request->id_siswa,
+            'academic_year_id' => $activeAcademicYear->id,
+            'semester_id' => $activeSemester->id,
+            'id_spp' => $spp->id,
             'amount' => $request->amount,
-            'status' => $request->status,
+            'status' => 'Lunas',
             'last_update' => now(),
-            'notes' => $request->notes
+            'notes' => 'Pembayaran via sistem',
+            'month' => $request->month
         ]);
 
-        return redirect()->route('payments.index')->with('success', 'Pembayaran berhasil ditambahkan');
+        return response()->json(['success' => true, 'message' => 'Pembayaran berhasil dicatat.']);
+
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => 'Gagal mencatat pembayaran: ' . $e->getMessage()], 500);
+    }
+}
+
+public function batalbayar(Request $request)
+{
+    $request->validate([
+        'id_siswa' => 'required|exists:students,id_student',
+        'month' => 'required|numeric|between:1,12'
+    ]);
+
+    try {
+        $activeAcademicYear = AcademicYear::where('is_active', true)->first();
+        $activeSemester = Semester::where('is_active', true)->first();
+
+        if (!$activeAcademicYear || !$activeSemester) {
+            return response()->json(['success' => false, 'message' => 'Tahun ajaran atau semester aktif tidak ditemukan.'], 400);
+        }
+
+        $payment = Payment::where('id_student', $request->id_siswa)
+            ->where('month', $request->month)
+            ->where('academic_year_id', $activeAcademicYear->id)
+            ->where('semester_id', $activeSemester->id)
+            ->first();
+
+        if (!$payment) {
+            return response()->json(['success' => false, 'message' => 'Data pembayaran tidak ditemukan.'], 404);
+        }
+
+        $payment->delete();
+
+        return response()->json(['success' => true, 'message' => 'Pembayaran berhasil dibatalkan.']);
+
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => 'Gagal membatalkan pembayaran: ' . $e->getMessage()], 500);
+    }
+}
+
+
+    public function create(Request $request)
+    {
+        // Get active academic year and semester
+        $activeAcademicYear = AcademicYear::where('is_active', true)->first();
+        $activeSemester = Semester::where('is_active', true)->first();
+
+        if ($request->has('simpan')) {
+            $request->validate([
+                'academic_year_id' => 'required',
+                'semester_id' => 'required',
+                'class_id' => 'required',
+                'nominal' => 'required|numeric|min:1000'
+            ]);
+
+            try {
+                $spp = Spp::create([
+                    'id' => uniqid(),
+                    'academic_year_id' => $request->academic_year_id,
+                    'semester_id' => $request->semester_id,
+                    'class_id' => $request->class_id,
+                    'amount' => $request->nominal,
+                    'created_at' => now()
+                ]);
+
+                return redirect()
+                    ->route('payment.listdata', $spp->id)
+                    ->with('success', 'SPP berhasil dibuat');
+
+            } catch (\Exception $e) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Gagal membuat SPP: '.$e->getMessage());
+            }
+        }
+
+        $academicYears = AcademicYear::orderBy('year_name')->get();
+        $semesters = Semester::orderBy('semester_name')->get();
+        $classes = Classes::orderBy('class_name')->get();
+
+        return view('spp.create', [
+            'academicYears' => $academicYears,
+            'semesters' => $semesters,
+            'classes' => $classes,
+            'activeAcademicYear' => $activeAcademicYear,
+            'activeSemester' => $activeSemester
+        ]);
+    }
+public function listData(Request $request)
+{
+    // Ambil tahun akademik dan semester aktif dulu
+    $activeAcademicYear = AcademicYear::where('is_active', true)->first();
+    $activeSemester = Semester::where('is_active', true)->first();
+
+    if (!$activeAcademicYear || !$activeSemester) {
+        return redirect()->back()->with('error', 'Tidak ada tahun akademik atau semester aktif');
     }
 
-    // Menampilkan form edit pembayaran
-    public function edit($id)
-    {
-        $payment = Payment::findOrFail($id);
-        $students = Student::all();
-        $academicYears = AcademicYear::all();
-        return view('payments.edit', compact('payment', 'students', 'academicYears'));
+    // Pastikan tanggal awal dan akhir semester valid
+    try {
+        $startDate = \Carbon\Carbon::parse($activeSemester->start_date);
+        $endDate = \Carbon\Carbon::parse($activeSemester->end_date);
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Format tanggal semester tidak valid');
     }
+
+    // Ambil daftar bulan yang termasuk dalam range semester aktif
+    $validMonths = [];
+    $currentDate = $startDate->copy();
+
+    while ($currentDate <= $endDate) {
+        $monthNumber = (int) $currentDate->format('n');
+        $year = $currentDate->format('Y');
+
+        // Jika bulan belum ada di array, tambahkan
+        if (!isset($validMonths[$monthNumber])) {
+            $validMonths[$monthNumber] = [
+                'number' => $monthNumber,
+                'name' => $this->getMonthName($monthNumber),
+                'year' => $year
+            ];
+        }
+
+        $currentDate->addMonth();
+    }
+
+    // Ambil bulan dari query string, default ke bulan sekarang
+    $month = (int) ($request->get('month') ?? now()->format('n'));
+
+    // Jika bulan tidak ada di validMonths, set ke bulan pertama yang ada
+    if (!array_key_exists($month, $validMonths)) {
+        $month = array_key_first($validMonths);
+    }
+
+    // Ambil data SPP berdasarkan tahun akademik dan semester aktif
+    $query = Spp::with(['academicYear', 'semester', 'classes'])
+        ->where('academic_year_id', $activeAcademicYear->id)
+        ->where('semester_id', $activeSemester->id);
+
+    // Tambahkan filter kelas jika ada
+    $classId = $request->get('class_id');
+    if ($classId) {
+        $query->where('class_id', $classId);
+    }
+
+    $sppData = $query->get();
+
+    // Hitung total nominal tagihan
+    $totalAmount = $sppData->sum('amount');
+
+    // Hitung jumlah pembayaran pada bulan yang dipilih
+    $paidAmount = Payment::whereIn('id_spp', $sppData->pluck('id'))
+        ->where('month', $month)
+        ->where('academic_year_id', $activeAcademicYear->id)
+        ->where('semester_id', $activeSemester->id)
+        ->sum('amount');
+
+    // Hitung jumlah siswa belum bayar dan persentase pembayaran
+    $unpaidAmount = $totalAmount - $paidAmount;
+    $paymentPercentage = $totalAmount > 0 ? round(($paidAmount / $totalAmount) * 100, 2) : 0;
+
+    // Ambil semua kelas untuk filter dropdown
+    $classes = Classes::orderBy('class_name')->get();
+
+    return view('spp.list', [
+        'sppData' => $sppData,
+        'classes' => $classes,
+        'totalAmount' => $totalAmount,
+        'paidAmount' => $paidAmount,
+        'unpaidAmount' => $unpaidAmount,
+        'paymentPercentage' => $paymentPercentage,
+        'unpaidCount' => $sppData->count() - Payment::whereIn('id_spp', $sppData->pluck('id'))
+            ->where('month', $month)
+            ->where('academic_year_id', $activeAcademicYear->id)
+            ->where('semester_id', $activeSemester->id)
+            ->count(),
+        'months' => $validMonths,
+        'currentMonth' => $month,
+        'activeAcademicYear' => $activeAcademicYear,
+        'activeSemester' => $activeSemester,
+        'semesterRange' => [
+            'start' => $startDate->format('d F Y'),
+            'end' => $endDate->format('d F Y')
+        ]
+    ]);
+}
+
+private function getMonthName($monthNumber)
+{
+    $months = [
+        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+        5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+        9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+    ];
+
+    return $months[$monthNumber] ?? '';
+}
+
+   public function kelola($id, Request $request)
+{
+    // Get the month from request, default to current month if not provided
+    $month = $request->input('month', date('n'));
+
+    $spp = Spp::with(['academicYear', 'semester', 'classes'])
+        ->findOrFail($id);
+
+    $students = Student::where('class_id', $spp->class_id)
+        ->orderBy('fullname')
+        ->get();
+
+    // Get payments for the specific month
+    $payments = Payment::where('id_spp', $id)
+        ->where('month', $month)
+        ->get()
+        ->keyBy('id_student');
+
+    // Calculate summary for the selected month
+    $totalStudents = $students->count();
+    $paidStudents = $payments->count();
+    $unpaidStudents = $totalStudents - $paidStudents;
+    $totalAmount = $payments->sum('amount');
+
+    return view('spp.detailspp', [
+        'spp' => $spp,
+        'students' => $students,
+        'payments' => $payments,
+        'totalStudents' => $totalStudents,
+        'paidStudents' => $paidStudents,
+        'unpaidStudents' => $unpaidStudents,
+        'totalAmount' => $totalAmount,
+        'currentMonth' => $month
+    ]);
+}
 
     public function update(Request $request, $id)
     {
         $request->validate([
-            'amount' => 'required|numeric'
+            'amount' => 'required|numeric|min:1000'
         ]);
 
-        DB::table('spp')
-            ->where('id', $id)
-            ->update([
+        try {
+            $spp = Spp::findOrFail($id);
+            $spp->update([
                 'amount' => $request->amount,
                 'updated_at' => now()
             ]);
 
-        return redirect()->back()->with('success', 'Data SPP berhasil diperbarui');
+            return back()->with('success', 'Nominal SPP berhasil diperbarui');
+
+        } catch (\Exception $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Gagal memperbarui SPP: '.$e->getMessage());
+        }
     }
 
-    public function show($id)
-{
-    $payment = Payment::findOrFail($id);
-    return view('payments.show', compact('payment'));
-}
-
-    // Menghapus pembayaran
     public function destroy($id)
     {
-        // Cari data berdasarkan ID
-        $payment = DB::table('spp')->where('id', $id)->first();
+        try {
+            DB::beginTransaction();
 
-        // Jika data ditemukan
-        if ($payment) {
-            // Hapus data
-            DB::table('spp')->where('id', $id)->delete();
+            // Delete related payments first
+            Payment::where('id_spp', $id)->delete();
 
-            return redirect()->route('payment.listdata')->with('success', 'Data berhasil dihapus.');
+            // Then delete the SPP record
+            Spp::where('id', $id)->delete();
+
+            DB::commit();
+
+            return redirect()
+                ->route('payment.listdata')
+                ->with('success', 'Data SPP berhasil dihapus');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()
+                ->route('payment.listdata')
+                ->with('error', 'Gagal menghapus data SPP: '.$e->getMessage());
         }
-
-        // Jika tidak ditemukan
-        return redirect()->route('payment.listdata')->with('error', 'Data tidak ditemukan.');
     }
 }

@@ -3,174 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manajemen SPP</title>
+    <title>Kelola Pembayaran SPP</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #4267b2;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+        }
+
         body {
             background-color: #f8f9fa;
-            font-family: Arial, sans-serif;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .app-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #0d6efd;
-        }
-
-        .admin-profile {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .admin-info {
-            text-align: right;
-        }
-
-        .admin-name {
-            font-weight: bold;
-            margin-bottom: 0;
-        }
-
-        .admin-role {
-            color: #6c757d;
-            font-size: 14px;
-        }
-
-        .admin-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: #c8d6f9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .search-container {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .search-container input {
-            padding: 10px 15px 10px 40px;
-            border-radius: 30px;
-            border: 1px solid #e0e0e0;
-            width: 100%;
-            max-width: 300px;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6c757d;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         .card {
-            background-color: #fff;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             border: none;
+            margin-bottom: 20px;
         }
 
         .card-header {
-            background-color: #4267b2;
+            background-color: var(--primary-color);
             color: white;
-            font-weight: bold;
-            padding: 12px 20px;
             border-radius: 10px 10px 0 0 !important;
+            font-weight: 600;
+            padding: 15px 20px;
         }
 
-        .card-body {
-            padding: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-label {
+        .badge-paid {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success-color);
+            padding: 8px 12px;
+            border-radius: 20px;
             font-weight: 500;
-            margin-bottom: 5px;
         }
 
-        .btn-primary {
-            background-color: #4267b2;
-            border-color: #4267b2;
+        .badge-unpaid {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger-color);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-weight: 500;
         }
 
-        .btn-primary:hover {
-            background-color: #365899;
-            border-color: #365899;
+        .student-row {
+            transition: all 0.2s;
         }
 
-        .info-row {
+        .student-row:hover {
+            background-color: rgba(66, 103, 178, 0.05);
+        }
+
+        .payment-summary {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .summary-item {
             display: flex;
-            margin-bottom: 10px;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
         }
 
-        .info-label {
-            width: 150px;
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
             font-weight: 500;
+            color: var(--secondary-color);
         }
 
-        .info-value {
-            flex: 1;
+        .summary-value {
+            font-weight: 600;
         }
 
-        .table {
-            margin-top: 15px;
+        .total-paid {
+            color: var(--success-color);
+        }
+
+        .total-unpaid {
+            color: var(--danger-color);
+        }
+
+        .btn-action {
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .btn-pay {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .btn-cancel {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .amount-cell {
+            font-weight: 600;
+        }
+
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
         }
 
         .table th {
             background-color: #f8f9fa;
             font-weight: 600;
+            padding: 12px 15px;
         }
 
-        .action-btn {
-            background-color: #4267b2;
-            color: white;
-            border: none;
-            padding: 5px 15px;
-            border-radius: 5px;
-            font-size: 14px;
+        .table td {
+            padding: 12px 15px;
+            vertical-align: middle;
         }
 
-        .action-btn:hover {
-            background-color: #365899;
-        }
+        @media (max-width: 768px) {
+            .table-responsive {
+                overflow-x: auto;
+            }
 
-        .settings-icon {
-            color: #6c757d;
-            cursor: pointer;
-        }
-
-        .settings-icon:hover {
-            color: #4267b2;
+            .btn-action {
+                padding: 6px 10px;
+                font-size: 0.75rem;
+            }
         }
     </style>
 </head>
@@ -178,184 +151,290 @@
 <body class="bg-light">
 <div class="d-flex">
     <!-- Sidebar -->
-   @include('components.sidebar')
+    @include('components.sidebar')
 
     <!-- Main Content -->
     <main class="flex-grow-1 p-4">
         <!-- Header dengan Profil Admin -->
+        @include('components.profiladmin')
 
-                @include('components.profiladmin')
-        <!-- Search Bar -->
+        <!-- Page Header -->
         <header class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fs-4 fw-bold mb-0">Kelola SPP</h2>
-            <a href="{{ route('payment.listdata') }}" class="btn btn-secondary">
+            <div>
+                <h2 class="fs-4 fw-bold mb-0">Kelola Pembayaran SPP</h2>
+            </div>
+            <a href="{{ route('payment.listdata') }}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-2"></i> Kembali
             </a>
         </header>
 
-        <!-- Filter Section -->
+        <!-- SPP Information Card -->
         <div class="card mb-4">
-            <div class="card-header bg-primary text-white">Data SPP</div>
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Informasi SPP</span>
+                    <span class="badge bg-light text-dark">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        Tahun Ajaran: <?= $spp->academicyear->year_name ?>
+                    </span>
+                </div>
+            </div>
             <div class="card-body">
-               <table class="table table-hover">
-                   <tr>
-                       <th>Tahun Ajaran</th>
-                       <td><?=$data->year_name?></td>
-                   </tr>
-                   <tr>
-                       <th>Semester</th>
-                       <td><?=$data->semester_name?></td>
-                   </tr>
-                   <tr>
-                       <th>Kelas</th>
-                       <td><?=$data->class_name?></td>
-                   </tr>
-                   <tr>
-                       <th>Nominal SPP</th>
-                       <td><?=$data->amount?></td>
-                   </tr>
-               </table>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Kelas</label>
+                            <h5><?= $spp->classes->class_name ?></h5>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Semester</label>
+                            <h5><?= $spp->semester->semester_name ?></h5>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Nominal SPP</label>
+                            <h5>Rp <?= number_format($spp->amount, 0, ',', '.') ?></h5>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- Payment Summary -->
+        <div class="payment-summary">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="summary-item">
+                        <span class="summary-label">Total Pembayaran</span>
+                        <span class="summary-value">Rp <?= number_format($totalAmount, 0, ',', '.') ?></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="summary-item">
+                        <span class="summary-label">Sudah Bayar</span>
+                        <span class="summary-value total-paid"><?= $paidStudents ?> Siswa</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="summary-item">
+                        <span class="summary-label">Belum Bayar</span>
+                        <span class="summary-value total-unpaid"><?= $unpaidStudents ?> Siswa</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Students Payment Table -->
         <div class="card">
-             <div class="card-body">
-                 <div class="table-responsive">
-               <table class="table table-hover table-borderer">
-                   <thead>
-                       <tr>
-                           <th>No</th>
-                           <th>NIS</th>
-                           <th>Nama Siswa</th>
-                           <th>Pebayaran</th>
-                           <th>Nominal</th>
-                           <th></th>
-                       </tr>
-                   </thead>
-                   <tbody>
-                       <?php
-                       $n = 0;
-                       $total = 0;
-                       $tb=0;
-                       $ts = 0;
-                       foreach($siswa as $a=>$b){
-                           $n++;
-
-                           ?>
-                        <tr>
-                            <td><?=$n?></td>
-                            <td><?=$b->id_student?></td>
-                            <td><?=$b->fullname?></td>
-                            <?php
-
-                            if(isset($bayar[$b->id_student])){
-                                $ts++;
-                                $total += $bayar[$b->id_student]->amount;
-                                ?>
-                                <td><span class="badge bg-success">Sudah Bayar</span></td>
-                                <td><?=(int)$data->amount?></td>
-                                <td><button class="btn btn-danger"  onclick="return batal('<?=$b->id_student?>')">Batalkan</button></td>
-                                <?php
-                            }
-                            else {
-                                $tb++;
-                            ?>
-                            <td><span class="badge bg-danger">Belum Bayar</span></td>
-                            <td>0</td>
-                            <td><button class="btn btn-primary" onclick="return bayar('<?=$b->id_student?>')">Bayar</button></td>
-                            <?php
-                        } ?>
-                        </tr>
-
-
-
-                       <?php }?>
-                   </tbody>
-                   <tfoot>
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Daftar Siswa</span>
+                    <div class="input-group" style="width: 250px;">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control" placeholder="Cari siswa..." id="searchInput">
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
                             <tr>
-                                <th colspan="3">Total <th>
-                                <th ><?=(int)$total?> <th>
+                                <th>No</th>
+                                <th>NIS</th>
+                                <th>Nama Siswa</th>
+                                <th>Status</th>
+                                <th>Nominal</th>
+                                <th>Aksi</th>
                             </tr>
-                            <tr>
-                                <th colspan="3">Total Sudah Bayar <th>
-                                <th ><?=(int)$ts?> Siswa <th>
-                            </tr>
-                            <tr>
-                                <th colspan="3">Total Belum Bayar<th>
-                                <th ><?=(int)$tb?> Siswa <th>
-                            </tr>
-                        </tfoot>
-               </table>
-               <div>
+                        </thead>
+                        <tbody>
+                            @php $n = 0; @endphp
+                            @foreach($students as $student)
+                                @php
+                                    $n++;
+                                    $hasPaid = isset($bayar[$student->id_student]);
+                                @endphp
+                                <tr class="student-row">
+                                    <td><?= $n ?></td>
+                                    <td><?= $student->id_student ?></td>
+                                    <td><?= $student->fullname ?></td>
+                                    <td>
+                                        @if($hasPaid)
+                                            <span class="badge-paid">
+                                                <i class="fas fa-check-circle me-1"></i> Sudah Bayar
+                                            </span>
+                                        @else
+                                            <span class="badge-unpaid">
+                                                <i class="fas fa-times-circle me-1"></i> Belum Bayar
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="amount-cell">
+                                        @if($hasPaid)
+                                            Rp <?= number_format($data->amount, 0, ',', '.') ?>
+                                        @else
+                                            Rp 0
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($hasPaid)
+                                            <button class="btn btn-cancel btn-action text-white"
+                                                    onclick="return batal('<?= $student->id_student ?>')">
+                                                <i class="fas fa-ban me-1"></i> Batalkan
+                                            </button>
+                                        @else
+                                            <button class="btn btn-pay btn-action text-white"
+                                                    onclick="return bayar('<?= $student->id_student ?>')">
+                                                <i class="fas fa-money-bill-wave me-1"></i> Bayar
+                                            </button>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
+
         @csrf
-        <!-- Data Section -->
-         </div>
-    </div>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function bayar(a){
-            Swal.fire({
-                    title: "Apakah Anda yakin?",
-                    text: `Lakukan pembayaran`,
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#d33",
-                    cancelButtonColor: "#3085d6",
-                    confirmButtonText: "Ya, lanjutkan!",
-                    cancelButtonText: "Batal"
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-            url: "{{url('/payment/bayar')}}",
-            type: "POST",
-            data: {id_siswa: a, _token: $("input[name=_token]").val(),
-            amount : '<?=(int)$data->amount?>',
-            id_spp : '<?=$data->id?>',
-            academic_year_id : '<?=$data->academic_year_id?>',
-            semester_id: '<?=$data->semester_id?>'
-            },
-            success: function(response) {
-               location.reload();
+    </main>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Search functionality
+    $(document).ready(function() {
+    // Search functionality for student list
+    $('#searchInput').keyup(function() {
+        const searchText = $(this).val().toLowerCase();
+        $('.student-row').each(function() {
+            const studentName = $(this).find('td:eq(2)').text().toLowerCase();
+            const studentId = $(this).find('td:eq(1)').text().toLowerCase();
+            if(studentName.includes(searchText) || studentId.includes(searchText)) {
+                $(this).show();
+            } else {
+                $(this).hide();
             }
-
         });
-                    }
-                });
+    });
+});
+
+function bayar(studentId) {
+    const sppId = $('#spp-id').val();
+    const amount = $('#spp-amount').val();
+    const academicYearId = $('#academic-year-id').val();
+    const semesterId = $('#semester-id').val();
+
+    Swal.fire({
+        title: "Konfirmasi Pembayaran",
+        html: `<p>Anda akan mencatat pembayaran SPP untuk siswa:</p>
+              <p><strong>${studentId}</strong></p>
+              <p>Nominal: <strong>Rp ${formatCurrency(amount)}</strong></p>`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#28a745",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Konfirmasi Pembayaran",
+        cancelButtonText: "Batal",
+        showLoaderOnConfirm: true,
+        preConfirm: () => {
+            return $.ajax({
+                url: "{{ route('payment.bayar') }}",
+                type: "POST",
+                data: {
+                    id_siswa: studentId,
+                    _token: "{{ csrf_token() }}",
+                    amount: amount,
+                    id_spp: sppId,
+                    academic_year_id: academicYearId,
+                    semester_id: semesterId
+                }
+            }).then(response => {
+                if (!response.success) {
+                    throw new Error(response.message);
+                }
+                return response;
+            }).catch(error => {
+                Swal.showValidationMessage(
+                    `Request failed: ${error.responseJSON?.message || error.statusText}`
+                );
+            });
         }
-
-
-        function batal(a){
+    }).then((result) => {
+        if (result.isConfirmed) {
             Swal.fire({
-                    title: "Apakah Anda yakin?",
-                    text: `Batalkan Pembayaran`,
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#d33",
-                    cancelButtonColor: "#3085d6",
-                    confirmButtonText: "Ya, Batalkan!",
-                    cancelButtonText: "Kembali"
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-            url: "{{url('/payment/batalbayar')}}",
-            type: "POST",
-            data: {id_siswa: a, _token: $("input[name=_token]").val(),
-            amount : '<?=(int)$data->amount?>',
-            id_spp : '<?=$data->id?>',
-            academic_year_id : '<?=$data->academic_year_id?>',
-            semester_id: '<?=$data->semester_id?>'
-            },
-            success: function(response) {
-               location.reload();
-            }
-
-        });
-                    }
-                });
+                title: "Berhasil!",
+                text: "Pembayaran telah dicatat",
+                icon: "success"
+            }).then(() => {
+                location.reload();
+            });
         }
-    </script>
+    });
+}
+
+function batal(studentId) {
+    const sppId = $('#spp-id').val();
+    const academicYearId = $('#academic-year-id').val();
+    const semesterId = $('#semester-id').val();
+
+    Swal.fire({
+        title: "Konfirmasi Pembatalan",
+        html: `<p>Anda akan membatalkan pembayaran SPP untuk siswa:</p>
+              <p><strong>${studentId}</strong></p>`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dc3545",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Ya, Batalkan!",
+        cancelButtonText: "Kembali",
+        showLoaderOnConfirm: true,
+        preConfirm: () => {
+            return $.ajax({
+                url: "{{ route('payment.batalbayar') }}",
+                type: "POST",
+                data: {
+                    id_siswa: studentId,
+                    _token: "{{ csrf_token() }}",
+                    id_spp: sppId,
+                    academic_year_id: academicYearId,
+                    semester_id: semesterId
+                }
+            }).then(response => {
+                if (!response.success) {
+                    throw new Error(response.message);
+                }
+                return response;
+            }).catch(error => {
+                Swal.showValidationMessage(
+                    `Request failed: ${error.responseJSON?.message || error.statusText}`
+                );
+            });
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: "Berhasil!",
+                text: "Pembayaran telah dibatalkan",
+                icon: "success"
+            }).then(() => {
+                location.reload();
+            });
+        }
+    });
+}
+
+// Helper function to format currency
+function formatCurrency(amount) {
+    return parseInt(amount).toLocaleString('id-ID');
+}
+</script>
 </body>
-</html>
 @endif
+</html>

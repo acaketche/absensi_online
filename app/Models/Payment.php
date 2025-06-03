@@ -17,7 +17,8 @@ class Payment extends Model
         'amount',
         'status',
         'last_update',
-        'notes'
+        'notes',
+        'month'
     ];
 
     // Relasi ke Student
@@ -31,4 +32,15 @@ class Payment extends Model
     {
         return $this->belongsTo(AcademicYear::class, 'academic_year_id', 'id');
     }
+    public function semester()
+{
+    return $this->belongsTo(Semester::class, 'semester_id');
+}
+// Payment.php
+public function spp()
+{
+    return $this->belongsTo(Spp::class, 'id_spp'); // atau 'id_spp' jika itu nama kolomnya
+}
+
+
 }

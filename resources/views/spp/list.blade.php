@@ -5,171 +5,141 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen SPP</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #4267b2;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --info-color: #17a2b8;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+        }
+
         body {
             background-color: #f8f9fa;
-            font-family: Arial, sans-serif;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         .app-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #0d6efd;
-        }
-
-        .admin-profile {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .admin-info {
-            text-align: right;
-        }
-
-        .admin-name {
-            font-weight: bold;
-            margin-bottom: 0;
-        }
-
-        .admin-role {
-            color: #6c757d;
-            font-size: 14px;
-        }
-
-        .admin-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: #c8d6f9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .search-container {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .search-container input {
-            padding: 10px 15px 10px 40px;
-            border-radius: 30px;
-            border: 1px solid #e0e0e0;
-            width: 100%;
-            max-width: 300px;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6c757d;
+            color: var(--primary-color);
+            font-weight: 700;
         }
 
         .card {
-            background-color: #fff;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             border: none;
+            margin-bottom: 20px;
         }
 
         .card-header {
-            background-color: #4267b2;
+            background-color: var(--primary-color);
             color: white;
-            font-weight: bold;
-            padding: 12px 20px;
             border-radius: 10px 10px 0 0 !important;
-        }
-
-        .card-body {
-            padding: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-label {
-            font-weight: 500;
-            margin-bottom: 5px;
-        }
-
-        .btn-primary {
-            background-color: #4267b2;
-            border-color: #4267b2;
-        }
-
-        .btn-primary:hover {
-            background-color: #365899;
-            border-color: #365899;
-        }
-
-        .info-row {
-            display: flex;
-            margin-bottom: 10px;
-        }
-
-        .info-label {
-            width: 150px;
-            font-weight: 500;
-        }
-
-        .info-value {
-            flex: 1;
-        }
-
-        .table {
-            margin-top: 15px;
-        }
-
-        .table th {
-            background-color: #f8f9fa;
             font-weight: 600;
         }
 
-        .action-btn {
-            background-color: #4267b2;
-            color: white;
-            border: none;
-            padding: 5px 15px;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .action-btn:hover {
-            background-color: #365899;
-        }
-
-        .settings-icon {
-            color: #6c757d;
+        .class-tab {
+            border-bottom: 3px solid transparent;
+            padding-bottom: 5px;
             cursor: pointer;
+            font-weight: 500;
+            color: var(--secondary-color);
         }
 
-        .settings-icon:hover {
-            color: #4267b2;
+        .class-tab.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .month-selector {
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .month-btn {
+            border: none;
+            background: none;
+            padding: 5px 10px;
+            margin: 0 5px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+
+        .month-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .semester-info {
+            background-color: #e9f0fb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .payment-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-paid {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-unpaid {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger-color);
+        }
+
+        .status-partial {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: var(--warning-color);
+        }
+
+        .student-list-item {
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+        }
+
+        .student-list-item:hover {
+            background-color: rgba(66, 103, 178, 0.05);
+            border-left-color: var(--primary-color);
+        }
+
+        .amount-due {
+            font-weight: 600;
+            color: var(--danger-color);
+        }
+
+        .amount-paid {
+            font-weight: 600;
+            color: var(--success-color);
+        }
+
+        @media (max-width: 768px) {
+            .month-selector {
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 10px;
+            }
+
+            .month-btn {
+                display: inline-block;
+                margin: 0 3px;
+            }
         }
     </style>
 </head>
@@ -177,112 +147,188 @@
 <body class="bg-light">
 <div class="d-flex">
     <!-- Sidebar -->
-   @include('components.sidebar')
+    @include('components.sidebar')
 
     <!-- Main Content -->
     <main class="flex-grow-1 p-4">
         <!-- Header dengan Profil Admin -->
-             @include('components.profiladmin')
+        @include('components.profiladmin')
 
-        <!-- Search Bar -->
+        <!-- Search and Add Payment -->
         <header class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fs-4 fw-bold mb-0">List SPP</h2>
+            <h2 class="fs-4 fw-bold mb-0">Manajemen SPP</h2>
             <div class="d-flex align-items-center ms-auto">
-                <input type="text" placeholder="Cari" class="form-control me-2" style="width: 200px;" id="searchInput">
-                <a href="{{ route('payment.create')}}" class="btn btn-primary" >+ Tambah Pembayaran</a>
+                <input type="text" placeholder="Cari siswa..." class="form-control me-2" style="width: 200px;" id="searchInput">
+                <a href="{{ route('payment.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i> Tambah SPP
+                </a>
             </div>
         </header>
 
-        <!-- Filter Section -->
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white">Data SPP</div>
-            <div class="card-body">
-               <div class="table-responsive">
-                   <table class="table table-bordered">
-                       <thead>
-                           <tr>
-                               <th>No</th>
-                               <th>Tahun Ajaran</th>
-                               <th>Semester</th>
-                               <th>Kelas</th>
-                               <th>Nominal</th>
-                               <th>Aksi</th>
-                           </tr>
-                       </thead>
-                       <tbody>
-                           @php $n = 0; @endphp
-                           @foreach($data as $a => $b)
-                               @php $n++; @endphp
-                               <tr>
-                                   <td>{{ $n }}</td>
-                                   <td>{{ $b->year_name }}</td>
-                                   <td>{{ $b->semester_name }}</td>
-                                   <td>{{ $b->class_name }}</td>
-                                   <td>{{ $b->amount }}</td>
-                                   <td>
-                                       <div class="d-flex gap-1">
-                                            <!-- Tombol Detail -->
-                                            <a href="{{ url('/payment/kelola/'.$b->id) }}" class="btn btn-info btn-sm">
-                                                <i class="fas fa-eye me-1"></i>
-                                            </a>
-                                            <!-- Tombol Edit -->
-                                            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal{{ $b->id }}">
-                                                <i class="fas fa-edit me-1"></i>
-                                            </button>
-                                            <!-- Tombol Hapus -->
-                                        <a class="btn btn-sm btn-danger delete" data-id="{{$b->id}}">
-                                            <i class="fas fa-trash me-1"></i>
-                                        </button>
-                                    </div></td>
-                                        </div>
-                                   </td>
-                               </tr>
+        <!-- Semester Info -->
+        <div class="semester-info mb-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="fw-bold">{{ $activeAcademicYear->year_name }}</h5>
+                    <p class="mb-1">Semester: {{ $activeSemester->semester_name }}</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-1">Periode: {{ $semesterRange['start'] }} - {{ $semesterRange['end'] }}</p>
+                  <p class="mb-0">
+    Bulan Aktif:
+    {{ $months[$currentMonth]['name'] ?? 'Bulan tidak ditemukan' }}
+    {{ $months[$currentMonth]['year'] ?? '' }}
+</p>
 
-                               <!-- Modal Edit untuk setiap baris -->
-                               <div class="modal fade" id="editModal{{ $b->id }}" tabindex="-1" aria-labelledby="editModalLabel{{ $b->id }}" aria-hidden="true">
-                                   <div class="modal-dialog">
-                                       <form action="{{ url('/payment/update/'.$b->id) }}" method="POST">
-                                           @csrf
-                                           @method('PUT')
-                                           <div class="modal-content">
-                                               <div class="modal-header">
-                                                   <h5 class="modal-title" id="editModalLabel{{ $b->id }}">Edit Data SPP</h5>
-                                                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                                               </div>
-                                               <div class="modal-body">
-                                                   <div class="mb-3">
-                                                       <label>Nominal</label>
-                                                       <input type="number" name="amount" class="form-control" value="{{ $b->amount }}" required>
-                                                   </div>
-                                                   <div class="mb-3">
-                                                       <label>Tahun Akademik</label>
-                                                       <input type="text" class="form-control" value="{{ $b->year_name }}" disabled>
-                                                   </div>
-                                                   <div class="mb-3">
-                                                       <label>Semester</label>
-                                                       <input type="text" class="form-control" value="{{ $b->semester_name }}" disabled>
-                                                   </div>
-                                                   <div class="mb-3">
-                                                       <label>Kelas</label>
-                                                       <input type="text" class="form-control" value="{{ $b->class_name }}" disabled>
-                                                   </div>
-                                               </div>
-                                               <div class="modal-footer">
-                                                   <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                                                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                               </div>
-                                           </div>
-                                       </form>
-                                   </div>
-                               </div>
-                           @endforeach
-                       </tbody>
-                   </table>
-               </div>
+                </div>
             </div>
         </div>
 
-        <!-- Modal Konfirmasi Hapus -->
+        <!-- Class Tabs -->
+        <div class="d-flex mb-4 border-bottom">
+            <div class="class-tab active me-4" data-class="all">Semua Kelas</div>
+            @foreach(\App\Models\Classes::select(DB::raw('SUBSTRING(class_name, 1, 2) as grade'))->distinct()->get() as $grade)
+                <div class="class-tab me-4" data-class="{{ $grade->grade }}">Kelas {{ $grade->grade }}</div>
+            @endforeach
+        </div>
+
+        <!-- Month Selector -->
+        <div class="month-selector mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Bulan:</h5>
+                <div>
+                    @foreach($months as $key => $monthData)
+                        <button class="month-btn {{ $key == $currentMonth ? 'active' : '' }}"
+                                data-month="{{ $key }}">
+                            {{ $monthData['name'] }} {{ $monthData['year'] }}
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
+        <!-- SPP Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Total SPP Bulan Ini</h5>
+                        <h2 class="card-text">Rp {{ number_format($totalAmount, 0, ',', '.') }}</h2>
+                        <p class="text-muted mb-0">Berdasarkan kelas yang dipilih</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Sudah Dibayar</h5>
+                        <h2 class="card-text">Rp {{ number_format($paidAmount, 0, ',', '.') }}</h2>
+                        <p class="text-muted mb-0">{{ $paymentPercentage }}% dari total</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Belum Dibayar</h5>
+                        <h2 class="card-text">Rp {{ number_format($unpaidAmount, 0, ',', '.') }}</h2>
+                        <p class="text-muted mb-0">{{ $unpaidCount }} siswa belum lunas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SPP Data by Class -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Daftar SPP</span>
+                <div>
+                    <select class="form-select form-select-sm" style="width: 150px;" id="classFilter">
+                        <option value="all">Semua Kelas</option>
+                        @foreach($classes as $class)
+                            <option value="{{ $class->id }}" {{ $class->id ? 'selected' : '' }}>
+                                {{ $class->class_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Kelas</th>
+                                <th>Tahun Akademik</th>
+                                <th>Semester</th>
+                                <th>Nominal SPP</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($sppData as $index => $spp)
+                                <tr class="student-list-item" data-class="{{ substr($spp->classes->class_name, 0, 2) }}">
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>{{ $spp->classes->class_name }}</td>
+                                    <td>{{ $spp->academicYear->year_name }}</td>
+                                    <td>{{ $spp->semester->semester_name }}</td>
+                                    <td>Rp {{ number_format($spp->amount, 0, ',', '.') }}</td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a href="{{ route('payment.kelola', $spp->id) }}" class="btn btn-sm btn-info" title="Kelola">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <button class="btn btn-sm btn-warning edit-spp"
+                                                    data-id="{{ $spp->id }}"
+                                                    data-amount="{{ $spp->amount }}"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#editModal"
+                                                    title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger delete-spp"
+                                                    data-id="{{ $spp->id }}"
+                                                    title="Hapus">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Modal -->
+        <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editModalLabel">Edit Nominal SPP</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="editForm" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Nominal SPP</label>
+                                <input type="number" name="amount" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
         <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -294,7 +340,7 @@
                         <p>Apakah Anda yakin ingin menghapus data SPP ini?</p>
                     </div>
                     <div class="modal-footer">
-                        <form id="deleteForm" action="" method="POST">
+                        <form id="deleteForm" method="POST">
                             @csrf
                             @method('DELETE')
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -307,46 +353,62 @@
     </main>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Handle search functionality
-        const searchInput = document.getElementById('searchInput');
-        searchInput.addEventListener('keyup', function() {
-            const searchValue = this.value.toLowerCase();
-            const tableRows = document.querySelectorAll('tbody tr');
+    $(document).ready(function() {
+        // Class tab filtering
+        $('.class-tab').click(function() {
+            $('.class-tab').removeClass('active');
+            $(this).addClass('active');
 
-            tableRows.forEach(row => {
-                const yearName = row.cells[1].textContent.toLowerCase();
-                const semesterName = row.cells[2].textContent.toLowerCase();
-                const className = row.cells[3].textContent.toLowerCase();
+            const classGroup = $(this).data('class');
+            if(classGroup === 'all') {
+                $('tr[data-class]').show();
+            } else {
+                $('tr[data-class]').hide();
+                $(`tr[data-class="${classGroup}"]`).show();
+            }
+        });
 
-                if (yearName.includes(searchValue) ||
-                    semesterName.includes(searchValue) ||
-                    className.includes(searchValue)) {
-                    row.style.display = '';
+       // Month filtering
+        $('.month-btn').click(function() {
+            const month = $(this).data('month');
+            const url = new URL(window.location.href);
+            url.searchParams.set('month', month);
+            window.location.href = url.toString();
+        });
+
+        // Search functionality
+        $('#searchInput').keyup(function() {
+            const searchText = $(this).val().toLowerCase();
+            $('tbody tr').each(function() {
+                const className = $(this).find('td:eq(1)').text().toLowerCase();
+                if(className.includes(searchText)) {
+                    $(this).show();
                 } else {
-                    row.style.display = 'none';
+                    $(this).hide();
                 }
             });
         });
 
-       // Handle delete button
-    const deleteButtons = document.querySelectorAll('.delete');
-    deleteButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const id = this.getAttribute('data-id');
-            const deleteForm = document.getElementById('deleteForm');
-            deleteForm.action = '/payment/destroy/' + id;// Corrected URL
+        // Edit SPP modal
+        $('.edit-spp').click(function() {
+            const sppId = $(this).data('id');
+            const amount = $(this).data('amount');
 
-            // Show delete confirmation modal
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            deleteModal.show();
+            $('#editForm').attr('action', '/payment/update/' + sppId);
+            $('#editForm input[name="amount"]').val(amount);
         });
-    });
+
+        // Delete SPP
+        $('.delete-spp').click(function() {
+            const sppId = $(this).data('id');
+            $('#deleteForm').attr('action', '/payment/destroy/' + sppId);
+            $('#deleteModal').modal('show');
+        });
     });
 </script>
 </body>
-</html>
 @endif
+</html>
