@@ -14,11 +14,13 @@ class Payment extends Model
     protected $fillable = [
         'id_student',
         'academic_year_id',
+        'semester_id',
         'amount',
         'status',
         'last_update',
         'notes',
-        'month'
+        'month',
+        'id_spp'
     ];
 
     // Relasi ke Student

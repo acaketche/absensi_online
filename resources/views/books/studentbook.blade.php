@@ -272,9 +272,6 @@
            target="_blank">
             <i class="fas fa-print me-1"></i> Cetak
         </a>
-          <button type="button" class="btn btn-success btn-sm me-2" data-bs-toggle="modal" data-bs-target="#addLoanModal">
-            <i class="fas fa-plus me-1"></i> Tambah
-          </button>
           <div class="search-box">
             <i class="fas fa-search search-icon"></i>
             <input type="text" id="searchBook" class="form-control form-control-sm search-input" placeholder="Cari buku...">

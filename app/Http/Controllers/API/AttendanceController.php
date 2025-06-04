@@ -215,7 +215,7 @@ class AttendanceController extends Controller
 
     $geotools = new Geotools();
     $userCoord = new Coordinate([$lat, $lng]);
-    $officeCoord = new Coordinate([-0.21749115446627337, 100.64076525313632]); // Koordinat kantor
+    $officeCoord = new Coordinate([-0.23111693854036122, 100.64073082542234]); // Koordinat kantor
 
     // Menghitung jarak dalam kilometer
     $distanceKm = $geotools->distance()->setFrom($userCoord)->setTo($officeCoord)->in('km')->haversine();
