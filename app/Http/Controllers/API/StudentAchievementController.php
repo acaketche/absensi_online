@@ -9,27 +9,11 @@ use Illuminate\Http\Request;
 
 class StudentAchievementController extends Controller
 {
-    public function index(Request $request)
+   public function index(Request $request)
     {
         try {
-            $acchievement = ModelsStudentAchievement::where('id_student', $request->user()->id_student)
-                ->with(['student', 'semester', 'subject'])
-                ->get()
-                ->map(function ($item) {
-                    return [
-                        'id' => $item->id,
-                        'student_id' => $item->id_student,
-                        'student_name' => $item->student->fullname ?? null,
-                        'subject' => $item->subject->subject_name ?? null,
-                        'score' => $item->score,
-                        'semester' => $item->semester->semester_name ?? null,
-                        'student_rank' => $item->student_rank,
-                        'remark' => $item->remark,
-                    ];
-                });
-
             $rapor = Rapor::where('id_student', $request->user()->id_student)
-                ->with(['student', 'semester'])
+                ->with(['student', 'semester', 'academicYear', 'class'])
                 ->get()
                 ->map(function ($item) {
                     return [
@@ -46,9 +30,8 @@ class StudentAchievementController extends Controller
                 });
 
             return response()->json([
-                'message' => 'Get History Books Loan',
+                'message' => 'Get Rapor History',
                 'data' => [
-                    'acchievement' => $acchievement,
                     'rapor' => $rapor
                 ],
                 'code' => 200,
@@ -56,7 +39,7 @@ class StudentAchievementController extends Controller
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Error',
+                'message' => 'Error: ' . $e->getMessage(),
                 'code' => 400,
                 'status' => 'error'
             ]);

@@ -18,6 +18,7 @@ class StudentController extends Controller
 {
     public function index(Request $request)
     {
+
         $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
         $activeSemester = Semester::where('is_active', 1)->first();
 
@@ -71,7 +72,7 @@ class StudentController extends Controller
                 'class_id' => 'required|string|max:50',
                 'parent_phonecell' => 'required|string|max:15',
                 'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'qrcode' => 'nullable|image|mimes:png|max:1024',
+                'qr_code' => 'nullable|image|mimes:png|max:1024',
                 'birth_place' => 'required|string|max:255',
                 'birth_date' => 'required|date',
                 'gender' => 'required|in:L,P',
@@ -103,7 +104,7 @@ class StudentController extends Controller
                 'academic_year_id' => $activeAcademicYear->id,
                 'semester_id' => $activeSemester->id,
                 'photo' => $photoPath,
-                'qrcode' => $qrPath,
+                'qr_code' => $qrPath,
             ]);
 
             return redirect()->route('students.index')->with('success', 'Siswa berhasil ditambahkan.');
@@ -114,14 +115,15 @@ class StudentController extends Controller
     }
 
     public function edit($id)
-    {
-        $student = Student::findOrFail($id);
-        $classes = Classes::all();
-        $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
-        $activeSemester = Semester::where('is_active', 1)->first();
+{
+    $student = Student::findOrFail($id);
+    $classes = Classes::all();
+    $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
+    $activeSemester = Semester::where('is_active', 1)->first();
 
-        return view('students.edit', compact('student', 'classes', 'activeAcademicYear', 'activeSemester'));
-    }
+    return view('students.edit', compact('student', 'classes', 'activeAcademicYear', 'activeSemester'));
+}
+
 
     public function update(Request $request, $id)
     {
@@ -161,16 +163,20 @@ class StudentController extends Controller
         }
     }
 
+
+
     public function destroy($id)
     {
         $student = Student::findOrFail($id);
 
         if ($student->photo) {
             Storage::disk('public')->delete($student->photo);
+
         }
 
         if ($student->qr_code) {
             Storage::disk('public')->delete($student->qr_code);
+
         }
 
         $student->delete();

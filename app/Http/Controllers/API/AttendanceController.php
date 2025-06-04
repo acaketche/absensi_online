@@ -208,18 +208,23 @@ class AttendanceController extends Controller
         ]);
     }
 
-    public function distance($latitude, $longitude): int|float
-    {
-        $lat = (float) $latitude;
-        $lng = (float) $longitude;
+    public function distance($latitude, $longitude, $radiusMeter = 100): bool
+{
+    $lat = (float) $latitude;
+    $lng = (float) $longitude;
 
-        $geotools = new Geotools();
-        $userCoord = new Coordinate([$lat, $lng]);
-        $officeCoord = new Coordinate([-6.886673415898163, 108.49382131353438]); // TODO: ganti koordinat
+    $geotools = new Geotools();
+    $userCoord = new Coordinate([$lat, $lng]);
+    $officeCoord = new Coordinate([-0.21749115446627337, 100.64076525313632]); // Koordinat kantor
 
-        $distanceKm = $geotools->distance()->setFrom($userCoord)->setTo($officeCoord)->in('km')->haversine();
-        $distanceMeter = $distanceKm * 1000;
+    // Menghitung jarak dalam kilometer
+    $distanceKm = $geotools->distance()->setFrom($userCoord)->setTo($officeCoord)->in('km')->haversine();
 
-        return $distanceMeter;
-    }
+    // Mengonversi jarak ke meter
+    $distanceMeter = $distanceKm * 1000;
+
+    // Validasi apakah dalam radius
+    return $distanceMeter <= $radiusMeter;
+}
+
 }
