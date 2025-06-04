@@ -49,6 +49,9 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
     // Mengelola siswa
     Route::resource('students', StudentController::class);
     Route::get('/student/search', [StudentAttendanceController::class, 'searchStudent']);
+    Route::post('/students/import', [StudentController::class, 'import'])->name('students.import');
+    Route::get('/students/import/template', [StudentController::class, 'showTemplate'])->name('students.template.page');
+    Route::get('/students/import/template/download', [StudentController::class, 'downloadTemplate'])->name('students.template.download');
     // Mengelola kelas
     Route::resource('classes', ClassesController::class);
     Route::get('/classes/json/{id}', [ClassesController::class, 'getClassData'])->name('classes.json');
@@ -74,13 +77,18 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
     // Rapor
     Route::get('/rapor/classes', [RaporController::class, 'classes'])->name('rapor.classes');
     Route::get('/rapor/classes/{classId}/students', [RaporController::class, 'students'])->name('rapor.students');
-    Route::get('/rapor/create', [RaporController::class, 'create'])->name('rapor.create');
+    Route::get('/rapor/create/{student_id}', [RaporController::class, 'create'])->name('rapor.create');
     Route::post('/rapor', [RaporController::class, 'store'])->name('rapor.store');
     Route::get('/rapor/{id}/edit', [RaporController::class, 'edit'])->name('rapor.edit');
     Route::put('/rapor/{id}', [RaporController::class, 'update'])->name('rapor.update');
     Route::delete('/rapor/{id}', [RaporController::class, 'destroy'])->name('rapor.destroy');
     // Manajemen Buku dan Peminjaman
-    Route::resource('books', BookController::class);
+    Route::get('/books', [BookController::class, 'index'])->name('books.index');
+    Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
+    Route::post('/books', [BookController::class, 'store'])->name('books.store');
+    Route::get('/books/{book}/edit', [BookController::class, 'edit'])->name('books.edit');
+    Route::put('/books/{book}', [BookController::class, 'update'])->name('books.update');
+    Route::delete('/books/{book}', [BookController::class, 'destroy'])->name('books.destroy');
     Route::get('/book-loans', [BookLoanController::class, 'index'])->name('book-loans.index');
     Route::get('/book-loans/classes/{classId}/students', [BookLoanController::class, 'classStudents'])->name('book-loans.class-students');
     Route::get('/book-loans/students/{studentId}/books', [BookLoanController::class, 'studentBooks'])->name('book-loans.student-books');
@@ -101,7 +109,7 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
     Route::delete('/payment/destroy/{id}', [PaymentController::class, 'destroy'])->name('payment.destroy');
     // Manajemen User
     Route::resource('users', UserController::class);
-    // Import Excel
+
 });
 
 Route::middleware(['web', 'auth:employee', 'role:Admin Tata Usaha'])->group(function () {

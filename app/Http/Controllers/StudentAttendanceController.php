@@ -3,202 +3,244 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\StudentAttendance;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Student;
 use App\Models\Classes;
 use App\Models\AcademicYear;
 use App\Models\Semester;
 use App\Models\AttendanceStatus;
-use Illuminate\Support\Facades\Storage;
 
 class StudentAttendanceController extends Controller
 {
+    protected $apiBaseUrl;
+    protected $apiToken;
+
+    public function __construct()
+    {
+        $this->apiBaseUrl = config('services.attendance_api.url');
+        $this->apiToken = config('services.attendance_api.token');
+    }
+
     /**
-     * Menampilkan daftar absensi siswa.
+     * Menampilkan daftar absensi siswa dari API mobile
      */
     public function index(Request $request)
     {
-        $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
-        $activeSemester = Semester::where('is_active', 1)->first();
+        try {
+            $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
+            $activeSemester = Semester::where('is_active', 1)->first();
 
-        $academicYearId = $request->get('academic_year_id', $activeAcademicYear->id ?? null);
-        $semesterId = $request->get('semester_id', $activeSemester->id ?? null);
+            // Ambil parameter filter
+            $academicYearId = $request->get('academic_year_id', $activeAcademicYear->id ?? null);
+            $semesterId = $request->get('semester_id', $activeSemester->id ?? null);
+            $search = $request->get('search');
+            $type = $request->get('type');
+            $date = $request->get('date');
 
-       $search = $request->get('search');
+            // Panggil API mobile untuk data absensi
+            $response = Http::withToken($this->apiToken)
+                ->get("{$this->apiBaseUrl}/api/attendances", [
+                    'academic_year_id' => $academicYearId,
+                    'semester_id' => $semesterId,
+                    'search' => $search,
+                    'type' => $type,
+                    'date' => $date,
+                ]);
 
-$students = Student::where('academic_year_id', $academicYearId)
-    ->when($semesterId, function ($query) use ($semesterId) {
-        return $query->where('semester_id', $semesterId);
-    })
-    ->when($search, function ($query) use ($search) {
-        return $query->where(function ($q) use ($search) {
-            $q->where('id', 'like', "%{$search}%")
-              ->orWhere('name', 'like', "%{$search}%");
-        });
-    })
-    ->get();
+            if (!$response->successful()) {
+                throw new \Exception('Gagal mengambil data dari API: ' . $response->body());
+            }
 
-// Ambil class_id jika hanya satu siswa ditemukan
-$classIdFromStudent = null;
-if ($students->count() === 1) {
-    $classIdFromStudent = $students->first()->class_id ?? null;
-}
+            $apiData = $response->json();
+            $attendances = $apiData['data'] ?? [];
 
+            // Data lokal untuk filter
+            $academicYears = AcademicYear::all();
+            $semesters = Semester::all();
+            $classes = Classes::all();
+            $statuses = AttendanceStatus::all();
 
-        $academicYears = AcademicYear::all();
-        $semesters = Semester::all();
-        $classes = Classes::all();
-        $statuses = AttendanceStatus::orderBy('created_at', 'desc')->get();
-        $attendances = StudentAttendance::with(['student', 'class', 'subject', 'status'])->get();
-      return view('students.absensisiswa', compact(
-    'students', 'classes', 'activeAcademicYear', 'activeSemester',
-    'academicYears', 'semesters', 'academicYearId', 'semesterId',
-    'attendances', 'statuses', 'search', 'classIdFromStudent'
-));
+            // Jika perlu data siswa untuk pencarian
+            $students = [];
+            if ($search) {
+                $students = Student::where('fullname', 'like', "%{$search}%")
+                    ->orWhere('id_student', 'like', "%{$search}%")
+                    ->get();
+            }
+
+            return view('students.absensisiswa', compact(
+                'attendances',
+                'academicYears',
+                'semesters',
+                'classes',
+                'statuses',
+                'students',
+                'academicYearId',
+                'semesterId',
+                'search',
+                'type',
+                'date'
+            ));
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 
     /**
-     * Menampilkan form untuk menambahkan absensi.
-     */
-    public function create()
-    {
-        return view('attendances.create');
-    }
-
-    /**
-     * Menyimpan data absensi siswa.
+     * Menyimpan data absensi melalui API mobile
      */
     public function store(Request $request)
     {
-
         try {
-        $request->validate([
-            'id_student' => 'required|exists:students,id_student',
-            'class_id' => 'nullable|exists:classes,id',
-            'attendance_date' => 'required|date',
-            'check_in_time' => 'nullable|date_format:H:i:s',
-            'check_out_time' => 'nullable|date_format:H:i:s',
-            'status_id' => 'required|exists:statuses,id',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-            'academic_year_id' => 'required|exists:academic_years,id',
-            'semester_id' => 'required|exists:semesters,id',
-            'document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
-        ]);
+            $request->validate([
+                'id_student' => 'required|exists:students,id_student',
+                'status_id' => 'required|in:1,2,3', // Sesuai dengan API mobile
+                'document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+                'latitude' => 'required_if:status_id,1|numeric',
+                'longitude' => 'required_if:status_id,1|numeric'
+            ]);
 
-        // Menyimpan file bukti jika ada
-        $documentPath = null;
-        if ($request->hasFile('document')) {
-            $documentPath = $request->file('document')->store('attendance_proofs', 'public');
+            // Upload dokumen jika ada
+            $documentPath = null;
+            if ($request->hasFile('document')) {
+                $documentPath = $request->file('document')->store('attendance_proofs', 'public');
+            }
+
+            // Persiapkan data untuk API
+            $payload = [
+                'id_student' => $request->id_student,
+                'status_id' => $request->status_id,
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+                'document' => $documentPath
+            ];
+
+            // Panggil API mobile
+            $response = Http::withToken($this->apiToken)
+                ->post("{$this->apiBaseUrl}/api/attendances", $payload);
+
+            if (!$response->successful()) {
+                throw new \Exception('Gagal menyimpan data ke API: ' . $response->body());
+            }
+
+            return redirect()
+                ->route('student-attendance.index')
+                ->with('success', 'Absensi berhasil dicatat');
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-
-        StudentAttendance::create([
-            'id_student' => $request->id_student,
-            'class_id' => $request->class_id,
-            'attendance_date' => $request->attendance_date,
-            'check_in_time' => $request->check_in_time,
-            'check_out_time' => $request->check_out_time,
-            'status_id' => $request->status_id,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'academic_year_id' => $request->academic_year_id,
-            'semester_id' => $request->semester_id,
-            'document' => $documentPath
-        ]);
-
-      return redirect()
-            ->route('student-attendance.index')
-            ->with('success', 'Absensi berhasil ditambahkan.');
-
-    } catch (\Exception $e) {
-        return redirect()
-            ->back()
-            ->withInput()
-            ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
     }
-}
 
     /**
-     * Menampilkan detail absensi.
+     * Menampilkan detail absensi dari API mobile
      */
     public function show($id)
     {
-        $attendance = StudentAttendance::with(['student', 'class', 'subject', 'status'])->findOrFail($id);
-        return view('attendances.show', compact('attendance'));
+        try {
+            $response = Http::withToken($this->apiToken)
+                ->get("{$this->apiBaseUrl}/api/attendances/{$id}");
+
+            if (!$response->successful()) {
+                throw new \Exception('Data absensi tidak ditemukan');
+            }
+
+            $attendance = $response->json()['data'];
+
+            return view('attendances.show', compact('attendance'));
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('student-attendance.index')
+                ->with('error', $e->getMessage());
+        }
     }
 
     /**
-     * Menampilkan form edit absensi.
-     */
-    public function edit($id)
-    {
-        $attendance = StudentAttendance::findOrFail($id);
-        return view('attendances.edit', compact('attendance'));
-    }
-
-    /**
-     * Mengupdate data absensi.
+     * Update status absensi melalui API mobile
      */
     public function update(Request $request, $id)
     {
-        $attendance = StudentAttendance::findOrFail($id);
+        try {
+            $request->validate([
+                'status_id' => 'required|exists:attendance_statuses,id',
+                'document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
+            ]);
 
-        $request->validate([
-            'status_id' => 'required|exists:statuses,id',
-            'document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
-        ]);
+            $payload = ['status_id' => $request->status_id];
 
-        // Menghapus file lama jika ada file baru
-        if ($request->hasFile('document')) {
-            if ($attendance->document) {
-                Storage::disk('public')->delete($attendance->document);
+            if ($request->hasFile('document')) {
+                $payload['document'] = $request->file('document')->store('attendance_proofs', 'public');
             }
-            $attendance->document = $request->file('document')->store('attendance_proofs', 'public');
+
+            $response = Http::withToken($this->apiToken)
+                ->put("{$this->apiBaseUrl}/api/attendances/{$id}", $payload);
+
+            if (!$response->successful()) {
+                throw new \Exception('Gagal memperbarui data');
+            }
+
+            return redirect()
+                ->route('student-attendance.index')
+                ->with('success', 'Absensi berhasil diperbarui');
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-
-        $attendance->update($request->only('status_id', 'document'));
-
-        return redirect()->route('attendances.index')->with('success', 'Absensi berhasil diperbarui.');
     }
 
     /**
-     * Menghapus absensi.
+     * Pencarian siswa untuk autocomplete
      */
-    public function destroy($id)
+    public function searchStudent(Request $request)
     {
-        $attendance = StudentAttendance::findOrFail($id);
-        if ($attendance->document) {
-            Storage::disk('public')->delete($attendance->document);
+        try {
+            $request->validate(['id_student' => 'required']);
+
+            // Cek di database lokal dulu
+            $student = Student::with('class')
+                ->where('id_student', $request->id_student)
+                ->first();
+
+            if (!$student) {
+                // Jika tidak ditemukan di lokal, coba dari API mobile
+                $response = Http::withToken($this->apiToken)
+                    ->get("{$this->apiBaseUrl}/api/students/{$request->id_student}");
+
+                if (!$response->successful()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Siswa tidak ditemukan'
+                    ], 404);
+                }
+
+                $student = $response->json()['data'];
+            }
+
+            return response()->json([
+                'success' => true,
+                'student' => [
+                    'id_student' => $student['id_student'],
+                    'fullname' => $student['fullname'],
+                    'class_id' => $student['class_id'],
+                    'class_name' => $student['class']['class_name'] ?? '-'
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
         }
-        $attendance->delete();
-
-        return redirect()->route('attendances.index')->with('success', 'Absensi berhasil dihapus.');
     }
-
-// StudentAttendanceController.php
-public function searchStudent(Request $request)
-{
-    $request->validate(['id_student' => 'required']);
-
-    $student = Student::with('class')
-        ->where('id_student', $request->id_student)
-        ->first();
-
-    if (!$student) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Siswa tidak ditemukan'
-        ]);
-    }
-
-    return response()->json([
-        'success' => true,
-        'student' => [
-            'id_student' => $student->id_student,
-            'fullname' => $student->fullname,
-            'class_id' => $student->class_id,
-            'class_name' => $student->class->class_name ?? '-'
-        ]
-    ]);
-}
 }

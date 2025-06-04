@@ -46,15 +46,16 @@
       border-radius: 50%;
     }
 
-    .badge-book-count {
-      font-size: 0.8rem;
-      padding: 5px 8px;
-    }
+   .badge-book-count.badge-active {
+    background-color: #28a745; /* Hijau */
+    color: #fff;
+}
 
-    .badge-overdue {
-      background-color: #dc3545;
-      color: white;
-    }
+.badge-book-count.badge-none {
+    background-color: #dc3545; /* Merah */
+    color: #fff;
+}
+
 
     .badge-active {
       background-color: #198754;
@@ -104,92 +105,97 @@
                 </button>
             </div>
         </div>
-        <div class="card-body">
-            @if($students->count() > 0)
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover" id="studentTable">
-                        <thead class="table-light">
-                            <tr>
-                                <th width="5%">No</th>
-                                <th width="15%">NIS</th>
-                                <th width="30%">Nama Siswa</th>
-                                <th width="15%">Jenis Kelamin</th>
-                                <th width="15%">Buku Dipinjam</th>
-                                <th width="20%">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($students as $index => $student)
-                            <tr>
-                                <td class="text-center">{{ $index + 1 }}</td>
-                                <td>{{ $student->id_student }}</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        @if($student->photo)
-                                            <img src="{{ asset('storage/' . $student->photo) }}"
-                                                alt="Foto {{ $student->fullname }}"
-                                                class="rounded-circle student-avatar me-2">
-                                        @else
-                                            <div class="rounded-circle student-initial me-2">
-                                                {{ substr($student->fullname, 0, 1) }}
-                                            </div>
-                                        @endif
-                                        <div>{{ $student->fullname }}</div>
+       <div class="card-body">
+    @if($students->count() > 0)
+        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <table class="table table-bordered table-hover" id="studentTable">
+                <thead class="table-light">
+                    <tr>
+                        <th width="3%">No</th>
+                        <th width="12%">NIS</th>
+                        <th width="25%">Nama Siswa</th>
+                        <th width="12%">Jenis Kelamin</th>
+                        <th width="12%">Buku Dipinjam</th>
+                        <th width="15%">Buku Dikembalikan</th>
+                        <th width="10%">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($students as $index => $student)
+                    <tr>
+                        <td class="text-center">{{ $index + 1 }}</td>
+                        <td>{{ $student->id_student }}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                @if($student->photo)
+                                    <img src="{{ asset('storage/' . $student->photo) }}"
+                                        alt="Foto {{ $student->fullname }}"
+                                        class="rounded-circle student-avatar me-2">
+                                @else
+                                    <div class="rounded-circle student-initial me-2">
+                                        {{ substr($student->fullname, 0, 1) }}
                                     </div>
-                                </td>
-                                <td>
-                                    @if($student->gender == 'L')
-                                        <span class="text-info"><i class="fas fa-male me-1"></i> Laki-laki</span>
-                                    @else
-                                        <span class="text-danger"><i class="fas fa-female me-1"></i> Perempuan</span>
-                                    @endif
-                                </td>
-                                <td class="text-center">
-                                    @if($student->book_loans_count > 0)
-                                        @if($student->overdue_loans_count > 0)
-                                            <span class="badge rounded-pill badge-book-count badge-overdue">
-                                                <i class="fas fa-exclamation-circle me-1"></i> {{ $student->book_loans_count }} Buku ({{ $student->overdue_loans_count }} Terlambat)
-                                            </span>
+                                @endif
+                                <div>{{ $student->fullname }}</div>
+                            </div>
+                        </td>
+                       <td>
+                                        @if($student->gender == 'L')
+                                            <span class="text-primary"><i class="fas fa-male me-1"></i> Laki-laki</span>
                                         @else
-                                            <span class="badge rounded-pill badge-book-count badge-active">
-                                                <i class="fas fa-book me-1"></i> {{ $student->book_loans_count }} Buku
-                                            </span>
+                                            <span class="text-danger"><i class="fas fa-female me-1"></i> Perempuan</span>
                                         @endif
-                                    @else
-                                        <span class="badge rounded-pill badge-book-count badge-none">
-                                            <i class="fas fa-times-circle me-1"></i> Tidak Ada
-                                        </span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <a href="{{ route('book-loans.student-books', $student->id_student) }}" class="btn btn-info btn-sm">
-                                        <i class="fas fa-book me-1"></i> Detail Buku
-                                    </a>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @else
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i> Belum ada siswa yang terdaftar di kelas ini.
-                </div>
-            @endif
+                                    </td>
+                       <td class="text-center">
+    @if($student->borrowed_books_count > 0)
+        <span class="badge rounded-pill badge-book-count badge-active">
+            <i class="fas fa-book me-1"></i> {{ $student->borrowed_books_count }} Buku
+        </span>
+    @else
+        <span class="badge rounded-pill badge-book-count badge-none">
+            <i class="fas fa-times-circle me-1"></i> Tidak Ada
+        </span>
+    @endif
+</td>
+<td class="text-center">
+    @if($student->returned_books_count > 0)
+        <span class="badge rounded-pill badge-book-count badge-active">
+            <i class="fas fa-undo me-1"></i> {{ $student->returned_books_count }} Buku
+        </span>
+    @else
+        <span class="badge rounded-pill badge-book-count badge-none">
+            <i class="fas fa-times-circle me-1"></i> Tidak Ada
+        </span>
+    @endif
+</td>
+
+                        <td>
+                            <a href="{{ route('book-loans.student-books', $student->id_student) }}" class="btn btn-info btn-sm">
+                                <i class="fas fa-book me-1"></i> Detail Buku
+                            </a>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
-        <div class="card-footer bg-light ">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <span class="fw-bold">Total Siswa:</span> {{ $students->count() }} orang
-                </div>
-                <div>
-                    <span class="fw-bold">Total Buku Dipinjam:</span> {{ $totalBookLoans }} buku
-                </div>
-            </div>
+    @else
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> Belum ada siswa yang terdaftar di kelas ini.
+        </div>
+    @endif
+</div>
+<div class="card-footer bg-light ">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <span class="fw-bold">Total Siswa:</span> {{ $students->count() }} orang
+        </div>
+        <div>
+            <span class="fw-bold">Total Buku Dipinjam:</span> {{ $totalBookLoans }} buku
         </div>
     </div>
-  </main>
 </div>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

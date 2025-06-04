@@ -320,32 +320,23 @@
                   </td>
                   <td>{{ $loan->loan_date ? $loan->loan_date->format('d M Y') : 'N/A' }}</td>
                  <td>
-                    @if($loan->status === 'Dikembalikan' && $loan->return_date)
-                        {{ \Carbon\Carbon::parse($loan->return_date)->format('d M Y') }}
-                    @else
-                        -
-                    @endif
-                </td>
-               <td class="text-center">
-    @if($loan->status == 'Dipinjam')
-        @php
-            $isOverdue = now()->gt($loan->due_date);
-        @endphp
+    @if($loan->status === 'Dikembalikan' && $loan->return_date)
+        {{ \Carbon\Carbon::parse($loan->return_date)->format('d M Y') }}
+    @else
+        -
+    @endif
+</td>
+<td class="text-center">
+    @if($loan->status === 'Dipinjam')
         <form action="{{ route('book.return', $loan->id) }}" method="POST" class="return-form">
             @csrf
             @method('PUT')
-            <button type="submit" class="btn btn-sm {{ $isOverdue ? 'btn-danger' : 'btn-warning' }}">
-                <i class="fas fa-undo me-1"></i> Belum Dikembalikan{{ $isOverdue ? ' (Terlambat)' : '' }}
+            <button type="submit" class="btn btn-sm btn-warning">
+                <i class="fas fa-undo me-1"></i> Dikembalikan
             </button>
         </form>
     @else
-        <form action="{{ route('book.unreturn', $loan->id) }}" method="POST" class="unreturn-form">
-            @csrf
-            @method('PUT')
-            <button type="submit" class="btn btn-sm btn-success">
-                <i class="fas fa-check-circle me-1"></i> Dikembalikan
-            </button>
-        </form>
+        <span class="text-success"><i class="fas fa-check-circle"></i> Sudah Dikembalikan</span>
     @endif
 </td>
 
@@ -413,21 +404,19 @@
             </select>
           </div>
 
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="loan_date" class="form-label">Tanggal Pinjam</label>
-              <input type="date" class="form-control" id="loan_date" name="loan_date"
-                     value="{{ date('Y-m-d') }}" required>
-            </div>
+          <div class="mb-3">
+            <label for="loan_date" class="form-label">Tanggal Pinjam</label>
+            <input type="date" class="form-control" id="loan_date" name="loan_date"
+                   value="{{ date('Y-m-d') }}" required>
+          </div>
 
           <div class="mb-3">
             <label for="status" class="form-label">Status</label>
-            <select class="form-select" id="status" name="status" required>
-              <option value="borrowed" selected>Dipinjam</option>
-              <option value="returned">Dikembalikan</option>
-            </select>
+            <input type="hidden" name="status" value="Dipinjam">
+            <p class="form-control-plaintext mb-0">Dipinjam</p>
           </div>
         </div>
+
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
           <button type="submit" class="btn btn-primary">Simpan</button>
@@ -436,6 +425,7 @@
     </div>
   </div>
 </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
@@ -515,6 +505,26 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }, 5000);
 });
+
+$(document).ready(function() {
+  $('#addLoanModal form').on('submit', function(e) {
+    e.preventDefault();
+
+    $.ajax({
+      url: $(this).attr('action'),
+      method: $(this).attr('method'),
+      data: $(this).serialize(),
+      success: function(response) {
+        $('#addLoanModal').modal('hide');
+        location.reload(); // reload halaman
+      },
+      error: function(xhr) {
+        alert('Terjadi kesalahan saat menyimpan.');
+      }
+    });
+  });
+});
+
 </script>
 </body>
 </html>

@@ -45,15 +45,16 @@
             font-weight: 500;
         }
 
-        .status-paid {
-            background-color: rgba(40, 167, 69, 0.1);
-            color: var(--success-color);
-        }
+       .payment-status.status-paid {
+    color: green;
+    font-weight: bold;
+}
 
-        .status-unpaid {
-            background-color: rgba(220, 53, 69, 0.1);
-            color: var(--danger-color);
-        }
+.payment-status.status-unpaid {
+    color: red;
+    font-weight: bold;
+}
+
 
         .summary-card {
             border-left: 4px solid var(--primary-color);
@@ -87,11 +88,15 @@
             flex-wrap: wrap;
         }
 
-        .month-btn {
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-        }
+     .month-btn {
+    border-radius: 50px;
+    transition: all 0.3s ease;
+}
+
+.month-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
 
         .month-btn.active {
             background-color: var(--primary-color);
@@ -121,47 +126,34 @@
         <!-- Header dengan Profil Admin -->
         @include('components.profiladmin')
 
-        <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="mb-1">Detail SPP - {{ $spp->classes->class_name ?? 'Kelas' }}</h2>
-                <div class="d-flex align-items-center">
-                    <span class="text-muted">Bulan: </span>
-                    <span class="current-month-display">{{ $months[$currentMonth] ?? 'Semua Bulan' }}</span>
-                </div>
-            </div>
-            <div>
-                <a href="{{ route('payment.listdata') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left me-2"></i> Kembali
-            </a>
-            </div>
-        </div>
+       <!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+    <div>
+        <h2 class="mb-1 text-primary">Detail SPP - {{ $spp->classes->class_name ?? 'Kelas' }}</h2>
+    </div>
+    <div>
+        <a href="{{ route('payment.listdata') }}" class="btn btn-outline-secondary shadow-sm">
+            <i class="fas fa-arrow-left me-2"></i> Kembali
+        </a>
+    </div>
+</div>
 
-        <!-- Filter Section -->
-        <div class="filter-section mb-4">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h5 class="mb-3">Filter Bulan</h5>
-                   <div class="month-selector {{ $hideMonthSelector ?? false ? 'hidden' : '' }}">
-                        @php
-                            $months = [
-                                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-                                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-                                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
-                            ];
-                            $currentMonth = request()->input('month', date('n'));
-                        @endphp
+<!-- Filter Section -->
+<div class="filter-section mb-4">
+    <h5 class="mb-3">Pilih Bulan Pembayaran</h5>
+    <div class="d-flex flex-wrap gap-2">
+        @foreach($months as $key => $monthData)
+            <form method="GET" action="{{ request()->url() }}">
+                <input type="hidden" name="month" value="{{ $key }}">
+                <button type="submit"
+                        class="btn month-btn {{ $key == $currentMonth ? 'btn-primary' : 'btn-outline-primary' }} shadow-sm">
+                    {{ $monthData['name'] }} {{ $monthData['year'] }}
+                </button>
+            </form>
+        @endforeach
+    </div>
+</div>
 
-                        @foreach($months as $num => $name)
-                            <a href="?month={{ $num }}"
-                               class="btn btn-sm month-btn {{ $num == $currentMonth ? 'active' : 'btn-outline-secondary' }}">
-                                {{ $name }}
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-        </div>
         <!-- SPP Info -->
         <div class="card mb-4">
             <div class="card-header">
@@ -227,68 +219,68 @@
                     </button>
                 </div>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>NIS</th>
-                                <th>Nama Siswa</th>
-                                <th>Status Pembayaran</th>
-                                <th>Nominal</th>
-                                <th>Tanggal Bayar</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($students as $student)
-                            @php
-                                $payment = $payments[$student->id_student] ?? null;
-                                $status = $payment ? 'Lunas' : 'Belum Lunas';
-                                $statusClass = $payment ? 'status-paid' : 'status-unpaid';
-                            @endphp
-                            <tr class="student-row">
-                                <td>{{ $loop->iteration }}</td>
-                                <td>{{ $student->id_student }}</td>
-                                <td>{{ $student->fullname }}</td>
-                                <td>
-                                    <span class="payment-status {{ $statusClass }}">
-                                        {{ $status }}
-                                    </span>
-                                </td>
-                                <td>
-                                    @if($payment)
-                                        Rp {{ number_format($payment->amount, 0, ',', '.') }}
-                                    @else
-                                        Rp {{ number_format($spp->amount, 0, ',', '.') }}
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($payment)
-                                        {{ $payment->created_at->format('d/m/Y') }}
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                                <td class="action-btns">
-                                    @if($payment)
-                                        <button class="btn btn-sm btn-danger" onclick="batalBayar('{{ $student->id_student }}')">
-                                            <i class="fas fa-times"></i> Batalkan
-                                        </button>
-                                    @else
-                                        <button class="btn btn-sm btn-success" onclick="bayarSPP('{{ $student->id_student }}')">
-                                            <i class="fas fa-check"></i> Bayar
-                                        </button>
-                                    @endif
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+           <div class="card-body">
+    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+        <table class="table table-hover align-middle">
+            <thead class="table-light position-sticky top-0" style="z-index: 1;">
+                <tr>
+                    <th>No</th>
+                    <th>NIS</th>
+                    <th>Nama Siswa</th>
+                    <th>Status Pembayaran</th>
+                    <th>Nominal</th>
+                    <th>Tanggal Bayar</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($students as $student)
+                @php
+                    $payment = $payments[$student->id_student] ?? null;
+                    $status = $payment ? 'Lunas' : 'Belum Lunas';
+                    $statusClass = $payment ? 'status-paid' : 'status-unpaid';
+                @endphp
+                <tr class="student-row">
+                    <td>{{ $loop->iteration }}</td>
+                    <td>{{ $student->id_student }}</td>
+                    <td>{{ $student->fullname }}</td>
+                    <td>
+                        <span class="payment-status {{ $statusClass }}">
+                            {{ $status }}
+                        </span>
+                    </td>
+                    <td>
+                        @if($payment)
+                            Rp {{ number_format($payment->amount, 0, ',', '.') }}
+                        @else
+                            Rp {{ number_format($spp->amount, 0, ',', '.') }}
+                        @endif
+                    </td>
+                    <td>
+                        @if($payment)
+                            {{ $payment->created_at->format('d/m/Y') }}
+                        @else
+                            -
+                        @endif
+                    </td>
+                    <td class="action-btns">
+                        @if($payment)
+                            <button class="btn btn-sm btn-danger" onclick="batalBayar('{{ $student->id_student }}')">
+                                <i class="fas fa-times"></i> Batalkan
+                            </button>
+                        @else
+                            <button class="btn btn-sm btn-success" onclick="bayarSPP('{{ $student->id_student }}')">
+                                <i class="fas fa-check"></i> Bayar
+                            </button>
+                        @endif
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+
 
         <!-- Hidden form fields -->
         <input type="hidden" id="spp-id" value="{{ $spp->id }}">
@@ -432,13 +424,14 @@
         });
     }
 
-    function getMonthName(monthNumber) {
-        const months = [
-            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-        ];
-        return months[monthNumber - 1] || '';
-    }
+   function getMonthName(monthNumber) {
+    const months = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return months[monthNumber - 1] || 'Bulan tidak diketahui';
+}
+
 </script>
 </body>
 @endif

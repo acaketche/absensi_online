@@ -219,9 +219,10 @@
               <div class="stat-label">Siswa</div>
             </div>
             <div class="stat-item">
-              <div class="stat-value">-</div>
-              <div class="stat-label">Pinjaman</div>
-            </div>
+  <div class="stat-value">{{ $classLoans[$class->id] ?? 0 }}</div>
+  <div class="stat-label">Pinjaman</div>
+</div>
+
           </div>
 
           <div class="teacher-info">

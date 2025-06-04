@@ -14,22 +14,25 @@ use Carbon\Carbon;
 
 class BookLoanController extends Controller
 {
-    public function index()
-        {
-        $loans = BookLoan::with([
-            'student.class',
-            'book',
-            'academicYear',
-            'semester'
-        ])->get();
+   public function index()
+{
+    $classes = Classes::with('students')->get();
 
-            $classes = Classes::all();
-            $books = Book::all();
-            $students = Student::all();
-            $academicYears = AcademicYear::all(); // Tambahkan ini
+    // Load students beserta jumlah buku yang dipinjamnya (misal relasi borrowedBooks)
+    $students = Student::withCount('borrowedBooks')->get();
 
-            return view('books.booksloans', compact('loans', 'classes', 'books', 'students', 'academicYears'));
-        }
+    // Hitung total pinjaman buku per kelas
+    $classLoans = [];
+
+    foreach ($classes as $class) {
+        $studentsInClass = $students->where('class_id', $class->id);
+        $totalLoans = $studentsInClass->sum('borrowed_books_count');
+        $classLoans[$class->id] = $totalLoans;
+    }
+
+    return view('books.booksloans', compact('classes', 'classLoans'));
+}
+
 
         public function edit($id)
         {
@@ -49,8 +52,8 @@ class BookLoanController extends Controller
             'id_student' => 'required|string',
             'book_id' => 'required|integer',
             'loan_date' => 'required|date',
-            'due_date' => 'required|date',
-            'status' => 'required|string',
+            'return_date' => 'required|date',
+            'status' => 'required|string|in:Dipinjam,Dikembalikan',
             'academic_year_id' => 'required|integer',
             'semester_id' => 'required|integer',
         ]);
@@ -72,30 +75,26 @@ class BookLoanController extends Controller
         }
 
 
-        public function store(Request $request)
-        {
-            $validated = $request->validate([
-                'id_student' => 'required|string',
-                'book_id' => 'required|integer',
-                'loan_date' => 'required|date',
-                'due_date' => 'nullable|date',
-                'status' => 'required|string|in:Dipinjam,Dikembalikan',
-                'academic_year_id' => 'required|integer',
-                'semester_id' => 'required|integer',
-            ]);
+      public function store(Request $request)
+{
+    $validated = $request->validate([
+        'id_student' => 'required|string',
+        'book_id' => 'required|integer',
+        'loan_date' => 'required|date',
+        'return_date' => 'nullable|date',
+       'status' => 'required|string|in:Dipinjam,Dikembalikan',
+        'academic_year_id' => 'required|integer',
+        'semester_id' => 'required|integer',
+    ]);
 
-            BookLoan::create([
-                'id_student' => $validated['id_student'],
-                'book_id' => $validated['book_id'],
-                'loan_date' => $validated['loan_date'],
-                'due_date' => $validated['due_date'],
-                'status' => $validated['status'],
-                'academic_year_id' => $validated['academic_year_id'],
-                'semester_id' => $validated['semester_id'],
-            ]);
+    BookLoan::create($validated);
 
-            return redirect()->route('book-loans.index')->with('success', 'Peminjaman buku berhasil dicatat.');
-        }
+    if ($request->ajax()) {
+        return response()->json(['message' => 'Berhasil disimpan']);
+    }
+
+    return redirect()->back()->with('success', 'Berhasil disimpan');
+}
 
 
     public function show($id)
@@ -122,21 +121,23 @@ class BookLoanController extends Controller
 
         return redirect()->route('book-loans.index')->with('success', 'Data peminjaman berhasil dihapus.');
     }
+public function classStudents($classId)
+{
+    $class = Classes::findOrFail($classId);
 
-    public function classStudents($classId)
-    {
-        $class = Classes::findOrFail($classId);
+    // Ambil semua siswa dengan hitungan buku dipinjam dan dikembalikan
+    $students = Student::withCount(['borrowedBooks', 'returnedBooks'])
+                ->where('class_id', $classId)
+                ->get();
 
-        // Ambil semua siswa dan relasi peminjaman buku
-        $students = Student::withCount(['bookLoans', 'overdueLoans'])
-                    ->where('class_id', $classId)
-                    ->get();
+    // Total buku sedang dipinjam oleh siswa di kelas ini
+    $totalBookLoans = $students->sum('borrowed_books_count');
 
-        // Hitung total semua buku yang dipinjam oleh siswa di kelas ini
-        $totalBookLoans = $students->sum('book_loans_count');
+    // Total buku sudah dikembalikan oleh siswa di kelas ini
+    $totalBookReturns = $students->sum('returned_books_count');
 
-        return view('books.classtudent', compact('class', 'students', 'totalBookLoans'));
-    }
+    return view('books.classtudent', compact('class', 'students', 'totalBookLoans', 'totalBookReturns'));
+}
 
 
     public function studentBooks($id)
@@ -150,17 +151,13 @@ class BookLoanController extends Controller
             ->orderByDesc('loan_date')
             ->get();
 
-        $overdueCount = $bookLoans->where('status', 'borrowed')->filter(function ($loan) {
-            return Carbon::now()->gt($loan->due_date);
-        })->count();
-
         $books = Book::all();
 
         // Tambahkan academicYears dan semesters
         $academicYears = AcademicYear::all();
         $semesters = Semester::all();
 
-        return view('books.studentbook', compact('student', 'bookLoans', 'overdueCount', 'books',
+        return view('books.studentbook', compact('student', 'bookLoans', 'books',
         'academicYears', 'semesters','activeAcademicYear', 'activeSemester'));
     }
 

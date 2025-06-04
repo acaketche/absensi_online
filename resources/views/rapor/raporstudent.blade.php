@@ -187,6 +187,29 @@
             margin-right: 5px;
             color: var(--primary-color);
         }
+.scrollable-table {
+  max-height: 400px; /* atur tinggi maksimal sesuai kebutuhan */
+  overflow-y: auto;
+  display: block;
+}
+
+/* Preview file styles */
+.file-preview {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.file-preview a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.file-preview a:hover {
+    text-decoration: underline;
+}
 
     </style>
 </head>
@@ -262,116 +285,112 @@
             </div>
             <div class="card-body">
                 @if($students->count() > 0)
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover" id="siswaTable">
-                             <thead class="table-light">
-                                <tr>
-                                    <th width="5%" class="text-center">No</th>
-                                    <th width="25%">Nama Siswa</th>
-                                    <th width="15%">NIS</th>
-                                    <th width="10%">Jenis Kelamin</th>
-                                    <th width="15%">Status Rapor</th>
-                                    <th width="10%">Tanggal</th>
-                                    <th width="20%" class="text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($students as $index => $student)
-                                <tr>
-                                    <td class="text-center">{{ $index + 1 }}</td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            @if($student->photo)
-                                                <img src="{{ asset('storage/' . $student->photo) }}"
-                                                    alt="Foto {{ $student->fullname }}"
-                                                    class="student-avatar me-2">
-                                            @else
-                                                <div class="student-avatar bg-secondary text-white d-flex align-items-center justify-content-center me-2">
-                                                    {{ strtoupper(substr($student->fullname, 0, 1)) }}
-                                                </div>
-                                            @endif
-                                            <div>{{ $student->fullname }}</div>
-                                        </div>
-                                    </td>
-                                    <td>{{ $student->id_student }}</td>
-                                    <td>
-                                        @if($student->gender == 'L')
-                                            <span class="text-primary"><i class="fas fa-male me-1"></i> Laki-laki</span>
-                                        @else
-                                            <span class="text-danger"><i class="fas fa-female me-1"></i> Perempuan</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @php
-                                            $rapor = $student->rapor ? $student->rapor->first() : null;
-                                        @endphp
-
-                                        @if($rapor)
-                                            <span class="badge bg-success ms-2">Sudah Ada</span>
-                                        @else
-                                            <span class="badge bg-secondary">Belum Ada</span>
-                                        @endif
-                                    </td>
-
-                                    <td>
-                                        @if($student->rapor && $student->rapor->first() && $student->rapor->first()->report_date)
-                                            {{ \Carbon\Carbon::parse($student->rapor->first()->report_date)->format('d/m/Y') }}
-                                        @else
-                                            -
-                                        @endif
-                                    </td>
-                                    @php
-                                $rapor = $student->rapor ? $student->rapor->first() : null;
-                            @endphp
-
-                         <td>
-    <div class="d-flex gap-1">
-        @if($rapor)
-            @if($rapor->file_path)
-                <!-- Tombol Lihat -->
-                <a href="{{ asset('storage/' . $rapor->file_path) }}" target="_blank" class="btn btn-sm btn-info">
-                    <i class="fas fa-eye me-1"></i>
-                </a>
-            @endif
-
-            <!-- Tombol Edit -->
-            <a href="{{ route('rapor.edit', $rapor->id) }}" class="btn btn-sm btn-warning">
-                <i class="fas fa-edit me-1"></i>
-            </a>
-
-            <!-- Tombol Hapus -->
-            <button type="button" class="btn btn-sm btn-danger delete-rapor"
-                    data-rapor-id="{{ $rapor->id }}">
-                <i class="fas fa-trash me-1"></i>
-            </button>
-        @else
-            <!-- Tombol Upload -->
-            <button type="button" class="btn btn-sm btn-success upload-rapor-btn"
-                    data-bs-toggle="modal"
-                    data-bs-target="#uploadRaporModal"
-                    data-student-id="{{ $student->id_student }}"
-                    data-student-name="{{ $student->fullname }}"
-                    data-student-nis="{{ $student->id_student }}"
-                    data-class-id="{{ $class->class_id }}">
-                <i class="fas fa-upload me-1"></i>
-            </button>
-        @endif
-    </div>
-
-    @if($rapor)
-        <!-- Form Hapus -->
-        <form class="delete-rapor-form" action="{{ route('rapor.destroy', $rapor->id) }}" method="POST" style="display: none;">
-            @csrf
-            @method('DELETE')
-        </form>
-    @endif
-</td>
-
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                    <div class="table-responsive scrollable-table">
+    <table class="table table-bordered table-hover" id="siswaTable">
+        <thead class="table-light">
+            <tr>
+                <th width="5%" class="text-center">No</th>
+                <th width="25%">Nama Siswa</th>
+                <th width="15%">NIS</th>
+                <th width="10%">Jenis Kelamin</th>
+                <th width="15%">Status Rapor</th>
+                <th width="10%">Tanggal</th>
+                <th width="20%" class="text-center">Aksi</th>
+            </tr>
+        </thead>
+<tbody>
+@foreach ($students as $index => $student)
+    @php
+        // Ambil rapor pertama yang cocok dengan tahun ajaran dan semester yang sesuai (kalau perlu)
+        $rapor = $student->rapor->first();
+    @endphp
+    <tr>
+        <td class="text-center">{{ $index + 1 }}</td>
+        <td>
+            <div class="d-flex align-items-center">
+                @if($student->photo)
+                    <img src="{{ asset('storage/' . $student->photo) }}"
+                        alt="Foto {{ $student->fullname }}"
+                        class="student-avatar me-2">
+                @else
+                    <div class="student-avatar bg-secondary text-white d-flex align-items-center justify-content-center me-2">
+                        {{ strtoupper(substr($student->fullname, 0, 1)) }}
                     </div>
+                @endif
+                <div>{{ $student->fullname }}</div>
+            </div>
+        </td>
+        <td>{{ $student->id_student }}</td>
+        <td>
+            @if($student->gender == 'L')
+                <span class="text-primary"><i class="fas fa-male me-1"></i> Laki-laki</span>
+            @else
+                <span class="text-danger"><i class="fas fa-female me-1"></i> Perempuan</span>
+            @endif
+        </td>
+        <td>
+            @if($rapor)
+                <span class="badge bg-success ms-2">Sudah Ada</span>
+            @else
+                <span class="badge bg-secondary">Belum Ada</span>
+            @endif
+        </td>
+        <td>
+            @if($rapor && $rapor->report_date)
+                {{ \Carbon\Carbon::parse($rapor->report_date)->format('d/m/Y') }}
+            @else
+                -
+            @endif
+        </td>
+        <td>
+            <div class="d-flex gap-1">
+                @if($rapor)
+                    @if($rapor->file_path)
+                        <a href="{{ asset('storage/' . $rapor->file_path) }}" target="_blank" class="btn btn-sm btn-info">
+                            <i class="fas fa-eye me-1"></i>
+                        </a>
+                    @endif
+
+                    <button type="button" class="btn btn-sm btn-warning edit-rapor-btn"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editRaporModal"
+                            data-rapor-id="{{ $rapor->id }}"
+                            data-student-id="{{ $student->id_student }}"
+                            data-student-name="{{ $student->fullname }}"
+                            data-student-nis="{{ $student->id_student }}"
+                            data-report-date="{{ $rapor->report_date }}"
+                            data-description="{{ $rapor->description }}"
+                            data-file-path="{{ $rapor->file_path ? asset('storage/' . $rapor->file_path) : '' }}">
+                        <i class="fas fa-edit me-1"></i>
+                    </button>
+
+                    <button type="button" class="btn btn-sm btn-danger delete-rapor"
+                            data-rapor-id="{{ $rapor->id }}">
+                        <i class="fas fa-trash me-1"></i>
+                    </button>
+
+                    <form class="delete-rapor-form" action="{{ route('rapor.destroy', $rapor->id) }}" method="POST" style="display: none;">
+                        @csrf
+                        @method('DELETE')
+                    </form>
+                @else
+                    <button type="button" class="btn btn-sm btn-success upload-rapor-btn"
+                            data-bs-toggle="modal"
+                            data-bs-target="#uploadRaporModal"
+                            data-student-id="{{ $student->id_student }}"
+                            data-student-name="{{ $student->fullname }}"
+                            data-student-nis="{{ $student->id_student }}"
+                            data-class-id="{{ $class->class_id }}">
+                        <i class="fas fa-upload me-1"></i>
+                    </button>
+                @endif
+            </div>
+        </td>
+    </tr>
+@endforeach
+</tbody>
+    </table>
+</div>
                 @else
                     <div class="alert alert-info m-3">
                         <i class="fas fa-info-circle me-2"></i> Belum ada siswa yang terdaftar.
@@ -388,14 +407,15 @@
 
 <!-- Upload Rapor Modal -->
 <div class="modal fade" id="uploadRaporModal" tabindex="-1" aria-labelledby="uploadRaporModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="uploadRaporModalLabel">
                     <i class="fas fa-upload me-2"></i> Upload Rapor Siswa
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+
             <form id="uploadRaporForm" action="{{ route('rapor.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body">
@@ -404,42 +424,41 @@
                     <input type="hidden" name="class_id" id="formClassId">
                     <input type="hidden" name="status_report" value="Sudah Ada">
 
-                    <div class="mb-3">
-                        <label class="form-label">Nama Siswa</label>
-                        <input type="text" class="form-control" id="modalStudentName" readonly>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nama Siswa</label>
+                            <input type="text" class="form-control" id="modalStudentName" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">NIS</label>
+                            <input type="text" class="form-control" id="modalStudentNis" readonly>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">NIS</label>
-                        <input type="text" class="form-control" id="modalStudentNis" readonly>
-                    </div>
-
-                    <!-- Report Date -->
                     <div class="mb-3">
                         <label for="report_date" class="form-label">Tanggal Rapor</label>
                         <input type="date" class="form-control" name="report_date" required>
                     </div>
 
-                    <!-- Description -->
                     <div class="mb-3">
                         <label for="description" class="form-label">Deskripsi (Opsional)</label>
                         <textarea class="form-control" name="description" rows="3" placeholder="Masukkan deskripsi atau catatan tambahan..."></textarea>
                     </div>
 
-                    <!-- File Upload -->
-                    <div class="mb-4">
-                        <label class="form-label">File Rapor</label>
-                        <div class="file-upload" id="fileUpload">
-                            <input type="file" name="report_file" id="reportFile" accept=".pdf,.jpg,.jpeg,.png" required>
-                            <div class="text-center">
-                                <i class="fas fa-file-upload fa-3x text-primary mb-2"></i>
-                                <div class="file-upload-text">Klik atau seret file ke sini</div>
-                                <div class="text-muted small">Format: PDF, JPG, JPEG, PNG (Maks. 5MB)</div>
+                    <div class="mb-3">
+                        <label for="reportFile" class="form-label">File Rapor</label>
+                        <div class="border rounded p-3 text-center bg-light">
+                            <input type="file" name="report_file" id="reportFile" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
+                            <div class="mt-2">
+                                <i class="fas fa-file-upload fa-2x text-primary mb-2"></i>
+                                <p class="mb-1 fw-bold">Pilih file rapor untuk diunggah</p>
+                                <small class="text-muted">Format: PDF, JPG, JPEG, PNG • Maks: 5MB</small>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
+
+                <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="fas fa-times me-1"></i> Batal
                     </button>
@@ -451,6 +470,80 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Rapor Modal -->
+<div class="modal fade" id="editRaporModal" tabindex="-1" aria-labelledby="editRaporModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editRaporModalLabel">
+                    <i class="fas fa-edit me-2"></i> Edit Rapor Siswa
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form id="editRaporForm" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nama Siswa</label>
+                            <input type="text" class="form-control" id="editStudentName" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">NIS</label>
+                            <input type="text" class="form-control" id="editStudentNis" readonly>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit_report_date" class="form-label">Tanggal Rapor</label>
+                        <input type="date" class="form-control" name="report_date" id="edit_report_date" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit_description" class="form-label">Deskripsi (Opsional)</label>
+                        <textarea class="form-control" name="description" id="edit_description" rows="3" placeholder="Masukkan deskripsi atau catatan tambahan..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit_report_file" class="form-label">File Rapor</label>
+
+                        <!-- Current file preview -->
+                        <div id="currentFilePreview" class="file-preview mb-3">
+                            <p class="mb-1">File saat ini:</p>
+                            <a href="#" id="currentFileLink" target="_blank" class="d-flex align-items-center">
+                                <i class="fas fa-file-pdf me-2"></i>
+                                <span id="currentFileName">Tidak ada file</span>
+                            </a>
+                        </div>
+
+                        <div class="border rounded p-3 text-center bg-light">
+                            <input type="file" name="report_file" id="edit_report_file" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                            <div class="mt-2">
+                                <i class="fas fa-file-upload fa-2x text-primary mb-2"></i>
+                                <p class="mb-1 fw-bold">Pilih file baru untuk mengganti rapor</p>
+                                <small class="text-muted">Format: PDF, JPG, JPEG, PNG • Maks: 5MB</small>
+                                <small class="d-block text-muted mt-1">Kosongkan jika tidak ingin mengubah file</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> Batal
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- SweetAlert2 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -472,6 +565,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
     // Upload Rapor Modal
     const uploadRaporBtns = document.querySelectorAll('.upload-rapor-btn');
     uploadRaporBtns.forEach(btn => {
@@ -486,7 +580,56 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-  document.querySelectorAll('.delete-rapor').forEach(button => {
+    // Edit Rapor Modal
+    const editRaporBtns = document.querySelectorAll('.edit-rapor-btn');
+    editRaporBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const raporId = this.getAttribute('data-rapor-id');
+            const studentName = this.getAttribute('data-student-name');
+            const studentNis = this.getAttribute('data-student-nis');
+            const reportDate = this.getAttribute('data-report-date');
+            const description = this.getAttribute('data-description');
+            const filePath = this.getAttribute('data-file-path');
+
+            // Set form action
+            document.getElementById('editRaporForm').action = `/rapor/${raporId}`;
+
+            // Set form values
+            document.getElementById('editStudentName').value = studentName;
+            document.getElementById('editStudentNis').value = studentNis;
+            document.getElementById('edit_report_date').value = reportDate;
+            document.getElementById('edit_description').value = description || '';
+
+            // Set current file preview
+            const currentFileLink = document.getElementById('currentFileLink');
+            const currentFileName = document.getElementById('currentFileName');
+
+            if (filePath) {
+                currentFileLink.href = filePath;
+                const fileName = filePath.split('/').pop();
+                currentFileName.textContent = fileName;
+
+                // Set appropriate icon based on file extension
+                const fileExt = fileName.split('.').pop().toLowerCase();
+                const fileIcon = document.querySelector('#currentFileLink i');
+
+                if (fileExt === 'pdf') {
+                    fileIcon.className = 'fas fa-file-pdf me-2';
+                } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
+                    fileIcon.className = 'fas fa-file-image me-2';
+                } else {
+                    fileIcon.className = 'fas fa-file me-2';
+                }
+
+                document.getElementById('currentFilePreview').style.display = 'block';
+            } else {
+                document.getElementById('currentFilePreview').style.display = 'none';
+            }
+        });
+    });
+
+    // Delete confirmation
+    document.querySelectorAll('.delete-rapor').forEach(button => {
         button.addEventListener('click', function () {
             const raporId = this.dataset.raporId;
             const form = this.closest('td').querySelector('.delete-rapor-form');
@@ -505,6 +648,36 @@ document.addEventListener('DOMContentLoaded', function() {
                     form.submit();
                 }
             });
+        });
+    });
+
+    // File upload validation
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    fileInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const file = this.files[0];
+            const maxSize = 5 * 1024 * 1024; // 5MB
+
+            if (file && file.size > maxSize) {
+                Swal.fire({
+                    title: 'File Terlalu Besar',
+                    text: 'Ukuran file maksimal adalah 5MB',
+                    icon: 'error'
+                });
+                this.value = '';
+            }
+
+            const validExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
+            const fileExt = file.name.split('.').pop().toLowerCase();
+
+            if (file && !validExtensions.includes(fileExt)) {
+                Swal.fire({
+                    title: 'Format File Tidak Valid',
+                    text: 'Hanya file PDF, JPG, JPEG, dan PNG yang diperbolehkan',
+                    icon: 'error'
+                });
+                this.value = '';
+            }
         });
     });
 });

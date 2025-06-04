@@ -7,75 +7,62 @@ use Illuminate\Http\Request;
 
 class BookController extends Controller
 {
-    // Menampilkan semua data buku
     public function index()
     {
-        $books = Book::all();
+        $books = Book::latest()->get();
         return view('books.books', compact('books'));
     }
 
-    // Menampilkan form tambah buku
     public function create()
     {
         return view('books.bookscreate');
     }
 
-    // Menyimpan data buku baru
     public function store(Request $request)
     {
-        $request->validate([
-            'code' => 'required|string|unique:books,code',
-            'title' => 'required|string',
-            'author' => 'required|string',
-            'publisher' => 'required|string',
-            'year_published' => 'required|digits:4|integer',
-            'stock' => 'required|integer',
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'author' => 'required|string|max:100',
+            'publisher' => 'required|string|max:100',
+            'year_published' => 'required|digits:4|integer|min:1900|max:'.(date('Y')+1),
+            'stock' => 'required|integer|min:1',
         ]);
 
-        Book::create($request->all());
+        // Generate book code
+        $validated['code'] = 'BK-' . strtoupper(substr(md5(uniqid()), 0, 8));
 
-        return redirect()->route('books.index')->with('success', 'Buku berhasil ditambahkan.');
+        Book::create($validated);
+
+        return redirect()->route('books.index')
+            ->with('success', 'Buku berhasil ditambahkan');
     }
 
-    // Menampilkan detail buku berdasarkan ID
-    public function show($id)
+    public function edit(Book $book)
     {
-        $book = Book::findOrFail($id);
-        return view('books.bookshow', compact('book'));
+        return view('books.edit', compact('book'));
     }
 
-    // Menampilkan form edit buku
-    public function edit($id)
+    public function update(Request $request, Book $book)
     {
-        $book = Book::findOrFail($id);
-        return view('books.booksedit', compact('book'));
-    }
-
-    // Menyimpan update buku
-    public function update(Request $request, $id)
-    {
-        $book = Book::findOrFail($id);
-
-        $request->validate([
-            'code' => 'required|string|unique:books,code,' . $book->id,
-            'title' => 'required|string',
-            'author' => 'required|string',
-            'publisher' => 'required|string',
-            'year_published' => 'required|digits:4|integer',
-            'stock' => 'required|integer',
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'author' => 'required|string|max:100',
+            'publisher' => 'required|string|max:100',
+            'year_published' => 'required|digits:4|integer|min:1900|max:'.(date('Y')+1),
+            'stock' => 'required|integer|min:1',
         ]);
 
-        $book->update($request->all());
+        $book->update($validated);
 
-        return redirect()->route('books.index')->with('success', 'Data buku berhasil diperbarui.');
+        return redirect()->route('books.index')
+            ->with('success', 'Buku berhasil diperbarui');
     }
 
-    // Menghapus buku
-    public function destroy($id)
+    public function destroy(Book $book)
     {
-        $book = Book::findOrFail($id);
         $book->delete();
 
-        return redirect()->route('books.index')->with('success', 'Data buku berhasil dihapus.');
+        return redirect()->route('books.index')
+            ->with('success', 'Buku berhasil dihapus');
     }
 }
