@@ -207,36 +207,31 @@
             </div>
         </div>
 
-        <!-- SPP Summary Cards -->
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Total SPP Bulan Ini</h5>
-                        <h2 class="card-text">Rp {{ number_format($totalAmount, 0, ',', '.') }}</h2>
-                        <p class="text-muted mb-0">Berdasarkan kelas yang dipilih</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Sudah Dibayar</h5>
-                        <h2 class="card-text">Rp {{ number_format($paidAmount, 0, ',', '.') }}</h2>
-                        <p class="text-muted mb-0">{{ $paymentPercentage }}% dari total</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Belum Dibayar</h5>
-                        <h2 class="card-text">Rp {{ number_format($unpaidAmount, 0, ',', '.') }}</h2>
-                        <p class="text-muted mb-0">{{ $unpaidCount }} siswa belum lunas</p>
-                    </div>
-                </div>
+     <!-- SPP Summary Cards -->
+<div class="row mb-4">
+    <!-- Total SPP Bulan Ini -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Total SPP Bulan Ini</h5>
+                <h2 class="card-text">Rp {{ number_format($totalAmount, 0, ',', '.') }}</h2>
+                <p class="text-muted mb-0">Berdasarkan kelas yang dipilih</p>
             </div>
         </div>
+    </div>
+
+    <!-- Sudah Dibayar -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Sudah Dibayar</h5>
+                <h2 class="card-text">Rp {{ number_format($paidAmount, 0, ',', '.') }}</h2>
+                <p class="text-muted mb-0">{{ $paymentPercentage }}% dari total</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 
         <!-- SPP Data by Class -->
         <div class="card">

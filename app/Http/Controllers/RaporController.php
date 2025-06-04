@@ -36,9 +36,10 @@ class RaporController extends Controller
         $students = Student::where('class_id', $classId)
             ->with(['rapor', 'academicYear', 'semester'])
             ->get();
-
-        return view('rapor.raporstudent', compact('class', 'students'));
+        $rapors = Rapor::whereIn('id_student', $students->pluck('id_student'))->get()->keyBy('id_student');
+        return view('rapor.raporstudent', compact('class', 'students','rapors'));
     }
+
 
    public function store(Request $request)
 {
@@ -74,7 +75,7 @@ class RaporController extends Controller
     // Upload file secara sederhana
     $filePath = null;
     if ($request->hasFile('report_file')) {
-        $filePath = $request->file('report_file')->store('rapor', 'public');
+        $filePath = $request->file('report_file')->store('rapor/' . $student->id_student, 'public');
     }
 
     Rapor::create([
@@ -142,7 +143,7 @@ class RaporController extends Controller
         }
 
         // Upload file baru langsung ke folder 'rapor' di storage/app/public
-        $filePath = $request->file('report_file')->store('rapor', 'public');
+        $filePath = $request->file('report_file')->store('rapor/' . $student->id_student, 'public');
         $rapor->file_path = $filePath;
     }
 

@@ -10,6 +10,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Import\StudentImport;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\StudentTemplateExport;
 
 class StudentController extends Controller
 {
@@ -205,4 +208,28 @@ class StudentController extends Controller
             return response()->json(['success' => false, 'message' => 'Siswa tidak ditemukan']);
         }
     }
+    public function import(Request $request)
+{
+    $request->validate([
+        'file' => 'required|file|mimes:xlsx,xls'
+    ]);
+
+    try {
+        Excel::import(new StudentImport, $request->file('file'));
+
+        return redirect()->route('students.index')->with('success', 'Import siswa berhasil.');
+    } catch (\Exception $e) {
+        return back()->with('error', 'Terjadi kesalahan saat import: ' . $e->getMessage());
+    }
 }
+public function showTemplate()
+{
+    return view('excel.ExportTemplateSiswa'); // Halaman petunjuk
+}
+
+public function downloadTemplate()
+{
+    return Excel::download(new StudentTemplateExport(), 'student_import_template.xlsx');
+}
+}
+

@@ -9,13 +9,12 @@ class BookLoan extends Model
     protected $table = 'book_loans';
     protected $primaryKey = 'id';
     protected $fillable = [
-        'id_student', 'book_id', 'loan_date', 'due_date', 'return_date', 'status',
+        'id_student', 'book_id', 'loan_date', 'return_date', 'status',
         'academic_year_id', 'semester_id'
     ];
 
     protected $casts = [
         'loan_date' => 'datetime',
-        'due_date' => 'datetime',
         'return_date' => 'datetime',
     ];
 

@@ -34,5 +34,10 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'attendance_api' => [
+    'url' => env('ATTENDANCE_API_URL', 'http://127.0.0.1:8000'),
+    'token' => env('ATTENDANCE_API_TOKEN'),
+],
+
 
 ];
