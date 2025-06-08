@@ -32,7 +32,7 @@ return [
 
         'student' => [ // ✅ Guard untuk student (siswa)
             'driver' => 'session',
-            'provider' => 'students',
+            'provider' => 'student',
         ],
     ],
 
@@ -53,7 +53,7 @@ return [
             'model' => App\Models\Employee::class,
         ],
 
-        'students' => [ // ✅ Provider untuk student
+        'student' => [ // ✅ Provider untuk student
             'driver' => 'eloquent',
             'model' => App\Models\Student::class,
         ],
@@ -80,8 +80,8 @@ return [
             'throttle' => 60,
         ],
 
-        'students' => [ // ✅ Reset password untuk student
-            'provider' => 'students',
+        'student' => [ // ✅ Reset password untuk student
+            'provider' => 'student',
             'table' => 'password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,

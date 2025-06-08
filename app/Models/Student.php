@@ -14,25 +14,26 @@ class Student extends Authenticatable
     use HasApiTokens;
 
     protected $table = 'students';
+    protected $guard = 'student';
     protected $primaryKey = 'id_student';
     public $incrementing = false;
     public $timestamps = true;
 
 
-protected $fillable = [
-    'id_student',
-    'fullname',
-    'password',
-    'birth_place',
-    'birth_date',
-    'gender',
-    'parent_phonecell',
-    'class_id',
-    'academic_year_id',
-    'semester_id',
-    'photo',
-    'qrcode'
-];
+    protected $fillable = [
+        'id_student',
+        'fullname',
+        'password',
+        'birth_place',
+        'birth_date',
+        'gender',
+        'parent_phonecell',
+        'class_id',
+        'academic_year_id',
+        'semester_id',
+        'photo',
+        'qrcode'
+    ];
 
 
     protected $hidden = [
@@ -61,39 +62,32 @@ protected $fillable = [
         return $this->belongsTo(Semester::class, 'semester_id');
     }
 
-    // Hash password sebelum menyimpan
-    public function setPasswordAttribute($value)
+    public function rapor()
     {
-        $this->attributes['password'] = Hash::make($value);
+        return $this->hasMany(Rapor::class, 'id_student', 'id_student');
     }
-   public function rapor()
-{
-    return $this->hasMany(Rapor::class, 'id_student', 'id_student');
-}
 
 
-public function bookLoans()
-{
-    return $this->hasMany(BookLoan::class, 'id_student', 'id_student');
-}
+    public function bookLoans()
+    {
+        return $this->hasMany(BookLoan::class, 'id_student', 'id_student');
+    }
 
-public function borrowedBooks()
-{
-    return $this->hasMany(BookLoan::class, 'id_student', 'id_student')
-                ->whereNull('return_date'); // buku yg sedang dipinjam (belum dikembalikan)
-}
+    public function borrowedBooks()
+    {
+        return $this->hasMany(BookLoan::class, 'id_student', 'id_student')
+            ->whereNull('return_date'); // buku yg sedang dipinjam (belum dikembalikan)
+    }
 
-public function returnedBooks()
-{
-    return $this->hasMany(BookLoan::class, 'id_student', 'id_student')
-                ->whereNotNull('return_date'); // buku yg sudah dikembalikan
-}
-
-
-public function attendances()
-{
-    return $this->hasMany(StudentAttendance::class, 'id_student', 'id_student');
-}
+    public function returnedBooks()
+    {
+        return $this->hasMany(BookLoan::class, 'id_student', 'id_student')
+            ->whereNotNull('return_date'); // buku yg sudah dikembalikan
+    }
 
 
+    public function attendances()
+    {
+        return $this->hasMany(StudentAttendance::class, 'id_student', 'id_student');
+    }
 }

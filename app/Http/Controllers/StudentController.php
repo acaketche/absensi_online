@@ -36,8 +36,15 @@ class StudentController extends Controller
         $classes = Classes::all();
 
         return view('students.index', compact(
-            'students', 'classes', 'activeAcademicYear', 'activeSemester',
-            'academicYears', 'semesters', 'academicYearId', 'semesterId', 'classId'
+            'students',
+            'classes',
+            'activeAcademicYear',
+            'activeSemester',
+            'academicYears',
+            'semesters',
+            'academicYearId',
+            'semesterId',
+            'classId'
         ));
     }
 
@@ -62,10 +69,6 @@ class StudentController extends Controller
             $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
             $activeSemester = Semester::where('is_active', 1)->first();
 
-            if (!$activeAcademicYear || !$activeSemester) {
-                return redirect()->back()->with('error', 'Tahun Ajaran atau Semester aktif tidak ditemukan.');
-            }
-
             $request->validate([
                 'id_student' => 'required|numeric|unique:students,id_student',
                 'fullname' => 'required|string|max:100',
@@ -79,18 +82,18 @@ class StudentController extends Controller
                 'password' => 'required|string|min:6'
             ]);
 
-           $photoPath = null;
+            $photoPath = null;
             $qrPath = null;
 
-        if ($request->hasFile('photo')) {
-            // Almacenar directamente en storage/app/public sin 'public/' al inicio
-            $photoPath = $request->file('photo')->store('photo_siswa', 'public');
-        }
+            if ($request->hasFile('photo')) {
+                // Almacenar directamente en storage/app/public sin 'public/' al inicio
+                $photoPath = $request->file('photo')->store('photo_siswa', 'public');
+            }
 
-        if ($request->hasFile('qr_code')) {
-            // Almacenar directamente en storage/app/public sin 'public/' al inicio
-            $qrPath = $request->file('qr_code')->store('qrcode_siswa', 'public');
-        }
+            if ($request->hasFile('qr_code')) {
+                // Almacenar directamente en storage/app/public sin 'public/' al inicio
+                $qrPath = $request->file('qr_code')->store('qrcode_siswa', 'public');
+            }
 
             Student::create([
                 'id_student' => $request->id_student,
@@ -109,20 +112,19 @@ class StudentController extends Controller
 
             return redirect()->route('students.index')->with('success', 'Siswa berhasil ditambahkan.');
         } catch (\Exception $e) {
-            dd($e->getMessage());
             return back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
     }
 
     public function edit($id)
-{
-    $student = Student::findOrFail($id);
-    $classes = Classes::all();
-    $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
-    $activeSemester = Semester::where('is_active', 1)->first();
+    {
+        $student = Student::findOrFail($id);
+        $classes = Classes::all();
+        $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
+        $activeSemester = Semester::where('is_active', 1)->first();
 
-    return view('students.edit', compact('student', 'classes', 'activeAcademicYear', 'activeSemester'));
-}
+        return view('students.edit', compact('student', 'classes', 'activeAcademicYear', 'activeSemester'));
+    }
 
 
     public function update(Request $request, $id)
@@ -171,12 +173,10 @@ class StudentController extends Controller
 
         if ($student->photo) {
             Storage::disk('public')->delete($student->photo);
-
         }
 
         if ($student->qr_code) {
             Storage::disk('public')->delete($student->qr_code);
-
         }
 
         $student->delete();
@@ -209,27 +209,26 @@ class StudentController extends Controller
         }
     }
     public function import(Request $request)
-{
-    $request->validate([
-        'file' => 'required|file|mimes:xlsx,xls'
-    ]);
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls'
+        ]);
 
-    try {
-        Excel::import(new StudentImport, $request->file('file'));
+        try {
+            Excel::import(new StudentImport, $request->file('file'));
 
-        return redirect()->route('students.index')->with('success', 'Import siswa berhasil.');
-    } catch (\Exception $e) {
-        return back()->with('error', 'Terjadi kesalahan saat import: ' . $e->getMessage());
+            return redirect()->route('students.index')->with('success', 'Import siswa berhasil.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan saat import: ' . $e->getMessage());
+        }
+    }
+    public function showTemplate()
+    {
+        return view('excel.ExportTemplateSiswa'); // Halaman petunjuk
+    }
+
+    public function downloadTemplate()
+    {
+        return Excel::download(new StudentTemplateExport(), 'student_import_template.xlsx');
     }
 }
-public function showTemplate()
-{
-    return view('excel.ExportTemplateSiswa'); // Halaman petunjuk
-}
-
-public function downloadTemplate()
-{
-    return Excel::download(new StudentTemplateExport(), 'student_import_template.xlsx');
-}
-}
-
