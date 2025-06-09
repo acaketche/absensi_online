@@ -20,7 +20,6 @@
     <!-- Main Content -->
     <main class="flex-grow-1 p-4">
         <!-- Header dengan Profil Admin -->
-<<<<<<< HEAD
         @include('components.profiladmin')
 <!-- Bagian Header -->
 <header class="d-flex justify-content-between align-items-center mb-4">
@@ -28,39 +27,6 @@
     <div class="d-flex align-items-center gap-2">
         <!-- Form Pencarian -->
         <input type="text" placeholder="Cari" class="form-control" style="width: 200px;">
-=======
-         @include('components.profiladmin')
-        <!-- Bagian Pencarian dan Tambah Siswa -->
-        <header class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fs-4 fw-bold mb-0">Data Siswa</h2>
-            <div class="d-flex align-items-center ms-auto">
-                <input type="text" placeholder="Cari" class="form-control me-2" style="width: 200px;">
-                <a href="{{ route('students.create') }}" class="btn btn-primary">+ Tambah Siswa</a>
-            </div>
-        </header>
-        @if(session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
-        @endif
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white">Pilih Kelas</div>
-            <div class="card-body">
-                <form action="{{ route('students.index') }}" method="GET">
-                    <div class="row">
-                        <!-- Pilih Tahun Ajaran -->
-                        <div class="col-md-4">
-                            <label>Tahun Ajaran</label>
-                            <select id="academicYearSelect" name="academic_year_id" class="form-control">
-                                <option value="">-- Pilih Tahun --</option>
-                                @foreach ($academicYears as $tahun)
-                                    <option value="{{ $tahun->id }}"
-                                        {{ request('academic_year_id') == $tahun->id ? 'selected' : '' }}>
-                                        {{ $tahun->year_name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
->>>>>>> 1fd8c832fefa16fd97c0daeac20241b60ca26b5d
-
         <!-- Tombol Tambah Siswa -->
         <a href="{{ route('students.create') }}" class="btn btn-primary">+ Tambah Siswa</a>
     </div>
