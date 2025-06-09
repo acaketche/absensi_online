@@ -1,17 +1,16 @@
 <?php
 
+use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
+require __DIR__ . '/../absensi_online/vendor/autoload.php';
+$app = require_once __DIR__ . '/../absensi_online/bootstrap/app.php';
 
-// Determine if the application is in maintenance mode...
-if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
-    require $maintenance;
-}
+$kernel = $app->make(Kernel::class);
 
-// Register the Composer autoloader...
-require __DIR__.'/../vendor/autoload.php';
+$response = tap($kernel->handle(
+    $request = Request::capture()
+))->send();
 
-// Bootstrap Laravel and handle the request...
-(require_once __DIR__.'/../bootstrap/app.php')
-    ->handleRequest(Request::capture());
+$kernel->terminate($request, $response);
