@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <style>
+
         .header {
             display: flex;
             justify-content: space-between;
@@ -121,25 +122,6 @@
         .badge-izin { background-color: #17a2b8; }
         .badge-alpa { background-color: #dc3545; }
         .badge-terlambat { background-color: #fd7e14; color: #fff;}
-        @media (max-width: 768px) {
-    .sidebar {
-        position: fixed;
-        width: 100%;
-        height: auto;
-        min-height: auto;
-        padding: 10px;
-        z-index: 1000;
-    }
-
-    .logo-text {
-        font-size: 16px;
-    }
-
-    .nav-item {
-        padding: 10px;
-        font-size: 14px;
-    }
-}
     </style>
 </head>
 <body class="bg-light">
@@ -182,49 +164,54 @@
         @endif
 
         <div class="filter-section mb-4">
-            <h5 class="mb-3">Filter Data Kehadiran</h5>
-            <form id="filterForm" action="{{ route('student-attendance.index') }}" method="GET" class="row g-3 align-items-end">
-                <div class="col-md-3">
-                    <label for="start_date" class="form-label">Tanggal Mulai</label>
-                    <input type="date" id="start_date" name="start_date" class="form-control" value="{{ request('start_date') }}">
-                </div>
-                <div class="col-md-3">
-                    <label for="end_date" class="form-label">Tanggal Selesai</label>
-                    <input type="date" id="end_date" name="end_date" class="form-control" value="{{ request('end_date') }}">
-                </div>
-                <div class="col-md-3">
-                    <label for="class_id" class="form-label">Kelas</label>
-                    <select name="class_id" id="class_id" class="form-select">
-                        <option value="">-- Pilih Kelas --</option>
-                        @foreach ($classes as $class)
-                            <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
-                                {{ $class->class_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="status_id" class="form-label">Status</label>
-                    <select name="status_id" id="status_id" class="form-select">
-                        <option value="">Semua Status</option>
-                        @foreach($statuses as $status)
-                            <option value="{{ $status->id }}" {{ request('status_id') == $status->id ? 'selected' : '' }}>
-                                {{ $status->status_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="col-12 mt-3">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-filter me-1"></i> Terapkan Filter
-                    </button>
-                    <a href="{{ route('student-attendance.index') }}" class="btn btn-secondary ms-2">
-                        <i class="fas fa-sync-alt me-1"></i> Reset
-                    </a>
-                </div>
-            </form>
+    <h5 class="mb-3">Filter Data Kehadiran</h5>
+    <form id="filterForm" action="{{ route('student-attendance.index') }}" method="GET" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label for="start_date" class="form-label">Tanggal Mulai</label>
+            <input type="date" id="start_date" name="start_date" class="form-control" value="{{ request('start_date') }}">
         </div>
+        <div class="col-md-3">
+            <label for="end_date" class="form-label">Tanggal Selesai</label>
+            <input type="date" id="end_date" name="end_date" class="form-control" value="{{ request('end_date') }}">
+        </div>
+        <div class="col-md-3">
+            <label for="class_id" class="form-label">Kelas</label>
+            <select name="class_id" id="class_id" class="form-select">
+                <option value="" {{ request('class_id') == '' ? 'selected' : '' }}>Semua Kelas</option>
+                @foreach ($classes as $class)
+                    <option value="{{ $class->class_id }}" {{ request('class_id') == $class->class_id ? 'selected' : '' }}>
+                        {{ $class->class_name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="status_id" class="form-label">Status</label>
+            <select name="status_id" id="status_id" class="form-select">
+                <option value="" {{ request('status_id') == '' ? 'selected' : '' }}>Semua Status</option>
+                @foreach($statuses as $status)
+                    <option value="{{ $status->status_id }}" {{ request('status_id') == $status->status_id ? 'selected' : '' }}>
+                        {{ $status->status_name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="col-12 mt-3">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-filter me-1"></i> Terapkan Filter
+            </button>
+            <a href="{{ route('student-attendance.index') }}" class="btn btn-secondary ms-2">
+                <i class="fas fa-sync-alt me-1"></i> Reset
+            </a>
+            <a href="{{ route('student-attendance.export.pdf', request()->query()) }}" class="btn btn-danger btn-sm">
+                <i class="fas fa-file-pdf"></i> Export PDF
+            </a>
+
+        </div>
+    </form>
+</div>
+
 
         <!-- Attendance Tabs -->
         <ul class="nav nav-tabs mb-4 attendance-tabs" id="attendanceTabs" role="tablist">
@@ -249,9 +236,9 @@
                         <h5 class="mb-0">Kehadiran Pagi</h5>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered">
-                                <thead>
+                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                            <table class="table table-bordered table-striped align-middle">
+                                <thead class="table-primary">
                                     <tr>
                                         <th>No</th>
                                         <th>NIPD</th>
@@ -279,9 +266,9 @@
                                 <td>{{ $index + 1 }}</td>
                                 <td>{{ $attendance->student->id_student ?? '-' }}</td>
                                 <td>{{ $attendance->student->fullname ?? '-' }}</td>
-                                <td>{{ $attendance->student->class->class_name ?? '-' }}</td>
-                                <td>{{ \Carbon\Carbon::parse($attendance->date)->format('d-m-Y') }}</td>
-                                <td>{{ $checkInTime ?? '-' }}</td>
+                                <td>{{ $attendance->class->class_name ?? '-' }}</td>
+                                <td>{{ \Carbon\Carbon::parse($attendance->attendance_date)->format('d-m-Y') }}</td>
+                                <td>{{ $attendance->check_in_time ?? '-' }}</td>
                                 <td>
                                     @php
                                         $statusClass = 'badge-hadir';
@@ -351,9 +338,9 @@
                         <h5 class="mb-0">Kehadiran Sore</h5>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered">
-                                <thead>
+                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                            <table class="table table-bordered table-striped align-middle">
+                                <thead class="table-primary">
                                     <tr>
                                         <th>No</th>
                                         <th>NIPD</th>

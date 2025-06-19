@@ -18,27 +18,44 @@ class StudentAttendanceController extends Controller
      * Menampilkan daftar absensi siswa.
      */
     public function index(Request $request)
-    {
-        $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
-        $activeSemester = Semester::where('is_active', 1)->first();
+{
+    $academicYearId = $request->get('academic_year_id'); // jangan beri default active
+    $semesterId = $request->get('semester_id');
 
-        $academicYearId = $request->get('academic_year_id', $activeAcademicYear->id ?? null);
-        $semesterId = $request->get('semester_id', $activeSemester->id ?? null);
+    $students = Student::when($academicYearId, function ($query) use ($academicYearId) {
+                            return $query->where('academic_year_id', $academicYearId);
+                        })
+                        ->when($semesterId, function ($query) use ($semesterId) {
+                            return $query->where('semester_id', $semesterId);
+                        })
+                        ->get();
 
-        $students = Student::where('academic_year_id', $academicYearId)
-                            ->when($semesterId, function ($query) use ($semesterId) {
-                                return $query->where('semester_id', $semesterId);
-                            })
-                            ->get();
+    $academicYears = AcademicYear::all();
+    $semesters = Semester::all();
+    $classes = Classes::all();
+    $statuses = AttendanceStatus::orderBy('created_at', 'desc')->get();
 
-        $academicYears = AcademicYear::all();
-        $semesters = Semester::all();
-        $classes = Classes::all();
-        $statuses = AttendanceStatus::orderBy('created_at', 'desc')->get();
-        $attendances = StudentAttendance::with(['student', 'class', 'status'])->get();
-        return view('students.absensisiswa', compact('students', 'classes', 'activeAcademicYear', 'activeSemester',
-            'academicYears', 'semesters', 'academicYearId', 'semesterId','attendances','statuses'));
-    }
+    $startDate = $request->get('start_date');
+    $endDate = $request->get('end_date');
+    $classId = $request->get('class_id');
+    $statusId = $request->get('status_id');
+
+    $attendances = StudentAttendance::with(['student', 'class', 'status'])
+        ->when($academicYearId, fn($q) => $q->where('academic_year_id', $academicYearId))
+        ->when($semesterId, fn($q) => $q->where('semester_id', $semesterId))
+        ->when($startDate, fn($q) => $q->whereDate('attendance_date', '>=', $startDate))
+        ->when($endDate, fn($q) => $q->whereDate('attendance_date', '<=', $endDate))
+        ->when($classId, fn($q) => $q->where('class_id', $classId))
+        ->when($statusId, fn($q) => $q->where('status_id', $statusId))
+        ->orderBy('attendance_date', 'desc')
+        ->get();
+
+    return view('students.absensisiswa', compact(
+        'students', 'classes', 'academicYears', 'semesters', 'statuses',
+        'attendances', 'academicYearId', 'semesterId', 'startDate', 'endDate', 'classId', 'statusId'
+    ));
+}
+
 
     /**
      * Menampilkan form untuk menambahkan absensi.
@@ -59,19 +76,21 @@ class StudentAttendanceController extends Controller
         'status_id' => 'required|in:1,2,3',
         'academic_year_id' => 'required|exists:academic_years,id',
         'semester_id' => 'required|exists:semesters,id',
+        'attendance_date' => 'required|date', // TAMBAHKAN INI
         'document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
     ]);
 
     $statusId = (int) $request->status_id;
+    $attendanceDate = $request->attendance_date;
     $now = now();
 
-    // Cek apakah sudah absen hari ini
+    // Cek apakah sudah absen di tanggal yang sama
     $alreadyExists = StudentAttendance::where('id_student', $request->id_student)
-        ->whereDate('attendance_date', $now->toDateString())
+        ->whereDate('attendance_date', $attendanceDate)
         ->exists();
 
     if ($alreadyExists) {
-        return redirect()->back()->with('error', 'Siswa sudah melakukan absensi hari ini.');
+        return redirect()->back()->with('error', 'Siswa sudah melakukan absensi di tanggal tersebut.');
     }
 
     $checkInTime = null;
@@ -80,14 +99,17 @@ class StudentAttendanceController extends Controller
     if ($statusId === 1) {
         $checkInTime = $now->format('H:i:s');
 
-        // Tandai terlambat jika masuk setelah 07:15
-        $isLate = $checkInTime > '07:15:00';
+        // Jika check-in lebih dari 07:15:00, ubah status jadi Terlambat (5)
+        if ($checkInTime > '07:15:00') {
+            $statusId = 5; // Terlambat
+            $isLate = true;
+        }
     }
 
     $attendanceData = [
         'id_student' => $request->id_student,
         'class_id' => $request->class_id,
-        'attendance_date' => $now->toDateString(),
+        'attendance_date' => $attendanceDate, // GUNAKAN attendance_date dari request
         'attendance_time' => $now->format('H:i:s'),
         'check_in_time' => $checkInTime,
         'check_out_time' => null,
@@ -103,8 +125,12 @@ class StudentAttendanceController extends Controller
 
     StudentAttendance::create($attendanceData);
 
-    return redirect()->route('attendances.index')->with('success', $isLate ? 'Absensi berhasil, namun siswa terlambat.' : 'Absensi berhasil ditambahkan.');
+    return redirect()->route('attendances.index')->with(
+        'success',
+        $isLate ? 'Absensi berhasil, namun siswa terlambat.' : 'Absensi berhasil ditambahkan.'
+    );
 }
+
 
     /**
      * Menampilkan detail absensi.
@@ -194,6 +220,7 @@ public function updateCheckoutTime(Request $request, $attendanceId)
 
     return redirect()->back()->with('success', 'Check-out berhasil.');
 }
+
 public function exportPdf(Request $request)
 {
     $academicYearId = $request->academic_year_id;
@@ -231,5 +258,6 @@ public function exportPdf(Request $request)
 
     return $pdf->download('laporan_absensi_siswa.pdf');
 }
+
 
 }
