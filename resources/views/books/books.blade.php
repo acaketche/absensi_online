@@ -376,74 +376,77 @@
       <input type="text" placeholder="Cari judul buku, penulis, atau penerbit..." class="form-control" id="searchInput">
     </div>
 
-    <!-- Grid View -->
-    <div class="grid-view" id="gridView">
-      @if($books->count() > 0)
-      <div class="book-grid">
-        @foreach ($books as $book)
-        <div class="card book-card">
-          <div class="card-body">
-            <h5 class="book-title">{{ $book->title }}</h5>
-            <p class="book-author">
-              <i class="fas fa-user-edit me-1"></i> {{ $book->author }}
-            </p>
-            <div class="book-meta">
-              <span><i class="fas fa-building me-1"></i> {{ $book->publisher }}</span>
-              <span><i class="fas fa-calendar-alt me-1"></i> {{ $book->year_published }}</span>
-            </div>
-            <div class="book-footer">
-              <span class="stock-badge">
-                <i class="fas fa-book me-1"></i> {{ $book->stock }} tersedia
-              </span>
-              <div class="action-buttons">
-                <button type="button" class="btn btn-icon btn-view show-book-btn"
-                        data-id="{{ $book->id }}"
-                        data-title="{{ $book->title }}"
-                        data-author="{{ $book->author }}"
-                        data-publisher="{{ $book->publisher }}"
-                        data-year="{{ $book->year_published }}"
-                        data-stock="{{ $book->stock }}"
-                        data-created="{{ $book->created_at }}"
-                        data-updated="{{ $book->updated_at }}">
-                  <i class="fas fa-eye"></i>
-                </button>
-                <button type="button" class="btn btn-icon btn-edit edit-book-btn"
-                        data-id="{{ $book->id }}"
-                        data-title="{{ $book->title }}"
-                        data-author="{{ $book->author }}"
-                        data-publisher="{{ $book->publisher }}"
-                        data-year="{{ $book->year_published }}"
-                        data-stock="{{ $book->stock }}">
-                  <i class="fas fa-edit"></i>
-                </button>
-                <form action="{{ route('books.destroy', $book->id) }}" method="POST" class="d-inline">
-                  @csrf
-                  @method('DELETE')
-                  <button type="submit" class="btn btn-icon btn-delete" onclick="return confirm('Apakah Anda yakin ingin menghapus buku ini?')">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </form>
-              </div>
-            </div>
+   <div class="grid-view" id="gridView">
+  @if($books->count() > 0)
+  <div class="book-grid">
+    @foreach ($books as $book)
+    <div class="card book-card position-relative">
+      <!-- Buat area klik untuk navigasi ke halaman salinan buku -->
+      <a href="{{ route('books.copies.show', $book->id) }}" class="stretched-link"></a>
+
+      <div class="card-body">
+        <h5 class="book-title">{{ $book->title }}</h5>
+        <p class="book-author">
+          <i class="fas fa-user-edit me-1"></i> {{ $book->author }}
+        </p>
+        <div class="book-meta">
+          <span><i class="fas fa-building me-1"></i> {{ $book->publisher }}</span>
+          <span><i class="fas fa-calendar-alt me-1"></i> {{ $book->year_published }}</span>
+        </div>
+        <div class="book-footer d-flex justify-content-between align-items-center">
+          <span class="stock-badge">
+            <i class="fas fa-book me-1"></i> {{ $book->stock }} tersedia
+          </span>
+          <div class="action-buttons d-flex gap-1">
+            <button type="button" class="btn btn-icon btn-view show-book-btn"
+                    data-id="{{ $book->id }}"
+                    data-title="{{ $book->title }}"
+                    data-author="{{ $book->author }}"
+                    data-publisher="{{ $book->publisher }}"
+                    data-year="{{ $book->year_published }}"
+                    data-stock="{{ $book->stock }}"
+                    data-created="{{ $book->created_at }}"
+                    data-updated="{{ $book->updated_at }}">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button type="button" class="btn btn-icon btn-edit edit-book-btn"
+                    data-id="{{ $book->id }}"
+                    data-title="{{ $book->title }}"
+                    data-author="{{ $book->author }}"
+                    data-publisher="{{ $book->publisher }}"
+                    data-year="{{ $book->year_published }}"
+                    data-stock="{{ $book->stock }}">
+              <i class="fas fa-edit"></i>
+            </button>
+            <form action="{{ route('books.destroy', $book->id) }}" method="POST" class="d-inline">
+              @csrf
+              @method('DELETE')
+              <button type="submit" class="btn btn-icon btn-delete" onclick="return confirm('Apakah Anda yakin ingin menghapus buku ini?')">
+                <i class="fas fa-trash"></i>
+              </button>
+            </form>
           </div>
         </div>
-        @endforeach
       </div>
-      @else
-      <div class="card">
-        <div class="card-body empty-state">
-          <div class="empty-icon">
-            <i class="fas fa-book-open"></i>
-          </div>
-          <h5>Belum Ada Buku</h5>
-          <p class="empty-text">Belum ada data buku yang tersedia. Silakan tambahkan buku baru.</p>
-          <a href="{{ route('books.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus-circle me-2"></i> Tambah Buku Baru
-          </a>
-        </div>
-      </div>
-      @endif
     </div>
+    @endforeach
+  </div>
+  @else
+  <div class="card">
+    <div class="card-body empty-state">
+      <div class="empty-icon">
+        <i class="fas fa-book-open"></i>
+      </div>
+      <h5>Belum Ada Buku</h5>
+      <p class="empty-text">Belum ada data buku yang tersedia. Silakan tambahkan buku baru.</p>
+      <a href="{{ route('books.create') }}" class="btn btn-primary">
+        <i class="fas fa-plus-circle me-2"></i> Tambah Buku Baru
+      </a>
+    </div>
+  </div>
+  @endif
+</div>
+
     <!-- Show Book Modal -->
     <div class="modal fade" id="showBookModal" tabindex="-1" aria-labelledby="showBookModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">

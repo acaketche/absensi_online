@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
+use App\Models\BookCopy;
 use Illuminate\Http\Request;
 
 class BookController extends Controller
@@ -64,5 +65,28 @@ class BookController extends Controller
 
         return redirect()->route('books.index')
             ->with('success', 'Buku berhasil dihapus');
+    }
+
+    public function showCopies(Book $book)
+{
+    $book->load('copies');
+    return view('books.books_copiess', compact('book'));
+}
+
+     public function storeCopies(Request $request, Book $book)
+    {
+        $request->validate([
+            'quantity' => 'required|integer|min:1',
+        ]);
+
+        for ($i = 1; $i <= $request->quantity; $i++) {
+            BookCopy::create([
+                'book_id' => $book->id,
+                'copy_code' => strtoupper($book->code . '-' . sprintf('%03d', $i)),
+                'status' => 'Tersedia',
+            ]);
+        }
+
+        return redirect()->route('books.copies.show')->with('success', 'Salinan buku berhasil ditambahkan.');
     }
 }

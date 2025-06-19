@@ -66,7 +66,12 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
     Route::delete('/rapor/{id}', [RaporController::class, 'destroy'])->name('rapor.destroy');
 
     // Library Management
-    Route::resource('books', BookController::class);
+    Route::resource('books', BookController::class)->except('show');
+    Route::get('/books/{book}/copies', [BookController::class, 'showCopies'])->name('books.copies.show');
+    Route::post('/books/{book}/copies', [BookController::class, 'storeCopies'])->name('books.copies.store');
+
+
+
 
     // Book Loans
     Route::get('/book-loans', [BookLoanController::class, 'index'])->name('book-loans.index');

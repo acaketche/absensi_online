@@ -26,4 +26,9 @@ class Book extends Model
     {
         return $this->hasMany(BookLoan::class, 'book_id');
     }
+    public function copies()
+{
+    return $this->hasMany(BookCopy::class);
+}
+
 }
