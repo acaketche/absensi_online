@@ -6,415 +6,469 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Manajemen Salinan Buku - E-School</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ asset('css/salinan.css') }}">
+   <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
   <style>
-  :root {
+    :root {
       --primary-color: #4361ee;
+      --primary-light: #eef2ff;
       --secondary-color: #3f37c9;
-      --accent-color: #4895ef;
       --success-color: #4cc9f0;
-      --warning-color: #f72585;
       --light-bg: #f8f9fa;
-      --card-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
     }
 
     body {
-      background-color: #f5f7fb;
+      background-color: var(--light-bg);
       font-family: 'Poppins', sans-serif;
+      color: #333;
     }
 
-  a {
-    text-decoration: none;
-  }
-
-  /* Sidebar */
-  .sidebar {
-    width: 250px;
-    min-height: 100vh;
-    background: linear-gradient(180deg, #2c3e50, #34495e);
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1000;
-    color: #fff;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
-  }
-
-  .sidebar a {
-    color: #ecf0f1;
-    padding: 12px 20px;
-    display: block;
-    transition: background 0.3s ease;
-  }
-
-  .sidebar a:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  .sidebar .active {
-    background: linear-gradient(135deg, #4361ee, #3f37c9);
-    color: #fff;
-  }
-
-  /* Main Content */
-  .main-content {
-    margin-left: 250px;
-    padding: 20px;
-    min-height: 100vh;
-  }
-
-  .main-container {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  /* Cards */
-  .card {
-    border-radius: 15px;
-    border: none;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    margin-bottom: 25px;
-    background: rgba(255, 255, 255, 0.95);
-    transition: transform 0.3s, box-shadow 0.3s;
-  }
-
-  .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-  }
-
-  .card-header {
-    background: linear-gradient(135deg, #4361ee, #3f37c9);
-    color: white;
-    border: none;
-    padding: 20px;
-  }
-
-  /* Buttons */
-  .btn-primary {
-    background: linear-gradient(135deg, #4361ee, #3f37c9);
-    border: none;
-    border-radius: 50px;
-    padding: 10px 25px;
-    font-weight: 500;
-    transition: all 0.3s;
-  }
-
-  .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
-  }
-
-  .btn-outline-secondary {
-    border: 2px solid #6c757d;
-    border-radius: 50px;
-    padding: 10px 25px;
-    transition: all 0.3s;
-  }
-
-  .btn-outline-secondary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
-  }
-
-  .btn-outline-primary {
-    border: 2px solid #3f37c9;
-    border-radius: 50px;
-    padding: 10px 25px;
-    color: #3f37c9;
-  }
-
-  .btn-outline-primary:hover {
-    background: #3f37c9;
-    color: #fff;
-  }
-
-  /* Badge Styles */
-  .badge-status {
-    border-radius: 50px;
-    padding: 6px 15px;
-    font-size: 12px;
-    font-weight: 500;
-  }
-
-  .bg-success {
-    background: linear-gradient(135deg, #28a745, #20c997) !important;
-  }
-
-  .bg-secondary {
-    background: linear-gradient(135deg, #6c757d, #5a6268) !important;
-  }
-
-  /* Tables */
-  .table {
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  }
-
-  .table thead th {
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-    border: none;
-    color: #495057;
-    font-weight: 600;
-  }
-
-  .table tbody td {
-    border: none;
-    vertical-align: middle;
-    padding: 12px;
-  }
-
-  .table tbody tr:hover {
-    background: rgba(67, 97, 238, 0.05);
-    transform: scale(1.01);
-  }
-
-  /* Book Cover */
-  .book-cover {
-    width: 150px;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 12px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    transition: transform 0.3s;
-  }
-
-  .book-cover:hover {
-    transform: scale(1.05);
-  }
-
-  .text-gradient {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  /* Alerts */
-  .alert {
-    border-radius: 12px;
-    border: none;
-    padding: 15px 20px;
-    margin-bottom: 20px;
-  }
-
-  .alert-success {
-    background: linear-gradient(135deg, #d4edda, #c3e6cb);
-    color: #155724;
-  }
-
-  /* Responsive */
-  @media (max-width: 992px) {
-    .sidebar {
-      transform: translateX(-100%);
-      transition: transform 0.3s ease;
+    .card {
+      border-radius: 12px;
+      box-shadow: var(--card-shadow);
+      border: none;
+      margin-bottom: 24px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      overflow: hidden;
     }
-    .sidebar.show {
-      transform: translateX(0);
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
     }
-    .main-content {
-      margin-left: 0;
+
+    .card-header {
+      background-color: white;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      font-weight: 600;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-    .mobile-toggle {
-      display: block !important;
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      border-radius: 8px;
+      border: none;
+      padding: 0.5rem 1.25rem;
+      font-weight: 500;
+      box-shadow: 0 2px 8px rgba(67, 97, 238, 0.3);
     }
-  }
 
-  /* Mobile Toggle Button */
-  .mobile-toggle {
-    display: none;
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    z-index: 1100;
-    background: linear-gradient(135deg, #4361ee, #3f37c9);
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #4361ee, #3f37c9);
-    border-radius: 10px;
-  }
-
-  /* Ripple Effect */
-  .ripple {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.6);
-    transform: scale(0);
-    animation: ripple-animation 0.6s linear;
-    pointer-events: none;
-  }
-
-  @keyframes ripple-animation {
-    to {
-      transform: scale(4);
-      opacity: 0;
+    .btn-primary:hover {
+      background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(67, 97, 238, 0.4);
     }
-  }
-</style>
 
+    .btn-outline-primary {
+      border-color: var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    .btn-outline-primary:hover {
+      background-color: var(--primary-light);
+    }
+
+    .badge-status {
+      border-radius: 50px;
+      padding: 0.375rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: capitalize;
+      letter-spacing: 0.5px;
+    }
+
+    .book-cover {
+      width: 100%;
+      max-width: 160px;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      transition: transform 0.3s;
+    }
+
+    .book-cover:hover {
+      transform: scale(1.05) rotate(1deg);
+    }
+
+    .book-title {
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 0.75rem;
+      line-height: 1.3;
+    }
+
+    .book-meta {
+      color: #6c757d;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .table-container {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .table {
+      margin-bottom: 0;
+      width: 100%;
+    }
+
+    .table thead {
+      background-color: var(--primary-color);
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .table th {
+      font-weight: 500;
+      padding: 1rem 1.25rem;
+      white-space: nowrap;
+    }
+
+    .table td {
+      padding: 1rem 1.25rem;
+      vertical-align: middle;
+      background-color: white;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .table tr:hover td {
+      background-color: var(--primary-light);
+    }
+
+    .empty-state {
+      padding: 3rem 1rem;
+      text-align: center;
+      color: #6c757d;
+      background-color: white;
+      border-radius: 12px;
+    }
+
+    .empty-state i {
+      font-size: 3.5rem;
+      color: #e9ecef;
+      margin-bottom: 1.5rem;
+      opacity: 0.7;
+    }
+
+    .empty-state h5 {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+      max-width: 400px;
+      margin: 0 auto 1.5rem;
+    }
+
+    .action-buttons .btn {
+      padding: 0.375rem 0.75rem;
+      border-radius: 6px;
+      margin: 0 2px;
+    }
+
+    .page-title {
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 0.5rem;
+    }
+
+    .page-subtitle {
+      color: #6c757d;
+      font-size: 0.95rem;
+    }
+
+    /* Custom scrollbar for table */
+    .table-container::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    .table-container::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    .table-container::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 10px;
+    }
+
+    .table-container::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+
+    @media (max-width: 768px) {
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .book-cover {
+        max-width: 120px;
+        height: 180px;
+      }
+
+      .table th, .table td {
+        padding: 0.75rem;
+      }
+
+      .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .action-buttons .btn {
+        width: 100%;
+        margin: 0;
+      }
+    }
+
+    /* Animation for status badges */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .badge-status.available {
+      animation: pulse 2s infinite;
+    }
+  </style>
 </head>
 
 <body>
-  @if(Auth::guard('employee')->check())
-    <button class="mobile-toggle" onclick="toggleSidebar()">
-      <i class="fas fa-bars"></i>
-    </button>
+@if(Auth::guard('employee')->check())
+<div class="d-flex">
+  @include('components.sidebar')
 
-    <div class="d-flex">
-      @include('components.sidebar')
-      <main class="main-content flex-grow-1">
-        @include('components.profiladmin')
+  <main class="flex-grow-1 p-4">
+    @include('components.profiladmin')
 
-        <div class="main-container">
-          @if(session('success'))
-            <div class="alert alert-success">
-              <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-            </div>
-          @endif
-
-          <div class="alert alert-success d-none" id="successAlert">
-            <i class="fas fa-check-circle me-2"></i> Operasi berhasil dilakukan!
-          </div>
-
-          <div class="card">
-            <div class="card-header text-center">
-              <h2 class="fw-bold mb-1 text-white">
-                <i class="fas fa-books me-2"></i> Manajemen Salinan Buku
-              </h2>
-              <p class="mb-0 opacity-75">Kelola salinan buku perpustakaan dengan mudah</p>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-body text-center">
-              <img src="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/cover-default.png') }}" alt="Cover Buku" class="book-cover mb-3">
-              <h5 class="fw-semibold text-gradient">{{ $book->title ?? 'Judul Buku' }}</h5>
-              <div class="text-muted mb-3">
-                <i class="fas fa-user me-1"></i> {{ $book->author ?? 'Penulis' }} |
-                <i class="fas fa-building me-1"></i> {{ $book->publisher ?? 'Penerbit' }} |
-                <i class="fas fa-calendar me-1"></i> {{ $book->year_published ?? 'Tahun' }}
-              </div>
-              <div class="d-flex justify-content-center gap-2">
-                <span class="badge bg-primary">
-                  <i class="fas fa-book me-1"></i>
-                  Total: <span id="totalCopies">{{ $book->copies->count() ?? 0 }}</span> Salinan
-                </span>
-                <span class="badge bg-success">
-                  <i class="fas fa-check me-1"></i>
-                  Tersedia: <span id="availableCopies">{{ $book->copies->where('status', 'Tersedia')->count() ?? 0 }}</span>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-semibold mb-0">
-                  <i class="fas fa-list me-2"></i> Daftar Kode Salinan
-                </h5>
-                <button class="btn btn-primary btn-sm" onclick="addNewCopy()">
-                  <i class="fas fa-plus me-1"></i> Tambah Salinan
-                </button>
-              </div>
-
-              @if($book->copies && $book->copies->count() > 0)
-                <div class="table-responsive">
-                  <table class="table align-middle mb-0" id="copiesTable">
-                    <thead>
-                      <tr class="text-center">
-                        <th style="width: 60px;">No</th>
-                        <th>Kode Buku</th>
-                        <th>Status</th>
-                        <th style="width: 120px;">Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody id="copiesTableBody">
-                      @foreach($book->copies as $index => $copy)
-                        <tr>
-                          <td class="text-center fw-bold">{{ $index + 1 }}</td>
-                          <td class="fw-semibold">{{ $copy->copy_code }}</td>
-                          <td class="text-center">
-                            <span class="badge badge-status {{ $copy->status == 'Tersedia' ? 'bg-success' : 'bg-secondary' }}">
-                              <i class="fas fa-{{ $copy->status == 'Tersedia' ? 'check' : 'times' }} me-1"></i>
-                              {{ $copy->status ?? 'Tidak Diketahui' }}
-                            </span>
-                          </td>
-                          <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary" onclick="editCopy({{ $copy->id }})">
-                              <i class="fas fa-edit"></i>
-                            </button>
-                          </td>
-                        </tr>
-                      @endforeach
-                    </tbody>
-                  </table>
-                </div>
-              @else
-                <div class="text-center py-5">
-                  <i class="fas fa-book text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
-                  <p class="text-muted mt-3">Belum ada kode salinan untuk buku ini.</p>
-                  <button class="btn btn-primary" onclick="addNewCopy()">
-                    <i class="fas fa-plus me-1"></i> Tambah Salinan Pertama
-                  </button>
-                </div>
-              @endif
-
-              <div class="mt-4 text-center">
-                <small class="text-muted">
-                  <i class="fas fa-info-circle me-1"></i> Klik tombol edit untuk mengubah status atau kode salinan
-                </small>
-              </div>
-            </div>
-          </div>
-
-          <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <a href="{{ route('books.index') }}" class="btn btn-outline-secondary">
-              <i class="fas fa-arrow-left me-2"></i> Kembali ke Daftar Buku
-            </a>
-            <div class="d-flex gap-2">
-              <button class="btn btn-primary" onclick="exportData()">
-                <i class="fas fa-download me-1"></i> Export
-              </button>
-              <button class="btn btn-outline-primary" onclick="printData()">
-                <i class="fas fa-print me-1"></i> Print
-              </button>
-            </div>
-          </div>
-
+    <div class="container-fluid py-3">
+      <!-- Page Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h1 class="page-title">Manajemen Salinan Buku</h1>
+          <p class="page-subtitle">Kelola salinan buku perpustakaan</p>
         </div>
-      </main>
-    </div>
-  @else
-    <div class="container mt-5">
-      <div class="alert alert-danger text-center">
-        <h4>Akses Ditolak</h4>
-        <p>Anda harus login sebagai employee untuk mengakses halaman ini.</p>
-        <a href="{{ route('login') }}" class="btn btn-primary">Login</a>
+        <a href="{{ route('books.index') }}" class="btn btn-outline-secondary">
+          <i class="fas fa-arrow-left me-1"></i> Kembali ke Daftar Buku
+        </a>
+      </div>
+
+      @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="fas fa-check-circle me-2"></i>
+          {{ session('success') }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      @endif
+
+      <!-- Book Details Card -->
+      <div class="card mb-4">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <div class="col-md-2 text-center mb-3 mb-md-0">
+              <img src="{{ asset($book->cover_image ?? 'images/cover-default.png') }}" alt="Cover Buku" class="book-cover mx-auto">
+            </div>
+            <div class="col-md-10">
+              <div class="d-flex flex-column h-100">
+                <h2 class="book-title">{{ $book->title }}</h2>
+
+                <div class="book-meta">
+                  <span class="me-3"><i class="fas fa-user me-1 text-primary"></i> {{ $book->author }}</span>
+                  <span class="me-3"><i class="fas fa-building me-1 text-primary"></i> {{ $book->publisher }}</span>
+                  <span><i class="fas fa-calendar-alt me-1 text-primary"></i> {{ $book->year_published }}</span>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                  <span class="badge bg-light text-dark border">
+                    <i class="fas fa-copy me-1 text-primary"></i> Total Salinan: {{ $book->copies->count() }}
+                  </span>
+                  <span class="badge bg-light text-dark border">
+                    <i class="fas fa-check-circle me-1 text-success"></i> Tersedia: {{ $book->copies->where('is_available', true)->count() }}
+                  </span>
+                </div>
+
+                <div class="mt-auto">
+                  <div class="progress" style="height: 8px;">
+                    <div class="progress-bar bg-success" role="progressbar"
+                         style="width: {{ $book->copies->count() > 0 ? ($book->copies->where('is_available', true)->count() / $book->copies->count() * 100) : 0 }}%"
+                         aria-valuenow="{{ $book->copies->where('is_available', true)->count() }}"
+                         aria-valuemin="0"
+                         aria-valuemax="{{ $book->copies->count() }}">
+                    </div>
+                  </div>
+                  <small class="text-muted">
+                    Ketersediaan: {{ $book->copies->where('is_available', true)->count() }} dari {{ $book->copies->count() }} salinan
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Book Copies Table -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="fas fa-copy me-2"></i>Daftar Kode Salinan</h5>
+          <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addCopyModal">
+            <i class="fas fa-plus me-1"></i> Tambah Salinan
+          </button>
+        </div>
+
+        <div class="card-body p-0">
+          @if($book->copies->count() > 0)
+          <div class="table-container">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th style="width: 80px;">No</th>
+                  <th>Kode Buku</th>
+                  <th>Tanggal Ditambahkan</th>
+                  <th style="width: 150px;">Status</th>
+                  <th style="width: 150px;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach($book->copies as $index => $copy)
+                <tr>
+                  <td class="text-center fw-semibold">{{ $index + 1 }}</td>
+                  <td class="fw-bold text-primary">{{ $copy->copy_code }}</td>
+                  <td>{{ $copy->created_at->format('d M Y') }}</td>
+                  <td>
+                    <span class="badge badge-status {{ $copy->is_available ? 'bg-success available' : 'bg-warning text-dark' }}">
+                      <i class="fas {{ $copy->is_available ? 'fa-check-circle' : 'fa-book-reader' }} me-1"></i>
+                      {{ $copy->status }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="action-buttons">
+                      <button class="btn btn-sm btn-outline-primary" title="Edit" data-bs-toggle="modal" data-bs-target="#editCopyModal{{ $copy->id }}">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger" title="Hapus" onclick="confirmDelete('{{ $copy->id }}')">
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                      @if($copy->is_available)
+                      <button class="btn btn-sm btn-success" title="Pinjam">
+                        <i class="fas fa-book-open"></i>
+                      </button>
+                      @endif
+                    </div>
+                  </td>
+                </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
+          @else
+          <div class="empty-state">
+            <i class="fas fa-book-open"></i>
+            <h5>Belum ada salinan buku</h5>
+            <p>Tambahkan salinan baru untuk memulai manajemen inventaris buku ini</p>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCopyModal">
+              <i class="fas fa-plus me-1"></i> Tambah Salinan Pertama
+            </button>
+          </div>
+          @endif
+        </div>
       </div>
     </div>
-  @endif
+  </main>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="{{ asset('js/salinan.js') }}"></script>
+<!-- Add Copy Modal -->
+<div class="modal fade" id="addCopyModal" tabindex="-1" aria-labelledby="addCopyModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="{{ route('book-copies.store', $book->id) }}" method="POST">
+        @csrf
+        <div class="modal-header">
+          <h5 class="modal-title" id="addCopyModalLabel">Tambah Salinan Buku</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="copyCode" class="form-label">Kode Salinan *</label>
+            <input type="text" class="form-control" id="copyCode" name="copy_code" placeholder="Misal: BK-001-2023" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Status Awal *</label>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="is_available" id="availableTrue" value="1" checked>
+              <label class="form-check-label" for="availableTrue">
+                Tersedia
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="is_available" id="availableFalse" value="0">
+              <label class="form-check-label" for="availableFalse">
+                Dipinjam
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan Salinan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+@endif
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  // Add confirmation for delete actions
+  function confirmDelete(copyId) {
+    Swal.fire({
+      title: 'Hapus Salinan?',
+      text: "Anda tidak akan dapat mengembalikan data ini!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#4361ee',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal',
+      backdrop: `rgba(67, 97, 238, 0.15)`
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Submit the delete form
+        document.getElementById('delete-form-' + copyId).submit();
+      }
+    });
+  }
+
+  // Initialize tooltips
+  document.addEventListener('DOMContentLoaded', function() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  });
+</script>
 </body>
-
 </html>

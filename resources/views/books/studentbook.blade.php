@@ -272,6 +272,10 @@
            target="_blank">
             <i class="fas fa-print me-1"></i> Cetak
         </a>
+         <!-- Tombol Tambah Peminjaman -->
+          <button class="btn btn-success btn-sm me-2" data-bs-toggle="modal" data-bs-target="#addLoanModal">
+            <i class="fas fa-plus me-1"></i> Tambah
+          </button>
           <div class="search-box">
             <i class="fas fa-search search-icon"></i>
             <input type="text" id="searchBook" class="form-control form-control-sm search-input" placeholder="Cari buku...">
@@ -393,13 +397,21 @@
 
           <div class="mb-3">
             <label for="book_id" class="form-label">Buku</label>
-            <select class="form-select" id="book_id" name="book_id" required>
+            <select class="form-select" id="book_id" name="book_id" required onchange="loadAvailableCopies(this.value)">
               <option value="">-- Pilih Buku --</option>
               @foreach($books as $book)
-                <option value="{{ $book->id }}">{{ $book->title }} ({{ $book->code }})</option>
+                <option value="{{ $book->id }}" data-code="{{ $book->code }}">{{ $book->title }} ({{ $book->code }})</option>
               @endforeach
             </select>
           </div>
+
+          <div class="mb-3">
+            <label for="copy_search" class="form-label">Kode Salinan Buku</label>
+            <div class="input-group">
+             <input type="text" id="copy_search" placeholder="Ketik kode salinan...">
+<ul id="copy_dropdown" class="dropdown-menu show"></ul>
+<input type="hidden" id="copy_id" name="copy_id">
+<div id="loading_indicator" style="display: none;">Loading...</div>
 
           <div class="mb-3">
             <label for="loan_date" class="form-label">Tanggal Pinjam</label>
@@ -422,6 +434,7 @@
     </div>
   </div>
 </div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -503,22 +516,58 @@ document.addEventListener('DOMContentLoaded', function() {
   }, 5000);
 });
 
-$(document).ready(function() {
-  $('#addLoanModal form').on('submit', function(e) {
-    e.preventDefault();
 
-    $.ajax({
-      url: $(this).attr('action'),
-      method: $(this).attr('method'),
-      data: $(this).serialize(),
-      success: function(response) {
-        $('#addLoanModal').modal('hide');
-        location.reload(); // reload halaman
-      },
-      error: function(xhr) {
-        alert('Terjadi kesalahan saat menyimpan.');
+function loadAvailableCopies(bookId) {
+  const copySearch = document.getElementById('copy_search');
+  const copyDropdown = document.getElementById('copy_dropdown');
+  const copyIdInput = document.getElementById('copy_id');
+  const loadingIndicator = document.getElementById('loading_indicator');
+
+  loadingIndicator.style.display = 'block';
+
+  fetch(`/api/books/${bookId}/available-copies`)
+    .then(response => response.json())
+    .then(data => {
+      copyDropdown.innerHTML = '';
+
+      if (data.length > 0) {
+        data.forEach(copy => {
+          const item = document.createElement('li');
+          item.className = 'dropdown-item';
+          item.style.cursor = 'pointer';
+          item.innerHTML = `${copy.copy_code} - ${copy.status}`;
+          item.onclick = function () {
+            copySearch.value = `${copy.copy_code} - ${copy.status}`;
+            copyIdInput.value = copy.id;
+            copyDropdown.classList.remove('show'); // hide dropdown
+          };
+          copyDropdown.appendChild(item);
+        });
+
+        copySearch.disabled = false;
+        copySearch.placeholder = "Ketik untuk mencari salinan...";
+        copyDropdown.classList.add('show');
+      } else {
+        copyDropdown.innerHTML = '<li class="dropdown-item text-muted">Tidak ada salinan tersedia</li>';
+        copySearch.placeholder = "Tidak ada salinan tersedia";
       }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      copyDropdown.innerHTML = '<li class="dropdown-item text-muted">Error memuat salinan</li>';
+      copySearch.placeholder = "Error memuat salinan";
+    })
+    .finally(() => {
+      loadingIndicator.style.display = 'none';
     });
+}
+
+document.getElementById('copy_search').addEventListener('input', function (e) {
+  const searchTerm = e.target.value.toLowerCase();
+  const items = document.querySelectorAll('#copy_dropdown .dropdown-item');
+
+  items.forEach(item => {
+    item.style.display = item.textContent.toLowerCase().includes(searchTerm) ? 'block' : 'none';
   });
 });
 

@@ -73,11 +73,10 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
 
     // Library Management
     Route::resource('books', BookController::class)->except('show');
-    Route::get('/books/{book}/copies', [BookController::class, 'showCopies'])->name('books.copies.show');
-    Route::post('/books/{book}/copies', [BookController::class, 'storeCopies'])->name('books.copies.store');
 
-
-
+    Route::get('/books/{book}/copies', [BookCopyController::class, 'showCopies'])->name('books.copies.show');
+    Route::post('/books/{book}/copies', [BookCopyController::class, 'storeCopies'])->name('books.copies.store');
+    Route::get('/books/{book}/available-copies', [BookCopyController::class, 'availableCopies']);
 
     // Book Loans
     Route::get('/book-loans', [BookLoanController::class, 'index'])->name('book-loans.index');
