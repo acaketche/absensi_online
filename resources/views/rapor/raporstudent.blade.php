@@ -7,7 +7,7 @@
     <title>Data Siswa {{ $class->class_name }} | E-School</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <style>
         :root {
             --primary-color: #4361ee;
@@ -25,22 +25,22 @@
             font-family: 'Poppins', sans-serif;
         }
 
-       .card {
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
-    }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
 
-    .card-header {
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
-      font-weight: bold;
-    }
+        .card-header {
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            font-weight: bold;
+        }
 
-    .table-hover tbody tr:hover {
-      background-color: rgba(0, 123, 255, 0.05);
-      cursor: pointer;
-    }
+        .table-hover tbody tr:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+            cursor: pointer;
+        }
 
         .btn-primary {
             background: var(--primary-color);
@@ -135,7 +135,7 @@
                 gap: 5px;
             }
         }
-              .class-info {
+        .class-info {
             background: white;
             border-radius: 16px;
             padding: 20px;
@@ -187,30 +187,42 @@
             margin-right: 5px;
             color: var(--primary-color);
         }
-.scrollable-table {
-  max-height: 400px; /* atur tinggi maksimal sesuai kebutuhan */
-  overflow-y: auto;
-  display: block;
-}
+        .scrollable-table {
+            max-height: 400px;
+            overflow-y: auto;
+            display: block;
+        }
 
-/* Preview file styles */
-.file-preview {
-    margin-top: 10px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-}
+        /* Preview file styles */
+        .file-preview {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
 
-.file-preview a {
-    color: var(--primary-color);
-    text-decoration: none;
-}
+        .file-preview a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
 
-.file-preview a:hover {
-    text-decoration: underline;
-}
+        .file-preview a:hover {
+            text-decoration: underline;
+        }
 
+        /* Mass upload specific styles */
+        .mass-upload-info {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .mass-upload-info ul {
+            margin-bottom: 0;
+            padding-left: 20px;
+        }
     </style>
 </head>
 @if(Auth::guard('employee')->check())
@@ -239,22 +251,33 @@
         </div>
         @endif
 
+        @if(isset($errors) && count($errors) > 0)
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i> Beberapa rapor gagal diupload:
+            <ul class="mt-2 mb-0">
+                @foreach($errors as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        @endif
+
         <!-- Header Section -->
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-                <div class="d-flex gap-2 mt-2 mt-md-0">
-                    <div class="search-container">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" placeholder="Cari nama siswa atau NIS/NISN..." class="form-control search-input" id="searchInput">
-                    </div>
+            <div class="d-flex gap-2 mt-2 mt-md-0">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" placeholder="Cari nama siswa atau NIPD..." class="form-control search-input" id="searchInput">
                 </div>
-
+            </div>
 
             <a href="{{ route('rapor.classes') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left me-2"></i> Kembali
             </a>
         </div>
 
-            <!-- Class Info -->
+        <!-- Class Info -->
         <div class="class-info">
             <div class="class-icon">
                 <i class="fas fa-chalkboard"></i>
@@ -281,116 +304,120 @@
                 <div>
                     <i class="fas fa-users me-2"></i> Daftar Siswa
                 </div>
-
+                <div>
+                    <button id="massUploadBtn" class="btn btn-light btn-sm me-2" data-bs-toggle="modal" data-bs-target="#massUploadModal">
+                        <i class="fas fa-file-upload me-1"></i> Upload Massal
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 @if($students->count() > 0)
                     <div class="table-responsive scrollable-table">
-    <table class="table table-bordered table-hover" id="siswaTable">
-        <thead class="table-light">
-            <tr>
-                <th width="5%" class="text-center">No</th>
-                <th width="25%">Nama Siswa</th>
-                <th width="15%">NIS</th>
-                <th width="10%">Jenis Kelamin</th>
-                <th width="15%">Status Rapor</th>
-                <th width="10%">Tanggal</th>
-                <th width="20%" class="text-center">Aksi</th>
-            </tr>
-        </thead>
-<tbody>
-@foreach ($students as $index => $student)
-    @php
-        // Ambil rapor pertama yang cocok dengan tahun ajaran dan semester yang sesuai (kalau perlu)
-        $rapor = $student->rapor->first();
-    @endphp
-    <tr>
-        <td class="text-center">{{ $index + 1 }}</td>
-        <td>
-            <div class="d-flex align-items-center">
-                @if($student->photo)
-                    <img src="{{ asset('storage/' . $student->photo) }}"
-                        alt="Foto {{ $student->fullname }}"
-                        class="student-avatar me-2">
-                @else
-                    <div class="student-avatar bg-secondary text-white d-flex align-items-center justify-content-center me-2">
-                        {{ strtoupper(substr($student->fullname, 0, 1)) }}
+                        <table class="table table-bordered table-hover" id="siswaTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="5%" class="text-center">No</th>
+                                    <th width="25%">Nama Siswa</th>
+                                    <th width="15%">NIPD</th>
+                                    <th width="10%">Jenis Kelamin</th>
+                                    <th width="15%">Status Rapor</th>
+                                    <th width="10%">Tanggal</th>
+                                    <th width="20%" class="text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($students as $index => $student)
+                                    @php
+                                        // Ambil rapor pertama yang cocok dengan tahun ajaran dan semester yang sesuai
+                                        $rapor = $student->rapor->first();
+                                    @endphp
+                                    <tr>
+                                        <td class="text-center">{{ $index + 1 }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                @if($student->photo)
+                                                    <img src="{{ asset('storage/' . $student->photo) }}"
+                                                        alt="Foto {{ $student->fullname }}"
+                                                        class="student-avatar me-2">
+                                                @else
+                                                    <div class="student-avatar bg-secondary text-white d-flex align-items-center justify-content-center me-2">
+                                                        {{ strtoupper(substr($student->fullname, 0, 1)) }}
+                                                    </div>
+                                                @endif
+                                                <div>{{ $student->fullname }}</div>
+                                            </div>
+                                        </td>
+                                        <td>{{ $student->id_student }}</td>
+                                        <td>
+                                            @if($student->gender == 'L')
+                                                <span class="text-primary"><i class="fas fa-male me-1"></i> Laki-laki</span>
+                                            @else
+                                                <span class="text-danger"><i class="fas fa-female me-1"></i> Perempuan</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($rapor)
+                                                <span class="badge bg-success ms-2">Sudah Ada</span>
+                                            @else
+                                                <span class="badge bg-secondary">Belum Ada</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($rapor && $rapor->report_date)
+                                                {{ \Carbon\Carbon::parse($rapor->report_date)->format('d/m/Y') }}
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <div class="d-flex gap-1">
+                                                @if($rapor)
+                                                    @if($rapor->file_path)
+                                                        <a href="{{ asset('storage/' . $rapor->file_path) }}" target="_blank" class="btn btn-sm btn-info">
+                                                            <i class="fas fa-eye me-1"></i>
+                                                        </a>
+                                                    @endif
+
+                                                    <button type="button" class="btn btn-sm btn-warning edit-rapor-btn"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editRaporModal"
+                                                            data-rapor-id="{{ $rapor->id }}"
+                                                            data-student-id="{{ $student->id_student }}"
+                                                            data-student-name="{{ $student->fullname }}"
+                                                            data-student-nipd="{{ $student->id_student }}"
+                                                            data-report-date="{{ $rapor->report_date }}"
+                                                            data-description="{{ $rapor->description }}"
+                                                            data-file-path="{{ $rapor->file_path ? asset('storage/' . $rapor->file_path) : '' }}">
+                                                        <i class="fas fa-edit me-1"></i>
+                                                    </button>
+
+                                                    <button type="button" class="btn btn-sm btn-danger delete-rapor"
+                                                            data-rapor-id="{{ $rapor->id }}">
+                                                        <i class="fas fa-trash me-1"></i>
+                                                    </button>
+
+                                                    <form class="delete-rapor-form" action="{{ route('rapor.destroy', $rapor->id) }}" method="POST" style="display: none;">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                    </form>
+                                                @else
+                                                    <button type="button" class="btn btn-sm btn-success upload-rapor-btn"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#uploadRaporModal"
+                                                            data-student-id="{{ $student->id_student }}"
+                                                            data-student-name="{{ $student->fullname }}"
+                                                            data-student-nipd="{{ $student->id_student }}"
+                                                            data-class-id="{{ $class->class_id }}">
+                                                        <i class="fas fa-upload me-1"></i>
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
-                @endif
-                <div>{{ $student->fullname }}</div>
-            </div>
-        </td>
-        <td>{{ $student->id_student }}</td>
-        <td>
-            @if($student->gender == 'L')
-                <span class="text-primary"><i class="fas fa-male me-1"></i> Laki-laki</span>
-            @else
-                <span class="text-danger"><i class="fas fa-female me-1"></i> Perempuan</span>
-            @endif
-        </td>
-        <td>
-            @if($rapor)
-                <span class="badge bg-success ms-2">Sudah Ada</span>
-            @else
-                <span class="badge bg-secondary">Belum Ada</span>
-            @endif
-        </td>
-        <td>
-            @if($rapor && $rapor->report_date)
-                {{ \Carbon\Carbon::parse($rapor->report_date)->format('d/m/Y') }}
-            @else
-                -
-            @endif
-        </td>
-        <td>
-            <div class="d-flex gap-1">
-                @if($rapor)
-                    @if($rapor->file_path)
-                        <a href="{{ asset('storage/' . $rapor->file_path) }}" target="_blank" class="btn btn-sm btn-info">
-                            <i class="fas fa-eye me-1"></i>
-                        </a>
-                    @endif
-
-                    <button type="button" class="btn btn-sm btn-warning edit-rapor-btn"
-                            data-bs-toggle="modal"
-                            data-bs-target="#editRaporModal"
-                            data-rapor-id="{{ $rapor->id }}"
-                            data-student-id="{{ $student->id_student }}"
-                            data-student-name="{{ $student->fullname }}"
-                            data-student-nis="{{ $student->id_student }}"
-                            data-report-date="{{ $rapor->report_date }}"
-                            data-description="{{ $rapor->description }}"
-                            data-file-path="{{ $rapor->file_path ? asset('storage/' . $rapor->file_path) : '' }}">
-                        <i class="fas fa-edit me-1"></i>
-                    </button>
-
-                    <button type="button" class="btn btn-sm btn-danger delete-rapor"
-                            data-rapor-id="{{ $rapor->id }}">
-                        <i class="fas fa-trash me-1"></i>
-                    </button>
-
-                    <form class="delete-rapor-form" action="{{ route('rapor.destroy', $rapor->id) }}" method="POST" style="display: none;">
-                        @csrf
-                        @method('DELETE')
-                    </form>
-                @else
-                    <button type="button" class="btn btn-sm btn-success upload-rapor-btn"
-                            data-bs-toggle="modal"
-                            data-bs-target="#uploadRaporModal"
-                            data-student-id="{{ $student->id_student }}"
-                            data-student-name="{{ $student->fullname }}"
-                            data-student-nis="{{ $student->id_student }}"
-                            data-class-id="{{ $class->class_id }}">
-                        <i class="fas fa-upload me-1"></i>
-                    </button>
-                @endif
-            </div>
-        </td>
-    </tr>
-@endforeach
-</tbody>
-    </table>
-</div>
                 @else
                     <div class="alert alert-info m-3">
                         <i class="fas fa-info-circle me-2"></i> Belum ada siswa yang terdaftar.
@@ -430,8 +457,8 @@
                             <input type="text" class="form-control" id="modalStudentName" readonly>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">NIS</label>
-                            <input type="text" class="form-control" id="modalStudentNis" readonly>
+                            <label class="form-label">NIPD</label>
+                            <input type="text" class="form-control" id="modalStudentNipd" readonly>
                         </div>
                     </div>
 
@@ -492,8 +519,8 @@
                             <input type="text" class="form-control" id="editStudentName" readonly>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">NIS</label>
-                            <input type="text" class="form-control" id="editStudentNis" readonly>
+                            <label class="form-label">NIPD</label>
+                            <input type="text" class="form-control" id="editStudentNipd" readonly>
                         </div>
                     </div>
 
@@ -544,13 +571,79 @@
     </div>
 </div>
 
+<!-- Mass Upload Modal -->
+<div class="modal fade" id="massUploadModal" tabindex="-1" aria-labelledby="massUploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="massUploadModalLabel">
+                    <i class="fas fa-file-upload me-2"></i> Upload Rapor Massal
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form id="massUploadForm" action="{{ route('rapor.mass-upload') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <input type="hidden" name="class_id" value="{{ $class->class_id }}">
+
+                    <div class="mass-upload-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Petunjuk Upload Massal:</h6>
+                        <ul>
+                            <li>File harus dalam format ZIP</li>
+                            <li>Maksimal ukuran file 50MB</li>
+                            <li>Nama file harus sesuai dengan NIPD siswa (contoh: 12345.pdf)</li>
+                            <li>Format file yang didukung: PDF, JPG, JPEG, PNG</li>
+                            <li>File akan otomatis dicocokkan dengan siswa berdasarkan NIPD</li>
+                        </ul>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="report_date" class="form-label">Tanggal Rapor</label>
+                        <input type="date" class="form-control" name="report_date" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="massReportFile" class="form-label">File ZIP Berisi Rapor</label>
+                        <div class="border rounded p-3 text-center bg-light">
+                            <input type="file" name="mass_report_file" id="massReportFile" class="form-control" accept=".zip" required>
+                            <div class="mt-2">
+                                <i class="fas fa-file-archive fa-2x text-primary mb-2"></i>
+                                <p class="mb-1 fw-bold">Pilih file ZIP yang berisi rapor siswa</p>
+                                <small class="text-muted">Format: ZIP • Maks: 50MB • Nama file harus sesuai NIPD (contoh: 12345.pdf)</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="mass_description" class="form-label">Deskripsi (Opsional)</label>
+                        <textarea class="form-control" name="description" id="mass_description" rows="3" placeholder="Masukkan deskripsi atau catatan tambahan untuk semua rapor..."></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> Batal
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Upload Semua
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- SweetAlert2 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- JSZip Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-   document.getElementById('searchInput').addEventListener('keyup', function () {
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('keyup', function () {
         const searchValue = this.value.toLowerCase();
         const tableRows = document.querySelectorAll('#siswaTable tbody tr');
 
@@ -573,10 +666,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('formStudentId').value = this.getAttribute('data-student-id');
             document.getElementById('formClassId').value = this.getAttribute('data-class-id');
             document.getElementById('modalStudentName').value = this.getAttribute('data-student-name');
-            document.getElementById('modalStudentNis').value = this.getAttribute('data-student-nis');
+            document.getElementById('modalStudentNipd').value = this.getAttribute('data-student-nipd');
 
             // Set default date to today
-            document.querySelector('input[name="report_date"]').valueAsDate = new Date();
+            document.querySelector('#uploadRaporModal input[name="report_date"]').valueAsDate = new Date();
         });
     });
 
@@ -586,7 +679,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             const raporId = this.getAttribute('data-rapor-id');
             const studentName = this.getAttribute('data-student-name');
-            const studentNis = this.getAttribute('data-student-nis');
+            const studentNipd = this.getAttribute('data-student-nipd');
             const reportDate = this.getAttribute('data-report-date');
             const description = this.getAttribute('data-description');
             const filePath = this.getAttribute('data-file-path');
@@ -596,7 +689,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Set form values
             document.getElementById('editStudentName').value = studentName;
-            document.getElementById('editStudentNis').value = studentNis;
+            document.getElementById('editStudentNipd').value = studentNipd;
             document.getElementById('edit_report_date').value = reportDate;
             document.getElementById('edit_description').value = description || '';
 
@@ -656,29 +749,35 @@ document.addEventListener('DOMContentLoaded', function() {
     fileInputs.forEach(input => {
         input.addEventListener('change', function() {
             const file = this.files[0];
-            const maxSize = 5 * 1024 * 1024; // 5MB
+            const maxSize = this.id === 'massReportFile' ? 50 * 1024 * 1024 : 5 * 1024 * 1024; // 50MB for mass upload, 5MB for single
 
             if (file && file.size > maxSize) {
                 Swal.fire({
                     title: 'File Terlalu Besar',
-                    text: 'Ukuran file maksimal adalah 5MB',
+                    text: `Ukuran file maksimal adalah ${maxSize/(1024*1024)}MB`,
                     icon: 'error'
                 });
                 this.value = '';
+                return;
             }
 
-            const validExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
+            const validExtensions = this.id === 'massReportFile' ? ['zip'] : ['pdf', 'jpg', 'jpeg', 'png'];
             const fileExt = file.name.split('.').pop().toLowerCase();
 
             if (file && !validExtensions.includes(fileExt)) {
                 Swal.fire({
                     title: 'Format File Tidak Valid',
-                    text: 'Hanya file PDF, JPG, JPEG, dan PNG yang diperbolehkan',
+                    text: this.id === 'massReportFile' ? 'Hanya file ZIP yang diperbolehkan untuk upload massal' : 'Hanya file PDF, JPG, JPEG, dan PNG yang diperbolehkan',
                     icon: 'error'
                 });
                 this.value = '';
             }
         });
+    });
+
+    // Set default date to today in mass upload modal
+    document.getElementById('massUploadBtn').addEventListener('click', function() {
+        document.querySelector('#massUploadModal input[name="report_date"]').valueAsDate = new Date();
     });
 });
 </script>

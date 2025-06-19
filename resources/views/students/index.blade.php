@@ -26,13 +26,6 @@
                 <!-- Bagian Header -->
                 <header class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="fs-4 fw-bold mb-0">Data Siswa</h2>
-                    <div class="d-flex align-items-center gap-2">
-                        <!-- Form Pencarian -->
-                        <input type="text" placeholder="Cari" class="form-control" style="width: 200px;">
-
-                        <!-- Tombol Tambah Siswa -->
-                        <a href="{{ route('students.create') }}" class="btn btn-primary">+ Tambah Siswa</a>
-                    </div>
                 </header>
 
                 <!-- Card Filter -->
@@ -100,48 +93,102 @@
                                 </div>
                             </div>
                         </form>
+                    </div>
+                </div>
 
-                        <hr class="my-4">
-
-                        <!-- Import Section -->
-                        <div class="import-section p-3 bg-light rounded">
-                            <h5 class="fw-bold mb-3 text-primary">
-                                <i class="fas fa-file-import me-2"></i> Import Data Siswa
-                            </h5>
-
-                            <form action="{{ route('students.import') }}" method="POST" enctype="multipart/form-data"
-                                class="row g-3 align-items-center">
-                                @csrf
-                                <div class="col-md-8">
-                                    <div class="input-group">
-                                        <input type="file" name="file" class="form-control" required
-                                            accept=".xlsx,.xls">
-                                        <button type="submit" class="btn btn-success">
-                                            <i class="fas fa-upload me-1"></i> Import
-                                        </button>
-                                    </div>
+                <!-- Card Import Data -->
+                <div class="card mb-4 border-success">
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <span>Import Data Siswa</span>
+                        <i class="fas fa-file-import"></i>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ route('students.import') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="row g-3">
+                                <!-- Excel File Input (now optional) -->
+                                <div class="col-md-12">
+                                    <label for="file" class="form-label">File Excel (Opsional)</label>
+                                    <input type="file" name="file" id="file" class="form-control">
+                                    <small class="text-muted">Format file harus Excel (.xlsx, .xls). Maksimal ukuran file: 2MB.</small>
                                 </div>
-                                <div class="col-md-4">
+
+                                <!-- Photos Input -->
+                                <div class="col-md-6">
+                                    <label for="photos" class="form-label">Foto Siswa (jpg/png, multiple)</label>
+                                    <input type="file" name="photos[]" id="photos" class="form-control" multiple>
+                                    <small class="text-muted">Nama file harus sama dengan NIPD siswa</small>
+                                </div>
+
+                                <!-- QR Codes Input -->
+                                <div class="col-md-6">
+                                    <label for="qr_codes" class="form-label">QR Code Siswa (jpg/png/pdf, multiple)</label>
+                                    <input type="file" name="qr_codes[]" id="qr_codes" class="form-control" multiple>
+                                    <small class="text-muted">Nama file harus sama dengan NIPD siswa</small>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="col-md-8">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-upload me-1"></i> Import Data
+                                    </button>
+                                </div>
+
+                                <div class="col-md-4 text-end">
                                     <a href="{{ route('students.template.page') }}" class="btn btn-outline-primary">
                                         <i class="fas fa-file-excel me-1"></i> Download Template
                                     </a>
                                 </div>
+
+                                <!-- Notifications -->
                                 <div class="col-12">
-                                    <small class="text-muted">
-                                        Format file harus Excel (.xlsx, .xls). Maksimal ukuran file: 2MB.
-                                    </small>
+                                   @if(session('success'))
+                                        <div class="alert alert-success">{{ session('success') }}</div>
+                                    @endif
+
+                                    @if(session('photo_success'))
+                                        <div class="alert alert-success">{{ session('photo_success') }}</div>
+                                    @endif
+
+                                    @if(session('qr_success'))
+                                        <div class="alert alert-success">{{ session('qr_success') }}</div>
+                                    @endif
+
+                                    @if(session('error'))
+                                        <div class="alert alert-danger">{{ session('error') }}</div>
+                                    @endif
+
+                                    @if(session('errors'))
+                                        <div class="alert alert-danger">
+                                            <ul>
+                                                @foreach((array) session('errors') as $error)
+                                                    <li>{{ $error }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
                                 </div>
-                            </form>
-                        </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
+                <!-- Card Data Siswa -->
+              <div class="card">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <span>Daftar Siswa</span>
 
-                <!-- Data Siswa -->
-                <div class="card">
-                    <div class="card-header bg-primary text-white">Data Siswa</div>
+        <div class="d-flex align-items-center gap-2">
+            <!-- Form Pencarian -->
+            <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Cari..." style="width: 200px;">
+
+            <!-- Tombol Tambah Siswa -->
+            <a href="{{ route('students.create') }}" class="btn btn-sm btn-light text-primary">
+                <i class="fas fa-plus me-1"></i> Tambah Siswa
+            </a>
+        </div>
+    </div>
                     <div class="card-body">
-                        <!-- Wrapper untuk scroll horizontal & vertikal -->
                         <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
                             <table class="table table-bordered table-striped align-middle">
                                 <thead class="table-primary">
@@ -160,54 +207,60 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($students as $index => $student)
+                                    @php
+                                        $currentClass = null;
+                                        $rowNumber = 1;
+                                    @endphp
+
+                                    @foreach ($students as $student)
+                                        @if ($student->class && $student->class->class_name != $currentClass)
+                                            <tr class="table-secondary">
+                                                <td colspan="11" class="fw-bold">
+                                                    Kelas: {{ $student->class->class_name ?? 'Tidak Ada Kelas' }}
+                                                </td>
+                                            </tr>
+                                            @php
+                                                $currentClass = $student->class->class_name ?? null;
+                                                $rowNumber = 1; // Reset nomor urut untuk kelas baru
+                                            @endphp
+                                        @endif
+
                                         <tr>
-                                            <td>{{ $index + 1 }}</td>
+                                            <td>{{ $rowNumber++ }}</td>
                                             <td>{{ $student->id_student }}</td>
                                             <td>{{ $student->fullname }}</td>
                                             <td>{{ $student->birth_place }}</td>
                                             <td>{{ $student->birth_date->format('Y-m-d') }}</td>
                                             <td>{{ $student->gender == 'L' ? 'Laki-laki' : 'Perempuan' }}</td>
                                             <td>{{ $student->parent_phonecell }}</td>
-                                            <td>{{ $student->class ? $student->class->class_name : 'Tidak Ada Kelas' }}
-                                            </td>
+                                            <td>{{ $student->class ? $student->class->class_name : 'Tidak Ada Kelas' }}</td>
                                             <td>
                                                 @if ($student->photo)
-                                                    <img src="{{ asset('storage/' . $student->photo) }}" width="50"
-                                                        class="img-thumbnail">
+                                                    <img src="{{ asset('storage/' . $student->photo) }}" width="50" class="img-thumbnail">
                                                 @else
                                                     <i class="fas fa-user text-muted"></i>
                                                 @endif
                                             </td>
                                             <td>
                                                 @if ($student->qr_code)
-                                                    <img src="{{ asset('storage/' . $student->qr_code) }}"
-                                                        width="50" class="img-thumbnail">
+                                                    <img src="{{ asset('storage/' . $student->qr_code) }}" width="50" class="img-thumbnail">
                                                 @else
                                                     <i class="fas fa-qrcode text-muted"></i>
                                                 @endif
                                             </td>
                                             <td>
                                                 <div class="d-flex gap-1">
-                                                    <!-- Tombol Detail -->
-                                                    <a href="{{ route('students.show', $student->id_student) }}"
-                                                        class="btn btn-sm btn-info">
+                                                    <a href="{{ route('students.show', $student->id_student) }}" class="btn btn-sm btn-info">
                                                         <i class="fas fa-eye me-1"></i>
                                                     </a>
-                                                    <!-- Tombol Edit -->
-                                                    <a href="{{ route('students.edit', $student->id_student) }}"
-                                                        class="btn btn-sm btn-warning">
+                                                    <a href="{{ route('students.edit', $student->id_student) }}" class="btn btn-sm btn-warning">
                                                         <i class="fas fa-edit me-1"></i>
                                                     </a>
-                                                    <!-- Tombol Hapus -->
-                                                    <button class="btn btn-sm btn-danger delete-student"
-                                                        data-student-id="{{ $student->id_student }}">
+                                                    <button class="btn btn-sm btn-danger delete-student" data-student-id="{{ $student->id_student }}">
                                                         <i class="fas fa-trash me-1"></i>
                                                     </button>
                                                 </div>
-                                                <form class="delete-student-form"
-                                                    action="{{ route('students.destroy', $student->id_student) }}"
-                                                    method="POST" style="display: none;">
+                                                <form class="delete-student-form" action="{{ route('students.destroy', $student->id_student) }}" method="POST" style="display: none;">
                                                     @csrf
                                                     @method('DELETE')
                                                 </form>
@@ -269,6 +322,23 @@
                             });
                         });
                     });
+
+                    const searchInput = document.getElementById('searchInput');
+                    if (searchInput) {
+                        searchInput.addEventListener('keyup', function() {
+                            const searchTerm = this.value.toLowerCase();
+                            const tableRows = document.querySelectorAll('tbody tr');
+
+                            tableRows.forEach(row => {
+                                const text = row.textContent.toLowerCase();
+                                if (text.includes(searchTerm)) {
+                                    row.style.display = '';
+                                } else {
+                                    row.style.display = 'none';
+                                }
+                            });
+                        });
+                    }
                 </script>
             </main>
         </div>

@@ -40,4 +40,9 @@ class Classes extends Model
     {
         return $this->belongsTo(Semester::class, 'semester_id', 'id');
     }
+    public function spp()
+{
+    return $this->hasMany(Spp::class, 'class_id', 'class_id');
+}
+
 }

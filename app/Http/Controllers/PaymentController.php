@@ -10,6 +10,12 @@ use App\Models\Classes;
 use App\Models\AcademicYear;
 use App\Models\Semester;
 use App\Models\Spp;
+use App\Exports\PaymentTemplateExport;
+use App\Imports\PaymentsImport;
+use App\Exports\AllPaymentsExport;
+use App\Imports\AllPaymentsImport;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Str;
 
 class PaymentController extends Controller
 {
@@ -234,6 +240,7 @@ public function listData(Request $request)
 
     return view('spp.list', [
         'sppData' => $sppData,
+        'spp' => $sppData->first(),
         'classes' => $classes,
         'totalAmount' => $totalAmount,
         'paidAmount' => $paidAmount,
@@ -392,4 +399,50 @@ private function getMonthName($monthNumber)
                 ->with('error', 'Gagal menghapus data SPP: '.$e->getMessage());
         }
     }
+  public function downloadTemplate($sppId)
+{
+    $spp = Spp::with('classes')->findOrFail($sppId);
+
+    // Generate filename with SPP ID and class name
+    $filename = "Template_Pembayaran_SPP_Kelas_{$spp->classes->class_name}.xlsx";
+
+    // Clean filename by removing special characters and replacing spaces
+    $filename = preg_replace('/[^A-Za-z0-9_\-\.]/', '', str_replace(' ', '_', $filename));
+
+    return Excel::download(
+        new PaymentTemplateExport($sppId),
+        $filename
+    );
+}
+public function import(Request $request, $sppId)
+{
+    $request->validate([
+        'file' => 'required|mimes:xlsx,xls'
+    ]);
+
+    try {
+        $spp = Spp::findOrFail($sppId);
+
+        Excel::import(new PaymentsImport($sppId), $request->file('file'));
+
+        return back()
+            ->with('success', 'Data pembayaran berhasil diimport!')
+            ->with('imported_spp', $spp->id);
+
+    } catch (\Exception $e) {
+        return back()
+            ->with('error', 'Gagal mengimport data: '.$e->getMessage())
+            ->with('import_errors', true);
+    }
+}
+  public function exportAll()
+    {
+        return Excel::download(new AllPaymentsExport(), 'template_pembayaran_semua_kelas.xlsx');
+    }
+
+    public function exportByGrade($grade)
+    {
+        return Excel::download(new AllPaymentsExport($grade), 'template_pembayaran_kelas_' . $grade . '.xlsx');
+    }
+
 }

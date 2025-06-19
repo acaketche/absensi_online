@@ -9,13 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <style>
-        /* Main Content Styles */
-        .main-content {
-            flex: 1;
-            padding: 30px;
-            background: #f5f5f5;
-        }
-
         .header {
             display: flex;
             justify-content: space-between;
@@ -127,6 +120,26 @@
         .badge-sakit { background-color: #ffc107; color: #212529; }
         .badge-izin { background-color: #17a2b8; }
         .badge-alpa { background-color: #dc3545; }
+        .badge-terlambat { background-color: #fd7e14; color: #fff;}
+        @media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        width: 100%;
+        height: auto;
+        min-height: auto;
+        padding: 10px;
+        z-index: 1000;
+    }
+
+    .logo-text {
+        font-size: 16px;
+    }
+
+    .nav-item {
+        padding: 10px;
+        font-size: 14px;
+    }
+}
     </style>
 </head>
 <body class="bg-light">
@@ -233,7 +246,7 @@
             <div class="tab-pane fade show active" id="morning" role="tabpanel" aria-labelledby="morning-tab">
                 <div class="card shadow-lg border-0">
                     <div class="card-header bg-primary text-white text-center py-3">
-                        <h5 class="mb-0">Kehadiran Pagi (07:00 - 12:00)</h5>
+                        <h5 class="mb-0">Kehadiran Pagi</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -241,6 +254,7 @@
                                 <thead>
                                     <tr>
                                         <th>No</th>
+                                        <th>NIPD</th>
                                         <th>Siswa</th>
                                         <th>Kelas</th>
                                         <th>Tanggal</th>
@@ -250,65 +264,80 @@
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    @php $morningCount = 1; @endphp
-                                    @forelse ($attendances as $attendance)
-                                        @php
-                                            $checkInTime = $attendance['check_in_time'] ? \Carbon\Carbon::parse($attendance['check_in_time'])->format('H:i') : null;
-                                            $isPagi = $checkInTime && $checkInTime >= '07:00' && $checkInTime <= '12:00';
-                                        @endphp
-                                        @if ($isPagi)
-                                            <tr>
-                                                <td>{{ $morningCount++ }}</td>
-                                                <td>{{ $attendance['student']['fullname'] ?? '-' }}</td>
-                                                <td>{{ $attendance['class_name'] ?? '-' }}</td>
-                                                <td>{{ \Carbon\Carbon::parse($attendance['attendance_date'])->format('d/m/Y') }}</td>
-                                                <td>{{ $checkInTime }}</td>
-                                                <td>
-                                                    @php
-                                                        $statusClass = 'badge-hadir';
-                                                        if ($attendance['status_id'] == 2) $statusClass = 'badge-sakit';
-                                                        elseif ($attendance['status_id'] == 3) $statusClass = 'badge-izin';
-                                                        elseif ($attendance['status_id'] == 4) $statusClass = 'badge-alpa';
-                                                    @endphp
-                                                    <span class="badge {{ $statusClass }}">
-                                                        {{ $attendance['status']['status_name'] ?? '-' }}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    @if ($attendance['document'])
-                                                        <a href="{{ asset('storage/' . $attendance['document']) }}" target="_blank" class="btn btn-sm btn-info">
-                                                            <i class="fas fa-file-alt"></i> Lihat
-                                                        </a>
-                                                    @else
-                                                        <span class="text-muted">-</span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    <div class="d-flex gap-1">
-                                                        <button class="btn btn-warning btn-sm edit-attendance"
-                                                            data-id="{{ $attendance['id'] }}"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#editAttendanceModal">
-                                                            <i class="fas fa-edit"></i>
-                                                        </button>
-                                                        <form action="{{ route('student-attendance.destroy', $attendance['id']) }}" method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus data ini?')">
-                                                                <i class="fas fa-trash"></i>
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endif
-                                    @empty
-                                        <tr>
-                                            <td colspan="8" class="text-center">Tidak ada data absensi pagi</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
+                             <tbody>
+                        @forelse ($attendances as $index => $attendance)
+                            @php
+                                $checkInTime = $attendance->check_in_time ? \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i:s') : null;
+                                $statusId = $attendance->status_id;
+                                $isLate = false;
+
+                                if ($checkInTime && $statusId === 1) {
+                                    $isLate = $checkInTime > '07:15:00';
+                                }
+                            @endphp
+                            <tr>
+                                <td>{{ $index + 1 }}</td>
+                                <td>{{ $attendance->student->id_student ?? '-' }}</td>
+                                <td>{{ $attendance->student->fullname ?? '-' }}</td>
+                                <td>{{ $attendance->student->class->class_name ?? '-' }}</td>
+                                <td>{{ \Carbon\Carbon::parse($attendance->date)->format('d-m-Y') }}</td>
+                                <td>{{ $checkInTime ?? '-' }}</td>
+                                <td>
+                                    @php
+                                        $statusClass = 'badge-hadir';
+                                        $statusLabel = $attendance->status->status_name ?? '-';
+
+                                        if ($statusId == 2) {
+                                            $statusClass = 'badge-sakit';
+                                        } elseif ($statusId == 3) {
+                                            $statusClass = 'badge-izin';
+                                        } elseif ($statusId == 4) {
+                                            $statusClass = 'badge-alpa';
+                                        } elseif ($statusId == 5) {
+                                            $statusClass = 'badge-terlambat';
+                                        } elseif ($statusId == 1 && $isLate) {
+                                            $statusClass = 'badge-terlambat';
+                                            $statusLabel = 'Terlambat';
+                                        }
+                                    @endphp
+                                    <span class="badge {{ $statusClass }}">
+                                        {{ $statusLabel }}
+                                    </span>
+                                </td>
+                                <td>
+                                    @if ($attendance->document)
+                                        <a href="{{ asset('storage/' . $attendance->document) }}" target="_blank" class="btn btn-sm btn-info">
+                                            <i class="fas fa-file-alt"></i> Lihat
+                                        </a>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <button class="btn btn-warning btn-sm edit-attendance"
+                                            data-id="{{ $attendance->id }}"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editAttendanceModal">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <form action="{{ route('student-attendance.destroy', $attendance->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus data ini?')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="9" class="text-center">Tidak ada data absensi pagi</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+
                             </table>
                         </div>
                     </div>
@@ -319,7 +348,7 @@
             <div class="tab-pane fade" id="afternoon" role="tabpanel" aria-labelledby="afternoon-tab">
                 <div class="card shadow-lg border-0">
                     <div class="card-header bg-secondary text-white text-center py-3">
-                        <h5 class="mb-0">Kehadiran Sore (12:30 - 16:00)</h5>
+                        <h5 class="mb-0">Kehadiran Sore</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -327,6 +356,7 @@
                                 <thead>
                                     <tr>
                                         <th>No</th>
+                                        <th>NIPD</th>
                                         <th>Siswa</th>
                                         <th>Kelas</th>
                                         <th>Tanggal</th>
@@ -339,55 +369,58 @@
                                 <tbody>
                                     @php $afternoonCount = 1; @endphp
                                     @forelse ($attendances as $attendance)
-                                        @php
-                                            $checkOutTime = $attendance['check_out_time'] ? \Carbon\Carbon::parse($attendance['check_out_time'])->format('H:i') : null;
-                                            $isSore = $checkOutTime && $checkOutTime >= '12:30' && $checkOutTime <= '16:00';
-                                        @endphp
-                                        @if ($isSore)
-                                            <tr>
-                                                <td>{{ $afternoonCount++ }}</td>
-                                                <td>{{ $attendance['student']['fullname'] ?? '-' }}</td>
-                                                <td>{{ $attendance['class_name'] ?? '-' }}</td>
-                                                <td>{{ \Carbon\Carbon::parse($attendance['attendance_date'])->format('d/m/Y') }}</td>
-                                                <td>{{ $checkOutTime }}</td>
-                                                <td>
-                                                    @php
-                                                        $statusClass = 'badge-hadir';
-                                                        if ($attendance['status_id'] == 2) $statusClass = 'badge-sakit';
-                                                        elseif ($attendance['status_id'] == 3) $statusClass = 'badge-izin';
-                                                        elseif ($attendance['status_id'] == 4) $statusClass = 'badge-alpa';
-                                                    @endphp
-                                                    <span class="badge {{ $statusClass }}">
-                                                        {{ $attendance['status']['status_name'] ?? '-' }}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    @if ($attendance['document'])
-                                                        <a href="{{ asset('storage/' . $attendance['document']) }}" target="_blank" class="btn btn-sm btn-info">
-                                                            <i class="fas fa-file-alt"></i> Lihat
-                                                        </a>
-                                                    @else
-                                                        <span class="text-muted">-</span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    <div class="d-flex gap-1">
-                                                        <button class="btn btn-warning btn-sm edit-attendance"
-                                                            data-id="{{ $attendance['id'] }}"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#editAttendanceModal">
-                                                            <i class="fas fa-edit"></i>
+                                        @if($attendance->check_out_time && $attendance->check_out_time > '12:00:00')
+                                        <tr>
+                                            <td>{{ $afternoonCount++ }}</td>
+                                            <td>{{ $attendance->student->id_student ?? '-' }}</td>
+                                            <td>{{ $attendance->student->fullname ?? '-' }}</td>
+                                            <td>{{ $attendance->class->class_name ?? '-' }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($attendance->attendance_date)->format('d/m/Y') }}</td>
+                                            <td>{{ $attendance->check_out_time ? \Carbon\Carbon::parse($attendance->check_out_time)->format('H:i') : '-' }}</td>
+                                            <td>
+                                                @php
+                                                    $statusClass = 'badge-hadir';
+                                                    if ($attendance->status_id == 2) {
+                                                        $statusClass = 'badge-sakit';
+                                                    } elseif ($attendance->status_id == 3) {
+                                                        $statusClass = 'badge-izin';
+                                                    } elseif ($attendance->status_id == 4) {
+                                                        $statusClass = 'badge-alpa';
+                                                    } elseif ($attendance->status_id == 5) {
+                                                        $statusClass = 'badge-terlambat';
+                                                    }
+                                                @endphp
+                                                <span class="badge {{ $statusClass }}">
+                                                    {{ $attendance->status->status_name ?? '-' }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @if ($attendance->document)
+                                                    <a href="{{ asset('storage/' . $attendance->document) }}" target="_blank" class="btn btn-sm btn-info">
+                                                        <i class="fas fa-file-alt"></i> Lihat
+                                                    </a>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <div class="d-flex gap-1">
+                                                    <button class="btn btn-warning btn-sm edit-attendance"
+                                                        data-id="{{ $attendance->id }}"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#editAttendanceModal">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <form action="{{ route('student-attendance.destroy', $attendance->id) }}" method="POST" class="d-inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus data ini?')">
+                                                            <i class="fas fa-trash"></i>
                                                         </button>
-                                                        <form action="{{ route('student-attendance.destroy', $attendance['id']) }}" method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus data ini?')">
-                                                                <i class="fas fa-trash"></i>
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
                                         @endif
                                     @empty
                                         <tr>
@@ -455,19 +488,15 @@
                             <input type="hidden" name="academic_year_id" value="{{ $activeAcademicYear->id ?? '' }}">
                             <input type="hidden" name="semester_id" value="{{ $activeSemester->id ?? '' }}">
 
-                            <hr>
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="attendance_date" class="form-label">Tanggal Absensi</label>
-                                    <input type="date" class="form-control" id="attendance_date" name="attendance_date" required value="{{ date('Y-m-d') }}">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="check_in_time" class="form-label">Waktu Masuk</label>
-                                    <input type="time" class="form-control" id="check_in_time" name="check_in_time">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="check_out_time" class="form-label">Waktu Keluar</label>
-                                    <input type="time" class="form-control" id="check_out_time" name="check_out_time">
+                                    <label for="class_id" class="form-label">Kelas</label>
+                                    <select class="form-select" id="class_id" name="class_id" required>
+                                        <option value="">-- Pilih Kelas --</option>
+                                        @foreach($classes as $class)
+                                            <option value="{{ $class->id }}">{{ $class->class_name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
 
                                 <div class="col-md-6">
@@ -481,27 +510,19 @@
                                 </div>
 
                                 <div class="col-md-6">
+                                    <label for="attendance_date" class="form-label">Tanggal Absensi</label>
+                                    <input type="date" class="form-control" id="attendance_date" name="attendance_date" required value="{{ date('Y-m-d') }}">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="check_in_time" class="form-label">Waktu Masuk</label>
+                                    <input type="time" class="form-control" id="check_in_time" name="check_in_time">
+                                </div>
+
+                                <div class="col-md-6">
                                     <label for="document" class="form-label">Dokumen (opsional)</label>
                                     <input type="file" class="form-control" id="document" name="document">
                                     <small class="text-muted">Format: JPG, JPEG, PNG, PDF. Maks: 2MB</small>
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label">Lokasi</label>
-                                    <div class="d-flex gap-2">
-                                        <div class="row flex-grow-1">
-                                            <div class="col-6">
-                                                <input type="text" class="form-control" id="latitude" name="latitude" placeholder="Latitude" readonly>
-                                            </div>
-                                            <div class="col-6">
-                                                <input type="text" class="form-control" id="longitude" name="longitude" placeholder="Longitude" readonly>
-                                            </div>
-                                        </div>
-                                        <button type="button" class="btn btn-outline-secondary" id="getLocationBtn">
-                                            <i class="fas fa-map-marker-alt me-2"></i>
-                                            Dapatkan Lokasi
-                                        </button>
-                                    </div>
                                 </div>
 
                                 <div class="col-12 mt-3">
@@ -632,6 +653,7 @@
 
                                 // Set nilai untuk form
                                 document.getElementById('id_student').value = data.student.id_student;
+                                document.getElementById('class_id').value = data.student.class_id;
                                 document.getElementById('attendanceForm').classList.remove('d-none');
                             } else {
                                 alert(data.message || 'Siswa tidak ditemukan');
@@ -654,34 +676,6 @@
                     document.getElementById('studentInfo').classList.add('d-none');
                     document.getElementById('attendanceForm').classList.add('d-none');
                 }
-
-                // Get location button functionality
-                document.getElementById('getLocationBtn')?.addEventListener('click', function() {
-                    const locationBtn = this;
-                    locationBtn.disabled = true;
-                    locationBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Mendapatkan...';
-
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(
-                            function(position) {
-                                document.getElementById('latitude').value = position.coords.latitude;
-                                document.getElementById('longitude').value = position.coords.longitude;
-                                locationBtn.disabled = false;
-                                locationBtn.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i> Dapatkan Lokasi';
-                            },
-                            function(error) {
-                                console.error("Error getting location:", error);
-                                alert("Gagal mendapatkan lokasi: " + error.message);
-                                locationBtn.disabled = false;
-                                locationBtn.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i> Dapatkan Lokasi';
-                            }
-                        );
-                    } else {
-                        alert("Geolocation tidak didukung oleh browser ini.");
-                        locationBtn.disabled = false;
-                        locationBtn.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i> Dapatkan Lokasi';
-                    }
-                });
 
                 // Search functionality for tables
                 document.getElementById('searchInput').addEventListener('input', function() {

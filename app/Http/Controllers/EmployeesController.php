@@ -57,18 +57,18 @@ class EmployeesController extends Controller
             'qr_code' => 'nullable|image|mimes:png|max:1024'
         ]);
 
-        $photoPath = null;
-        $qrPath = null;
+      $photoPath = null;
+$qrPath = null;
 
-        if ($request->hasFile('photo')) {
-            // Almacenar directamente en storage/app/public sin 'public/' al inicio
-            $photoPath = $request->file('photo')->store('photo_pegawai', 'public');
-        }
+if ($request->hasFile('photo')) {
+    $originalPhotoName = $request->file('photo')->getClientOriginalName();
+    $photoPath = $request->file('photo')->storeAs('photo_pegawai', $originalPhotoName, 'public');
+}
 
-        if ($request->hasFile('qr_code')) {
-            // Almacenar directamente en storage/app/public sin 'public/' al inicio
-            $qrPath = $request->file('qr_code')->store('qrcode_pegawai', 'public');
-        }
+if ($request->hasFile('qr_code')) {
+    $originalQRName = $request->file('qr_code')->getClientOriginalName();
+    $qrPath = $request->file('qr_code')->storeAs('qrcode_pegawai', $originalQRName, 'public');
+}
 
         Employee::create([
             'id_employee' => $request->id_employee,
@@ -122,31 +122,30 @@ class EmployeesController extends Controller
             $data['password'] = Hash::make($request->password);
         }
 
-        // Manejar la foto
-        if ($request->hasFile('photo')) {
-            // Eliminar la foto anterior si existe
-            if ($employee->photo) {
-                Storage::disk('public')->delete($employee->photo);
-            }
+      // Menangani foto
+if ($request->hasFile('photo')) {
+    if ($employee->photo && Storage::disk('public')->exists($employee->photo)) {
+        Storage::disk('public')->delete($employee->photo);
+    }
 
-            // Almacenar la nueva foto
-            $data['photo'] = $request->file('photo')->store('photo_pegawai', 'public');
-        }
+    $photoName = $request->file('photo')->getClientOriginalName();
+    $data['photo'] = $request->file('photo')->storeAs('photo_pegawai', $photoName, 'public');
+}
 
-        // Manejar el código QR
-        if ($request->hasFile('qr_code')) {
-            // Eliminar el código QR anterior si existe
-            if ($employee->qr_code) {
-                Storage::disk('public')->delete($employee->qr_code);
-            }
+// Menangani kode QR
+if ($request->hasFile('qr_code')) {
+    if ($employee->qr_code && Storage::disk('public')->exists($employee->qr_code)) {
+        Storage::disk('public')->delete($employee->qr_code);
+    }
 
-            // Almacenar el nuevo código QR
-            $data['qr_code'] = $request->file('qr_code')->store('qrcode_pegawai', 'public');
-        }
+    $qrName = $request->file('qr_code')->getClientOriginalName();
+    $data['qr_code'] = $request->file('qr_code')->storeAs('qrcode_pegawai', $qrName, 'public');
+}
 
-        $employee->update($data);
+// Simpan perubahan ke database
+$employee->update($data);
 
-        return redirect()->route('employees.index')->with('success', 'Employee updated successfully');
+return redirect()->route('employees.index')->with('success', 'Employee updated successfully');
     }
 
     // Menghapus employee
@@ -169,4 +168,66 @@ class EmployeesController extends Controller
 
         return redirect()->route('employees.index')->with('success', 'Employee deleted successfully');
     }
+public function updateProfile(Request $request)
+{
+    $user = auth()->user();
+
+    // Validasi input
+    $request->validate([
+        'fullname' => 'nullable|string|max:100',
+        'email' => 'nullable|email|unique:employees,email,' . $user->id_employee . ',id_employee',
+        'phone_number' => 'nullable|string|max:20',
+        'birth_place' => 'nullable|string|max:100',
+        'birth_date' => 'nullable|date',
+        'gender' => 'nullable|in:L,P',
+        'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+    ]);
+
+    // Update data pengguna
+    $user->fullname = $request->input('fullname');
+    $user->email = $request->input('email');
+    $user->phone_number = $request->input('phone_number');
+    $user->birth_place = $request->input('birth_place');
+    $user->birth_date = $request->input('birth_date');
+    $user->gender = $request->input('gender');
+
+    // Penanganan unggah foto
+    if ($request->hasFile('photo')) {
+        try {
+            // Hapus foto lama jika ada
+            if ($user->photo && Storage::disk('public')->exists($user->photo)) {
+                Storage::disk('public')->delete($user->photo);
+            }
+
+            // Simpan foto baru
+            $user->photo = $request->file('photo')->store('photo_pegawai', 'public');
+        } catch (\Exception $e) {
+            return back()->withErrors(['photo' => 'Gagal mengunggah foto.'])->withInput();
+        }
+    }
+
+    // Simpan perubahan
+    $user->save();
+
+  return back()->with('success', 'Profil berhasil diperbarui');
+}
+
+public function updatePassword(Request $request)
+{
+    $user = auth()->user();
+
+    $request->validate([
+        'current_password' => 'required',
+        'new_password' => 'required|min:6|confirmed',
+    ]);
+
+    if (!Hash::check($request->current_password, $user->password)) {
+        return back()->withErrors(['current_password' => 'Password lama tidak sesuai.'])->withInput();
+    }
+
+    $user->password = Hash::make($request->new_password);
+    $user->save();
+
+    return back()->with('success', 'Password berhasil diperbarui');
+}
 }

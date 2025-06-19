@@ -194,4 +194,95 @@ class RaporController extends Controller
 
         return response()->download(storage_path('app/public/' . $rapor->file_path), $fileName);
     }
+   public function massUpload(Request $request)
+{
+    $request->validate([
+        'class_id' => 'required|exists:classes,class_id',
+        'report_date' => 'required|date',
+        'mass_report_file' => 'required|file|mimes:zip|max:51200', // 50MB
+    ]);
+
+    try {
+        $classId = $request->class_id;
+        $reportDate = $request->report_date;
+        $description = $request->description;
+
+        // Ekstrak file ZIP
+        $zip = new \ZipArchive;
+        $zipFile = $request->file('mass_report_file');
+
+        if ($zip->open($zipFile->getRealPath()) === TRUE) {  // Fixed this line
+            $successCount = 0;
+            $errorCount = 0;
+            $errors = [];
+
+            // Buat direktori temporary untuk ekstrak
+            $extractPath = storage_path('app/public/temp_rapor/' . uniqid());
+            File::makeDirectory($extractPath, 0755, true);
+
+            // Ekstrak file
+            $zip->extractTo($extractPath);
+            $zip->close();
+
+            // Proses setiap file
+            $files = File::allFiles($extractPath);
+
+            foreach ($files as $file) {
+                try {
+                    $nis = pathinfo($file->getFilename(), PATHINFO_FILENAME);
+
+                    // Cari siswa berdasarkan NIS di kelas ini
+                    $student = Student::where('id_student', $nis)
+                        ->where('class_id', $classId)
+                        ->first();
+
+                    if ($student) {
+                        // Simpan file
+                        $fileName = 'rapor_' . $nis . '_' . time() . '.' . $file->getExtension();
+                        $filePath = $file->move(storage_path('app/public/rapor'), $fileName);
+
+                        // Buat atau update record rapor
+                        Rapor::updateOrCreate(
+                            ['id_student' => $student->id_student],
+                            [
+                                'report_date' => $reportDate,
+                                'description' => $description,
+                                'file_path' => 'rapor/' . $fileName,
+                                'status_report' => 'Sudah Ada'
+                            ]
+                        );
+
+                        $successCount++;
+                    } else {
+                        $errors[] = "Siswa dengan NIS $nis tidak ditemukan di kelas ini";
+                        $errorCount++;
+                    }
+                } catch (\Exception $e) {
+                    $errors[] = "Gagal memproses file " . $file->getFilename() . ": " . $e->getMessage();
+                    $errorCount++;
+                }
+            }
+
+            // Hapus direktori temporary
+            File::deleteDirectory($extractPath);
+
+            // Buat pesan hasil
+            $message = "Berhasil mengupload $successCount rapor.";
+            if ($errorCount > 0) {
+                $message .= " Gagal mengupload $errorCount rapor.";
+            }
+
+            return redirect()->back()->with([
+                'success' => $message,
+                'errors' => $errors
+            ]);
+
+        } else {
+            return redirect()->back()->with('error', 'Gagal membuka file ZIP');
+        }
+
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+    }
+}
 }

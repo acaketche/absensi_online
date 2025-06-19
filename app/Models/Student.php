@@ -90,4 +90,9 @@ class Student extends Authenticatable
     {
         return $this->hasMany(StudentAttendance::class, 'id_student', 'id_student');
     }
+   public function payments()
+{
+    return $this->hasMany(Payment::class, 'id_student', 'id_student');
+}
+
 }

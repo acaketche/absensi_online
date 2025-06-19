@@ -21,8 +21,11 @@ Route::middleware(['web', 'auth:employee', 'role:Admin Tata Usaha'])->group(func
     Route::get('/tu/dashboard', [DashboardController::class, 'TataUsaha'])->name('dashboard.TU');
 
     // Mengelola siswa
-    Route::resource('students', StudentController::class);
+   Route::resource('students', StudentController::class);
     Route::get('/student/search', [StudentAttendanceController::class, 'searchStudent']);
+    Route::post('/students/import', [StudentController::class, 'import'])->name('students.import');
+    Route::get('/students/import/template', [StudentController::class, 'showTemplate'])->name('students.template.page');
+    Route::get('/students/import/template/download', [StudentController::class, 'downloadTemplate'])->name('students.template.download');
 
     // Mengelola kelas
     Route::resource('classes', ClassesController::class);
@@ -39,15 +42,6 @@ Route::middleware(['web', 'auth:employee', 'role:Admin Tata Usaha'])->group(func
 
     // Hari Libur, dan Status Absensi
     Route::resource('holidays', HolidaysController::class);
-    Route::resource('attendance_status', AttendanceStatusController::class);
-
-    // Pegawai dan Absensi Pegawai
-    Route::resource('employees', EmployeesController::class);
-    Route::resource('attendance', EmployeeAttendanceController::class);
-
-    // Absensi Siswa
-    Route::resource('student-attendance', StudentAttendanceController::class);
-    Route::get('/students/search', [StudentAttendanceController::class, 'searchById']);
 
     // Rapor
     Route::get('/rapor/classes', [RaporController::class, 'classes'])->name('rapor.classes');
@@ -67,4 +61,11 @@ Route::middleware(['web', 'auth:employee', 'role:Admin Tata Usaha'])->group(func
     Route::post('/payment/batalbayar', [PaymentController::class, 'batalbayar'])->name('payment.batalbayar');
     Route::put('/payment/update/{id}', [PaymentController::class, 'update'])->name('payment.update');
     Route::delete('/payment/destroy/{id}', [PaymentController::class, 'destroy'])->name('payment.destroy');
+    Route::get('/payments/template/{id}', [PaymentController::class, 'downloadTemplate'])->name('payment.template');
+    Route::post('/payments/import/{sppId}', [PaymentController::class, 'import'])->name('payments.import');
+     Route::get('/payments/export/all', [PaymentController::class, 'exportAll'])
+        ->name('payments.export.all');
+
+    Route::get('/payments/export/{grade}', [PaymentController::class, 'exportByGrade'])
+        ->name('payments.export.grade');
 });

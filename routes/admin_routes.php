@@ -50,11 +50,16 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
 
     // Employee Management
     Route::resource('employees', EmployeesController::class);
+    Route::post('/profile/update', [EmployeesController::class, 'updateProfile'])->name('employees.profile.update');
+    Route::post('/profile/update-password', [EmployeesController::class, 'updatePassword'])->name('employees.profile.update-password');
     Route::resource('attendance', EmployeeAttendanceController::class);
+    Route::get('/attendance/export/pdf', [EmployeeAttendanceController::class, 'exportPdf'])->name('attendance.export.pdf');
 
     // Student Attendance
     Route::resource('student-attendance', StudentAttendanceController::class);
     Route::get('/students/search', [StudentAttendanceController::class, 'searchById']);
+    Route::get('/student-attendance/export/pdf', [StudentAttendanceController::class, 'exportPdf'])
+     ->name('student-attendance.export.pdf');
 
     // Report Cards
     Route::get('/rapor/classes', [RaporController::class, 'classes'])->name('rapor.classes');
@@ -64,6 +69,7 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
     Route::get('/rapor/{id}/edit', [RaporController::class, 'edit'])->name('rapor.edit');
     Route::put('/rapor/{id}', [RaporController::class, 'update'])->name('rapor.update');
     Route::delete('/rapor/{id}', [RaporController::class, 'destroy'])->name('rapor.destroy');
+    Route::post('/rapor/mass-upload', [RaporController::class, 'massUpload'])->name('rapor.mass-upload');
 
     // Library Management
     Route::resource('books', BookController::class);
@@ -87,6 +93,13 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
     Route::post('/payment/batalbayar', [PaymentController::class, 'batalbayar'])->name('payment.batalbayar');
     Route::put('/payment/update/{id}', [PaymentController::class, 'update'])->name('payment.update');
     Route::delete('/payment/destroy/{id}', [PaymentController::class, 'destroy'])->name('payment.destroy');
+    Route::get('/payments/template/{id}', [PaymentController::class, 'downloadTemplate'])->name('payment.template');
+    Route::post('/payments/import/{sppId}', [PaymentController::class, 'import'])->name('payments.import');
+     Route::get('/payments/export/all', [PaymentController::class, 'exportAll'])
+        ->name('payments.export.all');
+
+    Route::get('/payments/export/{grade}', [PaymentController::class, 'exportByGrade'])
+        ->name('payments.export.grade');
 
     // User Management
     Route::resource('users', UserController::class);

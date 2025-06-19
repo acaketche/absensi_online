@@ -16,38 +16,31 @@ use App\Exports\StudentTemplateExport;
 
 class StudentController extends Controller
 {
-    public function index(Request $request)
-    {
+   public function index(Request $request)
+{
+    // Query untuk mengambil data siswa dengan pengurutan
+    $students = Student::query()
+        ->when($request->academic_year_id, function($query) use ($request) {
+            $query->where('academic_year_id', $request->academic_year_id);
+        })
+        ->when($request->semester_id, function($query) use ($request) {
+            $query->where('semester_id', $request->semester_id);
+        })
+        ->when($request->class_id, function($query) use ($request) {
+            $query->where('class_id', $request->class_id);
+        })
+        ->with('class') // Eager load relasi kelas
+        ->orderBy('class_id') // Urutkan berdasarkan kelas terlebih dahulu
+        ->orderBy('fullname') // Kemudian urutkan berdasarkan nama siswa
+        ->get();
 
-        $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
-        $activeSemester = Semester::where('is_active', 1)->first();
+    // Data lainnya yang diperlukan untuk filter
+    $academicYears = AcademicYear::all();
+    $semesters = Semester::all();
+    $classes = Classes::all();
 
-        $academicYearId = $request->get('academic_year_id', $activeAcademicYear->id ?? null);
-        $semesterId = $request->get('semester_id', $activeSemester->id ?? null);
-        $classId = $request->get('class_id', null);
-
-        $students = Student::where('academic_year_id', $academicYearId)
-            ->when($semesterId, fn($q) => $q->where('semester_id', $semesterId))
-            ->when($classId, fn($q) => $q->where('class_id', $classId))
-            ->get();
-
-        $academicYears = AcademicYear::all();
-        $semesters = Semester::all();
-        $classes = Classes::all();
-
-        return view('students.index', compact(
-            'students',
-            'classes',
-            'activeAcademicYear',
-            'activeSemester',
-            'academicYears',
-            'semesters',
-            'academicYearId',
-            'semesterId',
-            'classId'
-        ));
-    }
-
+    return view('students.index', compact('students', 'academicYears', 'semesters', 'classes'));
+}
     public function create()
     {
         $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
@@ -165,8 +158,6 @@ class StudentController extends Controller
         }
     }
 
-
-
     public function destroy($id)
     {
         $student = Student::findOrFail($id);
@@ -208,20 +199,124 @@ class StudentController extends Controller
             return response()->json(['success' => false, 'message' => 'Siswa tidak ditemukan']);
         }
     }
-    public function import(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls'
+public function import(Request $request)
+{
+    $request->validate([
+        'file' => 'nullable|file|mimes:xlsx,xls|max:2048',
+        'photos.*' => 'nullable|file|image|mimes:jpeg,png,jpg|max:2048',
+        'qr_codes.*' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
+    ], [
+        'photos.*.image' => 'Setiap file foto harus berupa gambar.',
+        'photos.*.mimes' => 'Format foto harus jpg, jpeg, atau png.',
+        'photos.*.max' => 'Ukuran masing-masing foto maksimal 2MB.',
+        'qr_codes.*.mimes' => 'Format QR Code harus jpg, jpeg, png, atau pdf.',
+        'qr_codes.*.max' => 'Ukuran masing-masing QR Code maksimal 2MB.',
+    ]);
+
+    // ✅ Jika semua input kosong, kembalikan dengan pesan error
+    if (
+        !$request->hasFile('file') &&
+        !$request->hasFile('photos') &&
+        !$request->hasFile('qr_codes')
+    ) {
+        return back()->with('error', 'Silakan unggah file Excel, foto, atau QR code terlebih dahulu.');
+    }
+
+    try {
+        $photoMap = [];
+        $qrCodeMap = [];
+
+        // ✅ Upload foto siswa dengan nama sesuai id_student
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $photo) {
+                $id = pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME);
+                $extension = $photo->getClientOriginalExtension();
+                $filename = $id . '.' . $extension;
+                $path = $photo->storeAs('photo_siswa', $filename, 'public');
+                $photoMap[$id] = $path;
+            }
+        }
+
+        // ✅ Upload QR code siswa dengan nama sesuai id_student
+        if ($request->hasFile('qr_codes')) {
+            foreach ($request->file('qr_codes') as $qr) {
+                $id = pathinfo($qr->getClientOriginalName(), PATHINFO_FILENAME);
+                $extension = $qr->getClientOriginalExtension();
+                $filename = $id . '.' . $extension;
+                $path = $qr->storeAs('qrcode_siswa', $filename, 'public');
+                $qrCodeMap[$id] = $path;
+            }
+        }
+
+        // Simpan session (jika dibutuhkan oleh StudentImport)
+        session([
+            'photo_map' => $photoMap,
+            'qrcode_map' => $qrCodeMap,
         ]);
 
-        try {
-            Excel::import(new StudentImport, $request->file('file'));
+        $messages = [];
 
-            return redirect()->route('students.index')->with('success', 'Import siswa berhasil.');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan saat import: ' . $e->getMessage());
+        // ✅ Jika file Excel diupload, jalankan proses import
+        if ($request->hasFile('file')) {
+            $import = new StudentImport();
+            Excel::import($import, $request->file('file'));
+
+            $importedCount = $import->getImportedCount();
+            $failedRows = $import->getFailedRows();
+
+            if ($importedCount > 0) {
+                $messages['success'] = "Berhasil mengimport {$importedCount} data siswa.";
+            }
+
+            if (count($failedRows) > 0) {
+                $messages['errors'] = array_map(function ($row) {
+                    return "Baris {$row['row']}: {$row['message']}";
+                }, $failedRows);
+            }
         }
+
+        // ✅ Update foto dan QR code langsung ke database
+        if (!empty($photoMap)) {
+            foreach ($photoMap as $id => $path) {
+                \DB::table('students')->where('id_student', $id)->update([
+                    'photo' => $path,
+                ]);
+            }
+            $messages['photo_success'] = 'Foto siswa berhasil diunggah dan disimpan.';
+        }
+
+        if (!empty($qrCodeMap)) {
+            foreach ($qrCodeMap as $id => $path) {
+                \DB::table('students')->where('id_student', $id)->update([
+                    'qrcode' => $path,
+                ]);
+            }
+            $messages['qr_success'] = 'QR Code siswa berhasil diunggah dan disimpan.';
+        }
+
+        // Hapus session setelah selesai
+        session()->forget(['photo_map', 'qrcode_map']);
+
+        return redirect()->route('students.index')->with($messages);
+
+    } catch (\Exception $e) {
+        \Log::error('Import Error: ' . $e->getMessage());
+        return back()->with('error', 'Terjadi kesalahan saat mengimpor: ' . $e->getMessage());
     }
+}
+
+protected function formatFailures($failures)
+{
+    $formatted = [];
+    foreach ($failures as $failure) {
+        $formatted[] = [
+            'row' => $failure->row(),
+            'errors' => $failure->errors(),
+            'values' => $failure->values()
+        ];
+    }
+    return $formatted;
+}
     public function showTemplate()
     {
         return view('excel.ExportTemplateSiswa'); // Halaman petunjuk
