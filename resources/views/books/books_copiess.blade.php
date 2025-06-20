@@ -283,6 +283,14 @@
         </div>
       @endif
 
+      @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="fas fa-exclamation-circle me-2"></i>
+          {{ session('error') }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      @endif
+
       <!-- Book Details Card -->
       <div class="card mb-4">
         <div class="card-body p-4">
@@ -363,18 +371,17 @@
                     </span>
                   </td>
                   <td>
-                    <div class="action-buttons">
-                      <button class="btn btn-sm btn-outline-primary" title="Edit" data-bs-toggle="modal" data-bs-target="#editCopyModal{{ $copy->id }}">
+                    <div class="action-buttons d-flex">
+                      <button class="btn btn-sm btn-outline-primary me-2" title="Edit" data-bs-toggle="modal" data-bs-target="#editCopyModal{{ $copy->id }}">
                         <i class="fas fa-edit"></i>
                       </button>
-                      <button class="btn btn-sm btn-outline-danger" title="Hapus" onclick="confirmDelete('{{ $copy->id }}')">
-                        <i class="fas fa-trash-alt"></i>
-                      </button>
-                      @if($copy->is_available)
-                      <button class="btn btn-sm btn-success" title="Pinjam">
-                        <i class="fas fa-book-open"></i>
-                      </button>
-                      @endif
+                      <form action="{{ route('book-copies.destroy', $copy->id) }}" method="POST" class="d-inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus" onclick="confirmDelete({{ $copy->id }})">
+                          <i class="fas fa-trash-alt"></i>
+                        </button>
+                      </form>
                     </div>
                   </td>
                 </tr>
@@ -402,7 +409,7 @@
 <div class="modal fade" id="addCopyModal" tabindex="-1" aria-labelledby="addCopyModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <form action="{{ route('book-copies.store', $book->id) }}" method="POST">
+      <form action="{{ route('books.copies.store', $book->id) }}" method="POST">
         @csrf
         <div class="modal-header">
           <h5 class="modal-title" id="addCopyModalLabel">Tambah Salinan Buku</h5>
@@ -438,6 +445,52 @@
   </div>
 </div>
 
+<!-- Edit Copy Modals -->
+@foreach($book->copies as $copy)
+<div class="modal fade" id="editCopyModal{{ $copy->id }}" tabindex="-1" aria-labelledby="editCopyModalLabel{{ $copy->id }}" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="{{ route('book-copies.update', $copy->id) }}" method="POST">
+        @csrf
+        @method('PUT')
+        <div class="modal-header">
+          <h5 class="modal-title" id="editCopyModalLabel{{ $copy->id }}">Edit Salinan Buku</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="editCopyCode{{ $copy->id }}" class="form-label">Kode Salinan *</label>
+            <input type="text" class="form-control" id="editCopyCode{{ $copy->id }}"
+                   name="copy_code" value="{{ $copy->copy_code }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Status *</label>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="is_available"
+                     id="editAvailableTrue{{ $copy->id }}" value="1" {{ $copy->is_available ? 'checked' : '' }}>
+              <label class="form-check-label" for="editAvailableTrue{{ $copy->id }}">
+                Tersedia
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="is_available"
+                     id="editAvailableFalse{{ $copy->id }}" value="0" {{ !$copy->is_available ? 'checked' : '' }}>
+              <label class="form-check-label" for="editAvailableFalse{{ $copy->id }}">
+                Dipinjam
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+@endforeach
+
 @endif
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -456,11 +509,35 @@
       backdrop: `rgba(67, 97, 238, 0.15)`
     }).then((result) => {
       if (result.isConfirmed) {
-        // Submit the delete form
-        document.getElementById('delete-form-' + copyId).submit();
+        // Find the form and submit it
+        document.querySelector(`form[action*="/book-copies/${copyId}"]`).submit();
       }
     });
   }
+
+  // Show success/error messages with SweetAlert
+  @if(session('success'))
+    Swal.fire({
+      icon: 'success',
+      title: 'Berhasil!',
+      text: '{{ session('success') }}',
+      confirmButtonColor: '#4361ee',
+      timer: 3000,
+      timerProgressBar: true,
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false
+    });
+  @endif
+
+  @if(session('error'))
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal!',
+      text: '{{ session('error') }}',
+      confirmButtonColor: '#4361ee'
+    });
+  @endif
 
   // Initialize tooltips
   document.addEventListener('DOMContentLoaded', function() {

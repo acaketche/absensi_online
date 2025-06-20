@@ -26,5 +26,9 @@ class BookCopy extends Model
 {
     return $this->is_available ? 'Tersedia' : 'Dipinjam';
 }
+public function loans()
+{
+    return $this->hasMany(BookLoan::class, 'copy_id');
+}
 
 }

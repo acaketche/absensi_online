@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Book;
+use App\Models\BookCopy;
+use Illuminate\Support\Facades\DB;
 
 class BookCopyController extends Controller
 {
-     // Helper method to sync stock with available copies
+    // Helper method to sync stock with available copies
     protected function syncBookStock(Book $book)
     {
         $availableCopies = $book->copies()->where('is_available', 1)->count();
@@ -16,7 +19,8 @@ class BookCopyController extends Controller
 
     public function showCopies(Book $book)
     {
-        // Mengambil data buku spesifik beserta salinannya
+        $this->syncCopyAvailability($book);
+
         $book->loadCount([
             'copies',
             'available_copies' => function($query) {
@@ -24,7 +28,6 @@ class BookCopyController extends Controller
             }
         ]);
 
-        // Mengambil daftar salinan buku
         $copies = $book->copies()->latest()->get();
 
         return view('books.books_copiess', compact('book', 'copies'));
@@ -32,39 +35,115 @@ class BookCopyController extends Controller
 
     public function storeCopies(Request $request, Book $book)
     {
-        $request->validate([
-            'quantity' => 'required|integer|min:1|max:100', // Batasi maksimal 100 salinan sekaligus
-        ]);
+        // Tidak ada lagi validasi quantity
+        // Langsung buat 1 salinan baru
 
-        // Mulai transaction untuk memastikan konsistensi data
-        \DB::transaction(function () use ($request, $book) {
+        \DB::transaction(function () use ($book) {
             $latestCopy = $book->copies()->latest()->first();
             $lastNumber = $latestCopy ? (int) substr($latestCopy->copy_code, -3) : 0;
 
-            for ($i = 1; $i <= $request->quantity; $i++) {
-                BookCopy::create([
-                    'book_id' => $book->id,
-                    'copy_code' => strtoupper($book->code . '-' . sprintf('%03d', $lastNumber + $i)),
-                    'is_available' => 1, // Menggunakan tinyint (1 untuk tersedia)
-                    'status' => 'Tersedia', // Status teks
-                ]);
-            }
+            BookCopy::create([
+                'book_id' => $book->id,
+                'copy_code' => strtoupper($book->code . '-' . sprintf('%03d', $lastNumber + 1)),
+                'is_available' => 1,
+                'status' => 'Tersedia',
+            ]);
 
-            // Update stok buku
-            $book->increment('stock', $request->quantity);
+            // Tambahkan stok buku
+            $book->increment('stock', 1);
         });
 
         return redirect()
             ->route('books.copies.show', $book)
-            ->with('success', $request->quantity . ' salinan buku berhasil ditambahkan.');
+            ->with('success', '1 salinan buku berhasil ditambahkan.');
     }
+
     public function availableCopies(Book $book)
     {
         $copies = $book->copies()
             ->where('is_available', 1)
-            ->select('id', 'copy_code', 'status')
-            ->get();
+            ->with(['loans' => function ($query) {
+                $query->latest()->limit(1);
+            }])
+            ->get()
+            ->map(function ($copy) {
+                $latestLoan = $copy->loans->first();
+                $status = $latestLoan ? $latestLoan->status : 'Tersedia';
+
+                return [
+                    'id' => $copy->id,
+                    'copy_code' => $copy->copy_code,
+                    'status' => $status
+                ];
+            });
 
         return response()->json($copies);
     }
+
+    // Sinkronisasi is_available berdasarkan status peminjaman terakhir
+    protected function syncCopyAvailability(Book $book)
+    {
+        foreach ($book->copies as $copy) {
+            $latestLoan = $copy->loans()->latest()->first();
+
+            if ($latestLoan) {
+                $copy->is_available = ($latestLoan->status === 'Dikembalikan') ? 1 : 0;
+            } else {
+                $copy->is_available = 1;
+            }
+
+            $copy->save();
+        }
+
+        $this->syncBookStock($book);
+    }
+    // Update a book copy
+    public function update(Request $request, BookCopy $bookCopy)
+    {
+        $request->validate([
+            'copy_code' => 'required|string|max:50|unique:book_copies,copy_code,'.$bookCopy->id,
+            'is_available' => 'required|boolean'
+        ]);
+
+        DB::transaction(function () use ($request, $bookCopy) {
+            $bookCopy->update([
+                'copy_code' => $request->copy_code,
+                'is_available' => $request->is_available
+            ]);
+
+            // Update book stock
+            $this->updateBookStock($bookCopy->book);
+        });
+
+        return redirect()->route('books.copies.show', $bookCopy->book_id)
+            ->with('success', 'Salinan buku berhasil diperbarui');
+    }
+
+    // Delete a book copy
+    public function destroy(BookCopy $bookCopy)
+    {
+        // Check if copy is currently borrowed
+        if (!$bookCopy->is_available) {
+            return redirect()->back()
+                ->with('error', 'Tidak dapat menghapus salinan yang sedang dipinjam');
+        }
+
+        DB::transaction(function () use ($bookCopy) {
+            $book = $bookCopy->book;
+            $bookCopy->delete();
+            $this->updateBookStock($book);
+        });
+
+        return redirect()->back()
+            ->with('success', 'Salinan buku berhasil dihapus');
+    }
+
+    // Helper method to update book stock
+    protected function updateBookStock(Book $book)
+    {
+        $availableCopies = $book->copies()->where('is_available', true)->count();
+        $book->stock = $availableCopies;
+        $book->save();
+    }
+
 }

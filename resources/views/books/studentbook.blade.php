@@ -291,6 +291,7 @@
                 <tr>
                   <th width="5%">No</th>
                   <th width="15%">Kode</th>
+                  <th width="15%">Kode Salinan</th>
                   <th width="30%">Judul Buku</th>
                   <th width="15%">Pinjam</th>
                   <th width="15%">Kembali</th>
@@ -302,6 +303,7 @@
                 <tr>
                   <td class="text-center">{{ $index + 1 }}</td>
                   <td>{{ $loan->book->code ?? 'N/A' }}</td>
+                  <td>{{ $loan->copy->copy_code ?? 'N/A' }}</td>
                   <td>
                     <div class="d-flex align-items-center">
                       @if($loan->book && $loan->book->cover_image)
@@ -380,7 +382,7 @@
 
 <!-- Modal Tambah Peminjaman -->
 <div class="modal fade" id="addLoanModal" tabindex="-1" aria-labelledby="addLoanModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <form action="{{ route('book-loans.store') }}" method="POST">
         @csrf
@@ -395,46 +397,69 @@
           <input type="hidden" name="academic_year_id" value="{{ $activeAcademicYear->id ?? '' }}">
           <input type="hidden" name="semester_id" value="{{ $activeSemester->id ?? '' }}">
 
-          <div class="mb-3">
-            <label for="book_id" class="form-label">Buku</label>
-            <select class="form-select" id="book_id" name="book_id" required onchange="loadAvailableCopies(this.value)">
-              <option value="">-- Pilih Buku --</option>
-              @foreach($books as $book)
-                <option value="{{ $book->id }}" data-code="{{ $book->code }}">{{ $book->title }} ({{ $book->code }})</option>
-              @endforeach
-            </select>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="book_id" class="form-label fw-bold">Buku</label>
+              <select class="form-select select2" id="book_id" name="book_id" required onchange="loadAvailableCopies(this.value)">
+                <option value="">-- Pilih Buku --</option>
+                @foreach($books as $book)
+                  <option value="{{ $book->id }}" data-code="{{ $book->code }}">{{ $book->title }} ({{ $book->code }})</option>
+                @endforeach
+              </select>
+              <div class="form-text">Pilih buku yang akan dipinjam</div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="copy_search" class="form-label fw-bold">Kode Salinan Buku</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="copy_search" placeholder="Ketik kode salinan..." disabled>
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+              </div>
+              <div class="dropdown">
+                <ul id="copy_dropdown" class="dropdown-menu w-100" style="display: none;"></ul>
+              </div>
+              <input type="hidden" id="copy_id" name="copy_id">
+              <div id="loading_indicator" class="mt-2 text-primary" style="display: none;">
+                <div class="spinner-border spinner-border-sm" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <span class="ms-2">Memuat salinan...</span>
+              </div>
+              <div class="form-text">Pilih salinan buku yang tersedia</div>
+            </div>
           </div>
 
-          <div class="mb-3">
-            <label for="copy_search" class="form-label">Kode Salinan Buku</label>
-            <div class="input-group">
-             <input type="text" id="copy_search" placeholder="Ketik kode salinan...">
-<ul id="copy_dropdown" class="dropdown-menu show"></ul>
-<input type="hidden" id="copy_id" name="copy_id">
-<div id="loading_indicator" style="display: none;">Loading...</div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="loan_date" class="form-label fw-bold">Tanggal Pinjam</label>
+              <input type="date" class="form-control" id="loan_date" name="loan_date"
+                    value="{{ date('Y-m-d') }}" required>
+              <div class="form-text">Tanggal peminjaman buku</div>
+            </div>
 
-          <div class="mb-3">
-            <label for="loan_date" class="form-label">Tanggal Pinjam</label>
-            <input type="date" class="form-control" id="loan_date" name="loan_date"
-                   value="{{ date('Y-m-d') }}" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="status" class="form-label">Status</label>
-            <input type="hidden" name="status" value="Dipinjam">
-            <p class="form-control-plaintext mb-0">Dipinjam</p>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">Status</label>
+              <div class="form-control bg-light">
+                <span class="badge bg-primary">Dipinjam</span>
+              </div>
+              <input type="hidden" name="status" value="Dipinjam">
+              <div class="form-text">Status peminjaman</div>
+            </div>
           </div>
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary">Simpan</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-1"></i> Batal
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-1"></i> Simpan
+          </button>
         </div>
       </form>
     </div>
   </div>
 </div>
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -523,6 +548,18 @@ function loadAvailableCopies(bookId) {
   const copyIdInput = document.getElementById('copy_id');
   const loadingIndicator = document.getElementById('loading_indicator');
 
+  // Reset fields when book changes
+  copySearch.value = '';
+  copyIdInput.value = '';
+  copyDropdown.innerHTML = '';
+  copyDropdown.style.display = 'none';
+
+  if (!bookId) {
+    copySearch.placeholder = "Pilih buku terlebih dahulu";
+    copySearch.disabled = true;
+    return;
+  }
+
   loadingIndicator.style.display = 'block';
 
   fetch(`/api/books/${bookId}/available-copies`)
@@ -531,44 +568,105 @@ function loadAvailableCopies(bookId) {
       copyDropdown.innerHTML = '';
 
       if (data.length > 0) {
+        // Store the copies data for search functionality
+        copySearch.dataset.copies = JSON.stringify(data);
+
         data.forEach(copy => {
           const item = document.createElement('li');
           item.className = 'dropdown-item';
           item.style.cursor = 'pointer';
           item.innerHTML = `${copy.copy_code} - ${copy.status}`;
           item.onclick = function () {
-            copySearch.value = `${copy.copy_code} - ${copy.status}`;
+            copySearch.value = copy.copy_code;
             copyIdInput.value = copy.id;
-            copyDropdown.classList.remove('show'); // hide dropdown
+            copyDropdown.style.display = 'none';
           };
           copyDropdown.appendChild(item);
         });
 
         copySearch.disabled = false;
-        copySearch.placeholder = "Ketik untuk mencari salinan...";
-        copyDropdown.classList.add('show');
+        copySearch.placeholder = "Ketik kode salinan...";
+        copyDropdown.style.display = 'block';
       } else {
-        copyDropdown.innerHTML = '<li class="dropdown-item text-muted">Tidak ada salinan tersedia</li>';
+        const item = document.createElement('li');
+        item.className = 'dropdown-item text-muted';
+        item.textContent = "Tidak ada salinan tersedia";
+        copyDropdown.appendChild(item);
         copySearch.placeholder = "Tidak ada salinan tersedia";
+        copySearch.disabled = true;
+        copyDropdown.style.display = 'block';
       }
     })
     .catch(error => {
       console.error('Error:', error);
-      copyDropdown.innerHTML = '<li class="dropdown-item text-muted">Error memuat salinan</li>';
+      const item = document.createElement('li');
+      item.className = 'dropdown-item text-danger';
+      item.textContent = "Error memuat salinan";
+      copyDropdown.appendChild(item);
       copySearch.placeholder = "Error memuat salinan";
+      copySearch.disabled = true;
+      copyDropdown.style.display = 'block';
     })
     .finally(() => {
       loadingIndicator.style.display = 'none';
     });
 }
 
+// Enhanced search functionality
 document.getElementById('copy_search').addEventListener('input', function (e) {
   const searchTerm = e.target.value.toLowerCase();
-  const items = document.querySelectorAll('#copy_dropdown .dropdown-item');
+  const copyDropdown = document.getElementById('copy_dropdown');
+  const items = copyDropdown.querySelectorAll('.dropdown-item');
 
+  // If empty search term, show all items
+  if (searchTerm === '') {
+    items.forEach(item => {
+      item.style.display = 'block';
+    });
+    return;
+  }
+
+  // Filter items based on search term
+  let hasMatches = false;
   items.forEach(item => {
-    item.style.display = item.textContent.toLowerCase().includes(searchTerm) ? 'block' : 'none';
+    if (item.textContent && typeof item.textContent === 'string') {
+      const text = item.textContent.toLowerCase();
+      const isMatch = text.includes(searchTerm);
+      item.style.display = isMatch ? 'block' : 'none';
+      if (isMatch) hasMatches = true;
+    }
   });
+
+  // If no matches and not the "no copies available" message
+  if (!hasMatches && !copyDropdown.querySelector('.text-muted, .text-danger')) {
+    const noMatchItem = document.createElement('li');
+    noMatchItem.className = 'dropdown-item text-muted';
+    noMatchItem.textContent = "Tidak ditemukan salinan yang cocok";
+    copyDropdown.appendChild(noMatchItem);
+  } else {
+    // Remove any existing "no match" items if we have matches
+    const existingNoMatch = copyDropdown.querySelector('.dropdown-item.text-muted:not(.persistent)');
+    if (existingNoMatch && hasMatches) {
+      existingNoMatch.remove();
+    }
+  }
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+  const copyDropdown = document.getElementById('copy_dropdown');
+  const copySearch = document.getElementById('copy_search');
+
+  if (!copySearch.contains(event.target) ){
+    copyDropdown.style.display = 'none';
+  }
+});
+
+// Initialize Select2
+$(document).ready(function() {
+    $('.select2').select2({
+        theme: 'bootstrap-5'
+    });
 });
 
 </script>

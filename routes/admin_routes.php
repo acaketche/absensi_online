@@ -16,6 +16,7 @@ use App\Http\Controllers\{
     RaporController,
     BookController,
     BookLoanController,
+    BookCopyController,
     PaymentController,
     UserController
 };
@@ -75,8 +76,10 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
     Route::resource('books', BookController::class)->except('show');
 
     Route::get('/books/{book}/copies', [BookCopyController::class, 'showCopies'])->name('books.copies.show');
-    Route::post('/books/{book}/copies', [BookCopyController::class, 'storeCopies'])->name('books.copies.store');
-    Route::get('/books/{book}/available-copies', [BookCopyController::class, 'availableCopies']);
+    Route::post('/books/{book}/copies/store', [BookCopyController::class, 'storeCopies'])->name('books.copies.store');
+    Route::get('/api/books/{book}/available-copies', [BookCopyController::class, 'availableCopies']);
+    Route::put('/book-copies/{bookCopy}', [BookCopyController::class, 'update'])->name('book-copies.update');
+    Route::delete('/book-copies/{bookCopy}', [BookCopyController::class, 'destroy'])->name('book-copies.destroy');
 
     // Book Loans
     Route::get('/book-loans', [BookLoanController::class, 'index'])->name('book-loans.index');
