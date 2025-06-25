@@ -76,6 +76,10 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
 
     // Library Management
     Route::resource('books', BookController::class)->except('show');
+    Route::get('/export', [BookController::class, 'export'])->name('books.export');
+    Route::post('/import', [BookController::class, 'import'])->name('books.import');
+    // Download template
+    Route::get('/template', [BookController::class, 'downloadTemplate'])->name('books.download-template');
 
     Route::get('/books/{book}/copies', [BookCopyController::class, 'showCopies'])->name('books.copies.show');
     Route::post('/books/{book}/copies/store', [BookCopyController::class, 'storeCopies'])->name('books.copies.store');

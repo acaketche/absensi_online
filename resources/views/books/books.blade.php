@@ -63,8 +63,8 @@
 
     .book-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
     }
 
     .book-card {
@@ -102,7 +102,7 @@
     }
 
     .book-content {
-      padding: 16px;
+      padding: 10px;
       flex-grow: 1;
       display: flex;
       flex-direction: column;
@@ -117,13 +117,12 @@
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      min-height: 50px;
     }
 
     .book-author {
       color: #666;
       font-size: 14px;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
     }
 
     .book-meta {
@@ -213,31 +212,65 @@
   <main class="flex-grow-1 p-4">
     @include('components.profiladmin')
 
-    <div class="container-fluid py-3">
-      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <div>
-          <h1 class="page-title">Manajemen Buku</h1>
-          <p class="text-muted">Kelola koleksi buku perpustakaan</p>
-        </div>
-        <div class="d-flex gap-2 flex-wrap">
-          <a href="{{ route('book-loans.index') }}" class="btn btn-outline-primary">
-            <i class="fas fa-exchange-alt me-2"></i> Peminjaman
-          </a>
-          <a href="{{ route('books.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus-circle me-2"></i> Tambah Buku
-          </a>
+   <div class="container-fluid py-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+    <div>
+      <h1 class="h3 mb-1">📚 Manajemen Buku</h1>
+      <p class="text-muted mb-0">Kelola koleksi buku perpustakaan dengan mudah dan cepat</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{{ route('book-loans.index') }}" class="btn btn-outline-primary">
+        <i class="fas fa-exchange-alt me-2"></i> Peminjaman
+      </a>
+      <a href="{{ route('books.create') }}" class="btn btn-primary">
+        <i class="fas fa-plus-circle me-2"></i> Tambah Buku
+      </a>
+    </div>
+  </div>
+
+ <!-- Import Section -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-light">
+    <h5 class="mb-0">
+      <i class="fas fa-file-import me-2"></i> Import Data Buku dan Salinan
+    </h5>
+  </div>
+  <div class="card-body">
+    <form action="{{ route('books.import') }}" method="POST" enctype="multipart/form-data">
+      @csrf
+
+      <div class="mb-3">
+        <label for="file" class="form-label">Pilih File Excel</label>
+        <input type="file" class="form-control" id="file" name="file" required>
+        <div class="form-text">
+          File Excel harus memiliki 2 sheet:
+          <ul class="mb-0">
+            <li><strong>Books</strong> — Data buku utama</li>
+            <li><strong>Copies</strong> — Data salinan buku</li>
+          </ul>
         </div>
       </div>
 
-      @if(session('success'))
-      <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <div class="d-flex align-items-center">
-          <i class="fas fa-check-circle me-2"></i>
-          <div>{{ session('success') }}</div>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <div class="d-flex justify-content-end gap-2 mt-4">
+        <a href="{{ route('books.download-template') }}" class="btn btn-info">
+          <i class="fas fa-download"></i> Download Template
+        </a>
+        <button type="submit" class="btn btn-success">
+          <i class="fas fa-upload"></i> Import Sekarang
+        </button>
       </div>
-      @endif
+    </form>
+  </div>
+</div>
+
+  <!-- Alert Success -->
+  @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  @endif
 
       @if($books->count() > 0)
       <div class="book-grid">

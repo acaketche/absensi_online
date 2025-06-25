@@ -7,6 +7,9 @@ use App\Models\BookCopy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Exports\BooksExport;
+use App\Imports\BooksImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class BookController extends Controller
 {
@@ -99,4 +102,27 @@ class BookController extends Controller
         return redirect()->route('books.index')
             ->with('success', 'Buku berhasil dihapus');
     }
+    public function export()
+{
+    return Excel::download(new BooksExport, 'books-and-copies-'.date('Y-m-d').'.xlsx');
+}
+
+public function import(Request $request)
+{
+    $request->validate([
+        'file' => 'required|mimes:xlsx,xls,csv'
+    ]);
+
+    DB::transaction(function () use ($request) {
+        Excel::import(new BooksImport, $request->file('file'));
+    });
+
+    return redirect()->route('books.index')
+        ->with('success', 'Data buku dan salinan berhasil diimport');
+}
+
+public function downloadTemplate()
+{
+    return Excel::download(new BooksExport, 'template-import-buku-dan-salinan.xlsx');
+}
 }
