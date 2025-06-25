@@ -70,8 +70,42 @@
     .book-card {
       border-radius: 16px;
       overflow: hidden;
-      height: 100%;
       position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .book-cover {
+      height: 150px;
+      background-color: #f0f2f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .book-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .book-card:hover .book-cover img {
+      transform: scale(1.05);
+    }
+
+    .book-cover .default-cover {
+      font-size: 48px;
+      color: #adb5bd;
+    }
+
+    .book-content {
+      padding: 16px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
     }
 
     .book-title {
@@ -108,6 +142,7 @@
       align-items: center;
       padding-top: 15px;
       border-top: 1px solid #eee;
+      margin-top: auto;
     }
 
     .stock-badge {
@@ -128,6 +163,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
+      z-index: 2;
     }
 
     .btn-delete:hover {
@@ -206,7 +243,16 @@
       <div class="book-grid">
         @foreach ($books as $book)
         <div class="card book-card">
-          <div class="card-body">
+          <div class="book-cover">
+            @if($book->cover_url)
+              <img src="{{ asset('storage/' . $book->cover_url) }}" alt="Cover {{ $book->title }}">
+            @else
+              <div class="default-cover">
+                <i class="fas fa-book"></i>
+              </div>
+            @endif
+          </div>
+          <div class="book-content">
             <h5 class="book-title">{{ $book->title }}</h5>
             <p class="book-author">
               <i class="fas fa-user-edit me-1"></i> {{ $book->author }}
