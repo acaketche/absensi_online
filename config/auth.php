@@ -30,10 +30,10 @@ return [
             'provider' => 'employees',
         ],
 
-        'student' => [ // ✅ Guard untuk student (siswa)
-            'driver' => 'session',
-            'provider' => 'student',
-        ],
+         'student' => [
+        'driver' => 'session',
+        'provider' => 'students', // <== ini yang diubah
+    ],
     ],
 
     /*
@@ -53,10 +53,10 @@ return [
             'model' => App\Models\Employee::class,
         ],
 
-        'student' => [ // ✅ Provider untuk student
-            'driver' => 'eloquent',
-            'model' => App\Models\Student::class,
-        ],
+        'students' => [ // <== konsisten jamak
+        'driver' => 'eloquent',
+        'model' => App\Models\Student::class,
+    ],
     ],
 
     /*

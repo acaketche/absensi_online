@@ -8,141 +8,250 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
+  <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
   <style>
     :root {
       --primary-color: #4361ee;
-      --secondary-color: #3f37c9;
+      --secondary-color: #3a0ca3;
       --accent-color: #4895ef;
       --success-color: #4cc9f0;
       --warning-color: #f72585;
       --danger-color: #e63946;
+      --light-bg: #f8f9fa;
+      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
-    .class-card {
-      border-radius: 12px;
-      border: none;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-      overflow: hidden;
-      margin-bottom: 20px;
-      cursor: pointer;
+    body {
+      background-color: var(--light-bg);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    .class-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
-    }
+   #classList {
+  justify-content: flex-start;
+}
 
-    .class-card-header {
-      background: linear-gradient(135deg, var(--secondary-color));
-      color: white;
-      padding: 15px;
-      position: relative;
-    }
+.class-card {
+  border-radius: 10px;
+  background-color: #fff;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
 
-    .class-card-header::after {
-      content: '';
-      position: absolute;
-      bottom: -10px;
-      left: 0;
-      width: 100%;
-      height: 20px;
-      background: white;
-      clip-path: polygon(0 0, 100% 0, 100% 10px, 0 100%);
-    }
+.class-card:hover {
+  transform: translateY(-4px);
+}
 
-    .class-name {
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin-bottom: 5px;
-    }
+.class-card-header {
+  background: linear-gradient(135deg, #3f37c9, #4361ee);
+  color: #fff;
+  border-radius: 10px 10px 0 0;
+}
 
-    .class-icon {
-      width: 50px;
-      height: 50px;
-      background-color: rgba(255, 255, 255, 0.2);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 15px;
-    }
+.class-icon {
+  width: 36px;
+  height: 36px;
+  background-color: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-    .teacher-info {
-      display: flex;
-      align-items: center;
-      padding: 15px;
-      background-color: #f8f9fa;
-      border-radius: 0 0 10px 10px;
-    }
+.class-name {
+  font-weight: bold;
+  font-size: 1rem;
+}
 
-    .teacher-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-right: 10px;
-    }
+.class-stats {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  background: #f8f9fa;
+}
 
-    .teacher-initial {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background-color: var(--accent-color);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      margin-right: 10px;
-    }
+.stat-value {
+  font-weight: 600;
+  color: #3f37c9;
+  font-size: 0.95rem;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #6c757d;
+}
+
+.teacher-info {
+  display: flex;
+  align-items: center;
+  background-color: #f1f3f5;
+  border-radius: 0 0 10px 10px;
+}
+
+.teacher-avatar,
+.teacher-initial {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 10px;
+  object-fit: cover;
+  font-size: 0.9rem;
+  background-color: #4895ef;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
     .class-stats {
       display: flex;
       justify-content: space-around;
-      padding: 10px 0;
+      padding: 16px 0;
       background-color: white;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     }
 
     .stat-item {
       text-align: center;
-      padding: 5px;
+      padding: 8px;
+      flex: 1;
     }
 
     .stat-value {
-      font-size: 1.1rem;
-      font-weight: bold;
+      font-size: 1.25rem;
+      font-weight: 700;
       color: var(--primary-color);
+      margin-bottom: 4px;
     }
 
     .stat-label {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       color: #6c757d;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 500;
     }
 
+    /* Search and Filter */
     .search-box {
       position: relative;
     }
 
     .search-icon {
       position: absolute;
-      left: 12px;
-      top: 10px;
-      color: #6c757d;
+      left: 16px;
+      top: 12px;
+      color: var(--primary-color);
+      z-index: 10;
     }
 
     .search-input {
-      padding-left: 40px;
+      padding-left: 48px;
+      border-radius: 50px;
+      border: 1px solid #e0e0e0;
+      height: 48px;
+      font-size: 0.95rem;
+      transition: all 0.3s;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
     }
 
     .filter-section {
       background-color: white;
-      border-radius: 10px;
-      padding: 15px;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .form-select {
+      height: 48px;
+      border-radius: 50px;
+      border: 1px solid #e0e0e0;
+      padding-left: 16px;
+      font-size: 0.95rem;
+    }
+
+    .form-select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      border: none;
+      border-radius: 50px;
+      height: 48px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      padding: 0 24px;
+      box-shadow: 0 4px 8px rgba(67, 97, 238, 0.2);
+      transition: all 0.3s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(67, 97, 238, 0.25);
+    }
+
+    .btn-outline-primary {
+      border-radius: 50px;
+      height: 48px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      padding: 0 24px;
+      transition: all 0.3s;
+    }
+
+    /* Page Header */
+    .page-header h2 {
+      color: var(--secondary-color);
+      font-weight: 700;
+      position: relative;
+      display: inline-block;
+    }
+
+    .page-header h2::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 0;
+      width: 50%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-color), transparent);
+      border-radius: 2px;
+    }
+
+    /* Empty State */
+    .empty-state {
+      padding: 60px 0;
+      text-align: center;
+      background-color: white;
+      border-radius: 16px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      color: var(--accent-color);
       margin-bottom: 20px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      opacity: 0.7;
+    }
+
+    .empty-state h4 {
+      color: var(--secondary-color);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .empty-state p {
+      color: #6c757d;
+      max-width: 500px;
+      margin: 0 auto;
     }
   </style>
 </head>
@@ -158,100 +267,97 @@
     @include('components.profiladmin')
 
     <!-- Judul Halaman -->
-    <header class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <h2 class="fs-4 fw-bold mb-1">Peminjaman Buku - Daftar Kelas</h2>
+    <header class="d-flex justify-content-between align-items-center">
+      <div class="page-header">
+        <h2 class="fs-3 fw-bold mb-2">Peminjaman Buku - Daftar Kelas</h2>
+        <p class="text-muted">Pilih kelas untuk melihat daftar siswa dan peminjaman buku</p>
       </div>
       <div class="d-flex gap-2">
-        <a href="{{ route('books.index') }}" class="btn btn-outline-primary">
+        <a href="{{ route('books.index') }}" class="btn btn-outline-primary d-flex align-items-center">
           <i class="fas fa-exchange-alt me-2"></i> Buku
         </a>
       </div>
     </header>
-
-    <!-- Filter dan Pencarian -->
-    <div class="filter-section">
-      <div class="row align-items-center">
-        <div class="col-md-6 mb-2 mb-md-0">
-          <div class="search-box">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" id="searchClass" class="form-control search-input" placeholder="Cari kelas atau wali kelas...">
-          </div>
-        </div>
-        <div class="col-md-6">
-          <form id="filterForm" class="row g-2">
-            <div class="col-md-8">
-              <select class="form-select" id="filterTingkat" name="tingkat">
-                <option value="">Semua Tingkat Kelas</option>
-                <option value="X">Kelas 10</option>
-                <option value="XI">Kelas 11</option>
-                <option value="XII">Kelas 12</option>
-              </select>
-            </div>
-            <div class="col-md-4">
-              <button type="submit" class="btn btn-primary w-100">
-                <i class="fas fa-filter me-1"></i> Filter
-              </button>
-            </div>
-          </form>
-        </div>
+ <!-- Filter dan Pencarian -->
+<div class="filter-section">
+  <div class="row gy-3 align-items-center">
+    <!-- Pencarian -->
+    <div class="col-lg-6 col-md-12">
+      <div class="search-box position-relative">
+        <i class="fas fa-search search-icon position-absolute top-50 start-0 translate-middle-y ms-3"></i>
+        <input type="text" id="searchClass" class="form-control search-input ps-5" placeholder="Cari kelas atau wali kelas...">
       </div>
     </div>
 
-    <!-- Daftar Kelas -->
-    <div class="row" id="classList">
-      @foreach($classes as $class)
-      <div class="col-md-4 mb-4 class-item">
-        <div class="class-card h-100" onclick="window.location.href='{{ route('book-loans.class-students', $class->class_id) }}'">
-          <div class="class-card-header d-flex align-items-center">
-            <div class="class-icon">
-              <i class="fas fa-chalkboard-teacher"></i>
-            </div>
-            <div>
-              <div class="class-name">{{ $class->class_name }}</div>
-              <div class="small opacity-75">{{ $class->academicYear->year_name ?? 'Tahun Ajaran' }}</div>
-            </div>
-          </div>
-
-          <div class="class-stats">
-            <div class="stat-item">
-             <div class="stat-value">{{ $class->students->count() }}</div>
-              <div class="stat-label">Siswa</div>
-            </div>
-            <div class="stat-item">
-  <div class="stat-value">{{ $classLoans[$class->id] ?? 0 }}</div>
-  <div class="stat-label">Pinjaman</div>
+    <!-- Filter dan Reset -->
+    <div class="col-lg-6 col-md-12">
+      <form id="filterForm" class="d-flex flex-wrap gap-2">
+        <select class="form-select flex-grow-1" id="filterTingkat" name="tingkat">
+          <option value="">Semua Tingkat Kelas</option>
+          <option value="X">Kelas 10</option>
+          <option value="XI">Kelas 11</option>
+          <option value="XII">Kelas 12</option>
+        </select>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-filter me-1"></i> Filter
+        </button>
+        <button type="button" id="resetFilter" class="btn btn-outline-secondary">
+          <i class="fas fa-redo me-1"></i> Reset
+        </button>
+      </form>
+    </div>
+  </div>
 </div>
 
-          </div>
 
-          <div class="teacher-info">
-            @if($class->employee && $class->employee->photo)
-              <img src="{{ asset('storage/' . $class->employee->photo) }}" class="teacher-avatar" alt="Wali Kelas">
-            @else
-              <div class="teacher-initial">
-                {{ $class->employee ? substr($class->employee->fullname, 0, 1) : '?' }}
-              </div>
-            @endif
-            <div>
-              <div class="fw-bold">{{ $class->employee->fullname ?? 'Belum ada wali kelas' }}</div>
-              <div class="small text-muted">Wali Kelas</div>
-            </div>
-          </div>
+   <!-- Daftar Kelas -->
+<div id="classList" class="d-flex flex-wrap gap-3">
+  @foreach($classes as $class)
+    <div class="class-card  class-item flex-shrink-0" style="width: 300px;" onclick="window.location.href='{{ route('book-loans.class-students', $class->class_id) }}'">
+      <div class="class-card-header d-flex align-items-center p-2">
+        <div class="class-icon me-2">
+          <i class="fas fa-chalkboard-teacher"></i>
+        </div>
+        <div>
+          <div class="class-name">{{ $class->class_name }}</div>
+          <div class="small opacity-75">{{ $class->academicYear->year_name ?? 'Tahun Ajaran' }}</div>
         </div>
       </div>
-      @endforeach
-    </div>
 
-    @if($classes->isEmpty())
-      <div class="text-center py-5">
-        <i class="fas fa-chalkboard fa-4x text-muted mb-4"></i>
-        <h4 class="text-muted">Belum ada kelas tersedia</h4>
-        <p class="text-muted">Silakan tambahkan kelas terlebih dahulu</p>
+      <div class="class-stats">
+        <div class="stat-item">
+          <div class="stat-value">{{ $class->students->count() }}</div>
+          <div class="stat-label">Siswa</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">{{ $classLoans[$class->id] ?? 0 }}</div>
+          <div class="stat-label">Pinjaman</div>
+        </div>
       </div>
-    @endif
-  </main>
+
+      <div class="teacher-info p-2">
+        @if($class->employee && $class->employee->photo)
+          <img src="{{ asset('storage/' . $class->employee->photo) }}" class="teacher-avatar" alt="Wali Kelas">
+        @else
+          <div class="teacher-initial">{{ $class->employee ? substr($class->employee->fullname, 0, 1) : '?' }}</div>
+        @endif
+        <div>
+          <div class="fw-semibold small">{{ $class->employee->fullname ?? 'Belum ada wali kelas' }}</div>
+          <div class="text-muted small">Wali Kelas</div>
+        </div>
+      </div>
+    </div>
+  @endforeach
 </div>
+
+@if($classes->isEmpty())
+  <div class="empty-state text-center py-5">
+    <i class="fas fa-chalkboard fa-3x text-muted mb-3"></i>
+    <h5 class="text-muted">Belum ada kelas tersedia</h5>
+    <p class="text-muted small">Silakan tambahkan kelas terlebih dahulu melalui menu administrasi</p>
+  </div>
+@endif
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -262,7 +368,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         classItems.forEach(item => {
             const className = item.querySelector('.class-name').textContent.toLowerCase();
-            const teacherName = item.querySelector('.fw-bold').textContent.toLowerCase();
+            const teacherName = item.querySelector('.fw-semibold')?.textContent.toLowerCase() || '';
 
             if (className.includes(searchValue) || teacherName.includes(searchValue)) {
                 item.style.display = 'block';
@@ -299,6 +405,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+   document.getElementById('resetFilter').addEventListener('click', function () {
+    // Reset nilai input dan select
+    document.getElementById('searchClass').value = '';
+    document.getElementById('filterTingkat').value = '';
+
+    // Tampilkan semua class card
+    const classItems = document.querySelectorAll('.class-item');
+    classItems.forEach(item => {
+        item.style.display = 'block';
+    });
+});
+
 </script>
 </body>
 </html>

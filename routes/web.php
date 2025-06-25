@@ -19,3 +19,4 @@ require __DIR__.'/perpus_routes.php';
 Route::get('/test', function () {
     return 'Route berhasil!';
 });
+Route::middleware('auth:student')->get('/siswa', [\App\Http\Controllers\StudentController::class, 'show'])->name('students.show.siswa');
