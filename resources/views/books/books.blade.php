@@ -244,8 +244,8 @@
         @foreach ($books as $book)
         <div class="card book-card">
           <div class="book-cover">
-            @if($book->cover_url)
-              <img src="{{ asset('storage/' . $book->cover_url) }}" alt="Cover {{ $book->title }}">
+            @if($book->cover)
+              <img src="{{ asset('storage/' . $book->cover) }}" alt="Cover {{ $book->title }}">
             @else
               <div class="default-cover">
                 <i class="fas fa-book"></i>

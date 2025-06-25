@@ -223,6 +223,21 @@
             margin-bottom: 0;
             padding-left: 20px;
         }
+         .scrollable-table {
+        max-height: 600px; /* Ubah ini sesuai kebutuhan, misal: 800px untuk lebih panjang */
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+    }
+
+    /* Tambahan opsional untuk mempercantik scroll */
+    .scrollable-table::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .scrollable-table::-webkit-scrollbar-thumb {
+        background-color: #6c757d;
+        border-radius: 4px;
+    }
     </style>
 </head>
 @if(Auth::guard('employee')->check())
@@ -277,37 +292,51 @@
             </a>
         </div>
 
-        <!-- Class Info -->
-        <div class="class-info">
-            <div class="class-icon">
-                <i class="fas fa-chalkboard"></i>
-            </div>
-            <div class="class-details">
-                <h3 class="class-name">{{ $class->class_name }}</h3>
-                <div class="class-meta">
-                    <div class="class-meta-item">
-                        <i class="fas fa-user-tie"></i> {{ $class->employee->fullname ?? 'Belum ada wali kelas' }}
-                    </div>
-                    <div class="class-meta-item">
-                        <i class="fas fa-calendar-alt"></i> {{ $class->academicYear->year_name ?? 'Tahun Ajaran' }}
-                    </div>
-                    <div class="class-meta-item">
-                        <i class="fas fa-users"></i> {{ $students->count() }} Siswa
-                    </div>
+      <!-- Class Info -->
+<div class="card shadow-sm border-0 rounded-4 mb-4">
+    <div class="card-body d-flex flex-wrap align-items-center gap-4">
+        <!-- Icon -->
+        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+            <i class="fas fa-chalkboard fa-2x"></i>
+        </div>
+
+        <!-- Detail Info -->
+        <div class="flex-grow-1">
+            <h4 class="mb-1 fw-semibold text-primary">{{ $class->class_name }}</h4>
+            <div class="d-flex flex-wrap gap-3 text-muted small">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-user-tie text-dark"></i>
+                    {{ $class->employee->fullname ?? 'Belum ada wali kelas' }}
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-calendar-alt text-dark"></i>
+                    {{ $class->academicYear->year_name ?? 'Tahun Ajaran' }}
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-users text-dark"></i>
+                    {{ $students->count() }} Siswa
                 </div>
             </div>
         </div>
+
+        <!-- Button Upload -->
+        <div>
+            <button id="massUploadBtn"
+                    class="btn btn-outline-primary shadow-sm d-flex align-items-center gap-2"
+                    data-bs-toggle="modal"
+                    data-bs-target="#massUploadModal">
+                <i class="fas fa-file-upload"></i>
+                Upload Massal
+            </button>
+        </div>
+    </div>
+</div>
 
         <!-- Data Siswa -->
         <div class="card">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <div>
                     <i class="fas fa-users me-2"></i> Daftar Siswa
-                </div>
-                <div>
-                    <button id="massUploadBtn" class="btn btn-light btn-sm me-2" data-bs-toggle="modal" data-bs-target="#massUploadModal">
-                        <i class="fas fa-file-upload me-1"></i> Upload Massal
-                    </button>
                 </div>
             </div>
             <div class="card-body">
@@ -435,57 +464,51 @@
 <!-- Upload Rapor Modal -->
 <div class="modal fade" id="uploadRaporModal" tabindex="-1" aria-labelledby="uploadRaporModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content shadow-lg border-0">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="uploadRaporModalLabel">
+        <div class="modal-content rounded-4 shadow-lg border-0">
+            <div class="modal-header bg-gradient text-white" style="background: linear-gradient(to right, #4e73df, #224abe);">
+                <h5 class="modal-title fw-bold">
                     <i class="fas fa-upload me-2"></i> Upload Rapor Siswa
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-
             <form id="uploadRaporForm" action="{{ route('rapor.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <div class="modal-body">
-                    <!-- Hidden Fields -->
+                <div class="modal-body px-4 py-3">
                     <input type="hidden" name="id_student" id="formStudentId">
                     <input type="hidden" name="class_id" id="formClassId">
                     <input type="hidden" name="status_report" value="Sudah Ada">
 
-                    <div class="row mb-3">
+                    <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label">Nama Siswa</label>
+                            <label class="form-label fw-semibold">Nama Siswa</label>
                             <input type="text" class="form-control" id="modalStudentName" readonly>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">NIPD</label>
+                            <label class="form-label fw-semibold">NIPD</label>
                             <input type="text" class="form-control" id="modalStudentNipd" readonly>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="report_date" class="form-label">Tanggal Rapor</label>
+                        <label class="form-label fw-semibold">Tanggal Rapor</label>
                         <input type="date" class="form-control" name="report_date" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="description" class="form-label">Deskripsi (Opsional)</label>
-                        <textarea class="form-control" name="description" rows="3" placeholder="Masukkan deskripsi atau catatan tambahan..."></textarea>
+                        <label class="form-label fw-semibold">Deskripsi (Opsional)</label>
+                        <textarea class="form-control" name="description" rows="3" placeholder="Catatan tambahan..."></textarea>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="reportFile" class="form-label">File Rapor</label>
-                        <div class="border rounded p-3 text-center bg-light">
-                            <input type="file" name="report_file" id="reportFile" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
-                            <div class="mt-2">
-                                <i class="fas fa-file-upload fa-2x text-primary mb-2"></i>
-                                <p class="mb-1 fw-bold">Pilih file rapor untuk diunggah</p>
-                                <small class="text-muted">Format: PDF, JPG, JPEG, PNG • Maks: 5MB</small>
-                            </div>
+                    <div class="mb-3 text-center">
+                        <label class="form-label fw-semibold">File Rapor</label>
+                        <div class="upload-box p-4 border rounded bg-light">
+                            <input type="file" name="report_file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
+                            <i class="fas fa-cloud-upload-alt fa-2x text-primary mt-3 mb-2"></i>
+                            <p class="mb-0">Pilih file rapor (PDF/JPG/PNG, max 5MB)</p>
                         </div>
                     </div>
                 </div>
-
-                <div class="modal-footer bg-light">
+                <div class="modal-footer bg-light border-top">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="fas fa-times me-1"></i> Batal
                     </button>
@@ -501,68 +524,59 @@
 <!-- Edit Rapor Modal -->
 <div class="modal fade" id="editRaporModal" tabindex="-1" aria-labelledby="editRaporModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content shadow-lg border-0">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="editRaporModalLabel">
+        <div class="modal-content rounded-4 shadow-lg border-0">
+            <div class="modal-header bg-gradient text-white" style="background: linear-gradient(to right, #36b9cc, #1cc88a);">
+                <h5 class="modal-title fw-bold">
                     <i class="fas fa-edit me-2"></i> Edit Rapor Siswa
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-
             <form id="editRaporForm" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
-                <div class="modal-body">
-                    <div class="row mb-3">
+                <div class="modal-body px-4 py-3">
+                    <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label">Nama Siswa</label>
+                            <label class="form-label fw-semibold">Nama Siswa</label>
                             <input type="text" class="form-control" id="editStudentName" readonly>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">NIPD</label>
+                            <label class="form-label fw-semibold">NIPD</label>
                             <input type="text" class="form-control" id="editStudentNipd" readonly>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="edit_report_date" class="form-label">Tanggal Rapor</label>
+                        <label class="form-label fw-semibold">Tanggal Rapor</label>
                         <input type="date" class="form-control" name="report_date" id="edit_report_date" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="edit_description" class="form-label">Deskripsi (Opsional)</label>
-                        <textarea class="form-control" name="description" id="edit_description" rows="3" placeholder="Masukkan deskripsi atau catatan tambahan..."></textarea>
+                        <label class="form-label fw-semibold">Deskripsi</label>
+                        <textarea class="form-control" name="description" id="edit_description" rows="3"></textarea>
                     </div>
 
                     <div class="mb-3">
-                        <label for="edit_report_file" class="form-label">File Rapor</label>
-
-                        <!-- Current file preview -->
-                        <div id="currentFilePreview" class="file-preview mb-3">
-                            <p class="mb-1">File saat ini:</p>
-                            <a href="#" id="currentFileLink" target="_blank" class="d-flex align-items-center">
-                                <i class="fas fa-file-pdf me-2"></i>
-                                <span id="currentFileName">Tidak ada file</span>
+                        <label class="form-label fw-semibold">File Rapor</label>
+                        <div class="file-preview mb-2">
+                            <p class="text-muted mb-1">File saat ini:</p>
+                            <a href="#" target="_blank" id="currentFileLink">
+                                <i class="fas fa-file-pdf me-2"></i> <span id="currentFileName">Tidak ada file</span>
                             </a>
                         </div>
-
-                        <div class="border rounded p-3 text-center bg-light">
+                        <div class="upload-box p-4 border rounded bg-light text-center">
                             <input type="file" name="report_file" id="edit_report_file" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
-                            <div class="mt-2">
-                                <i class="fas fa-file-upload fa-2x text-primary mb-2"></i>
-                                <p class="mb-1 fw-bold">Pilih file baru untuk mengganti rapor</p>
-                                <small class="text-muted">Format: PDF, JPG, JPEG, PNG • Maks: 5MB</small>
-                                <small class="d-block text-muted mt-1">Kosongkan jika tidak ingin mengubah file</small>
-                            </div>
+                            <i class="fas fa-cloud-upload-alt fa-2x text-success mt-3 mb-2"></i>
+                            <p class="mb-0">Pilih file baru (opsional)</p>
+                            <small class="text-muted">Biarkan kosong jika tidak ingin mengganti file</small>
                         </div>
                     </div>
                 </div>
-
-                <div class="modal-footer bg-light">
+                <div class="modal-footer bg-light border-top">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="fas fa-times me-1"></i> Batal
                     </button>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-success">
                         <i class="fas fa-save me-1"></i> Simpan Perubahan
                     </button>
                 </div>
@@ -574,59 +588,48 @@
 <!-- Mass Upload Modal -->
 <div class="modal fade" id="massUploadModal" tabindex="-1" aria-labelledby="massUploadModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content shadow-lg border-0">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="massUploadModalLabel">
-                    <i class="fas fa-file-upload me-2"></i> Upload Rapor Massal
+        <div class="modal-content rounded-4 shadow-lg border-0">
+            <div class="modal-header bg-gradient text-white" style="background: linear-gradient(to right, #f6c23e, #e0a800);">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-file-archive me-2"></i> Upload Rapor Massal
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-
-            <form id="massUploadForm" action="{{ route('rapor.mass-upload') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('rapor.upload-massal', ['classId' => $class->class_id]) }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <div class="modal-body">
-                    <input type="hidden" name="class_id" value="{{ $class->class_id }}">
-
-                    <div class="mass-upload-info">
-                        <h6><i class="fas fa-info-circle me-2"></i>Petunjuk Upload Massal:</h6>
-                        <ul>
-                            <li>File harus dalam format ZIP</li>
-                            <li>Maksimal ukuran file 50MB</li>
-                            <li>Nama file harus sesuai dengan NIPD siswa (contoh: 12345.pdf)</li>
-                            <li>Format file yang didukung: PDF, JPG, JPEG, PNG</li>
-                            <li>File akan otomatis dicocokkan dengan siswa berdasarkan NIPD</li>
+                <input type="hidden" name="class_id" value="{{ $class->class_id }}">
+                <div class="modal-body px-4 py-3">
+                    <div class="alert alert-warning small mb-4">
+                        <strong><i class="fas fa-info-circle me-1"></i> Petunjuk:</strong>
+                        <ul class="mb-0 ps-3">
+                            <li>Unggah 1 file <strong>ZIP</strong> berisi file rapor siswa.</li>
+                            <li>Nama file di dalam ZIP: <code>NIPD_Nama.pdf</code></li>
+                            <li>Ekstensi yang didukung: <code>.pdf, .jpg, .jpeg, .png</code></li>
+                            <li>Ukuran maksimal ZIP: <strong>50MB</strong></li>
                         </ul>
                     </div>
 
                     <div class="mb-3">
-                        <label for="report_date" class="form-label">Tanggal Rapor</label>
+                        <label class="form-label fw-semibold">Tanggal Rapor</label>
                         <input type="date" class="form-control" name="report_date" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="massReportFile" class="form-label">File ZIP Berisi Rapor</label>
-                        <div class="border rounded p-3 text-center bg-light">
-                            <input type="file" name="mass_report_file" id="massReportFile" class="form-control" accept=".zip" required>
-                            <div class="mt-2">
-                                <i class="fas fa-file-archive fa-2x text-primary mb-2"></i>
-                                <p class="mb-1 fw-bold">Pilih file ZIP yang berisi rapor siswa</p>
-                                <small class="text-muted">Format: ZIP • Maks: 50MB • Nama file harus sesuai NIPD (contoh: 12345.pdf)</small>
-                            </div>
-                        </div>
+                        <label class="form-label fw-semibold">File ZIP</label>
+                        <input type="file" name="rapor_zip" class="form-control" accept=".zip" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="mass_description" class="form-label">Deskripsi (Opsional)</label>
-                        <textarea class="form-control" name="description" id="mass_description" rows="3" placeholder="Masukkan deskripsi atau catatan tambahan untuk semua rapor..."></textarea>
+                        <label class="form-label fw-semibold">Deskripsi Umum</label>
+                        <textarea class="form-control" name="description" rows="3" placeholder="Contoh: Rapor semester genap tahun 2025..."></textarea>
                     </div>
                 </div>
-
-                <div class="modal-footer bg-light">
+                <div class="modal-footer bg-light border-top">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="fas fa-times me-1"></i> Batal
                     </button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-1"></i> Upload Semua
+                    <button type="submit" class="btn btn-warning text-white">
+                        <i class="fas fa-upload me-1"></i> Upload Massal
                     </button>
                 </div>
             </form>

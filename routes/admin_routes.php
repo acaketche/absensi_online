@@ -31,6 +31,8 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
     Route::post('/students/import', [StudentController::class, 'import'])->name('students.import');
     Route::get('/students/import/template', [StudentController::class, 'showTemplate'])->name('students.template.page');
     Route::get('/students/import/template/download', [StudentController::class, 'downloadTemplate'])->name('students.template.download');
+    Route::post('/students/upload-media', [StudentController::class, 'uploadMediaZip'])->name('students.uploadMediaZip');
+
 
     // Class Management
     Route::resource('classes', ClassesController::class);
@@ -70,7 +72,7 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
     Route::get('/rapor/{id}/edit', [RaporController::class, 'edit'])->name('rapor.edit');
     Route::put('/rapor/{id}', [RaporController::class, 'update'])->name('rapor.update');
     Route::delete('/rapor/{id}', [RaporController::class, 'destroy'])->name('rapor.destroy');
-    Route::post('/rapor/mass-upload', [RaporController::class, 'massUpload'])->name('rapor.mass-upload');
+    Route::post('/rapor/upload-massal', [RaporController::class, 'uploadRaporMassalKelas'])->name('rapor.upload-massal');
 
     // Library Management
     Route::resource('books', BookController::class)->except('show');

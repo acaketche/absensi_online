@@ -296,7 +296,7 @@
         <div class="card-body p-4">
           <div class="row align-items-center">
             <div class="col-md-2 text-center mb-3 mb-md-0">
-              <img src="{{ asset($book->cover_image ?? 'images/cover-default.png') }}" alt="Cover Buku" class="book-cover mx-auto">
+              <img src="{{ asset('storage/' . $book->cover ?? 'images/cover-default.png') }}" alt="Cover Buku" class="book-cover mx-auto">
             </div>
             <div class="col-md-10">
               <div class="d-flex flex-column h-100">

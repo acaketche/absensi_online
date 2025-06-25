@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use App\Import\StudentImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\StudentTemplateExport;
+use ZipArchive;
 
 class StudentController extends Controller
 {
@@ -203,60 +204,12 @@ public function import(Request $request)
 {
     $request->validate([
         'file' => 'nullable|file|mimes:xlsx,xls|max:2048',
-        'photos.*' => 'nullable|file|image|mimes:jpeg,png,jpg|max:2048',
-        'qr_codes.*' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
-    ], [
-        'photos.*.image' => 'Setiap file foto harus berupa gambar.',
-        'photos.*.mimes' => 'Format foto harus jpg, jpeg, atau png.',
-        'photos.*.max' => 'Ukuran masing-masing foto maksimal 2MB.',
-        'qr_codes.*.mimes' => 'Format QR Code harus jpg, jpeg, png, atau pdf.',
-        'qr_codes.*.max' => 'Ukuran masing-masing QR Code maksimal 2MB.',
     ]);
 
-    // ✅ Jika semua input kosong, kembalikan dengan pesan error
-    if (
-        !$request->hasFile('file') &&
-        !$request->hasFile('photos') &&
-        !$request->hasFile('qr_codes')
-    ) {
-        return back()->with('error', 'Silakan unggah file Excel, foto, atau QR code terlebih dahulu.');
-    }
-
     try {
-        $photoMap = [];
-        $qrCodeMap = [];
-
-        // ✅ Upload foto siswa dengan nama sesuai id_student
-        if ($request->hasFile('photos')) {
-            foreach ($request->file('photos') as $photo) {
-                $id = pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME);
-                $extension = $photo->getClientOriginalExtension();
-                $filename = $id . '.' . $extension;
-                $path = $photo->storeAs('photo_siswa', $filename, 'public');
-                $photoMap[$id] = $path;
-            }
-        }
-
-        // ✅ Upload QR code siswa dengan nama sesuai id_student
-        if ($request->hasFile('qr_codes')) {
-            foreach ($request->file('qr_codes') as $qr) {
-                $id = pathinfo($qr->getClientOriginalName(), PATHINFO_FILENAME);
-                $extension = $qr->getClientOriginalExtension();
-                $filename = $id . '.' . $extension;
-                $path = $qr->storeAs('qrcode_siswa', $filename, 'public');
-                $qrCodeMap[$id] = $path;
-            }
-        }
-
-        // Simpan session (jika dibutuhkan oleh StudentImport)
-        session([
-            'photo_map' => $photoMap,
-            'qrcode_map' => $qrCodeMap,
-        ]);
-
         $messages = [];
 
-        // ✅ Jika file Excel diupload, jalankan proses import
+        // Jalankan proses import jika file Excel diupload
         if ($request->hasFile('file')) {
             $import = new StudentImport();
             Excel::import($import, $request->file('file'));
@@ -274,28 +227,6 @@ public function import(Request $request)
                 }, $failedRows);
             }
         }
-
-        // ✅ Update foto dan QR code langsung ke database
-        if (!empty($photoMap)) {
-            foreach ($photoMap as $id => $path) {
-                \DB::table('students')->where('id_student', $id)->update([
-                    'photo' => $path,
-                ]);
-            }
-            $messages['photo_success'] = 'Foto siswa berhasil diunggah dan disimpan.';
-        }
-
-        if (!empty($qrCodeMap)) {
-            foreach ($qrCodeMap as $id => $path) {
-                \DB::table('students')->where('id_student', $id)->update([
-                    'qrcode' => $path,
-                ]);
-            }
-            $messages['qr_success'] = 'QR Code siswa berhasil diunggah dan disimpan.';
-        }
-
-        // Hapus session setelah selesai
-        session()->forget(['photo_map', 'qrcode_map']);
 
         return redirect()->route('students.index')->with($messages);
 
@@ -326,4 +257,133 @@ protected function formatFailures($failures)
     {
         return Excel::download(new StudentTemplateExport(), 'student_import_template.xlsx');
     }
+ public function uploadMediaZip(Request $request)
+{
+    $request->validate([
+        'media_zip' => 'nullable|file|mimes:zip|max:20480',
+    ]);
+
+    // Pastikan folder temp ada
+    if (!Storage::disk('public')->exists('temp')) {
+        Storage::disk('public')->makeDirectory('temp');
+    }
+
+    // Simpan file ZIP ke public/temp
+    $uploadedFile = $request->file('media_zip');
+    $filename = $uploadedFile->hashName();
+    $uploadedFile->storeAs('temp', $filename, 'public');
+
+    $realZipPath = storage_path('app/public/temp/' . $filename);
+    $extractTo = storage_path('app/public/temp-media');
+
+    if (!file_exists($realZipPath)) {
+        return back()->with('error', 'File ZIP tidak ditemukan: ' . $realZipPath);
+    }
+
+    if (!is_dir($extractTo)) {
+        mkdir($extractTo, 0777, true);
+    }
+
+    // Ekstrak ZIP
+    $zip = new \ZipArchive;
+    $openResult = $zip->open($realZipPath);
+    if ($openResult === true) {
+        $zip->extractTo($extractTo);
+        $zip->close();
+    } else {
+        Storage::disk('public')->delete('temp/' . $filename);
+        return back()->with('error', 'ZIP gagal dibuka (Kode error: ' . $openResult . ').');
+    }
+
+    // Cari folder photos dan qrcodes
+    $photosPath = $this->findFolderPath($extractTo, 'photos');
+    $qrcodesPath = $this->findFolderPath($extractTo, 'qrcodes');
+
+    if (!$photosPath || !$qrcodesPath) {
+        Storage::disk('public')->delete('temp/' . $filename);
+        \File::deleteDirectory($extractTo);
+        return back()->with('error', 'Folder photos atau qrcodes tidak ditemukan.');
+    }
+
+    $errors = [];
+    $errors['photo'] = $this->processMediaFiles($photosPath, 'photo', 'photo_siswa');
+    $errors['qrcode'] = $this->processMediaFiles($qrcodesPath, 'qrcode', 'qrcode_siswa');
+
+    // Hapus file dan folder temp
+    Storage::disk('public')->delete('temp/' . $filename);
+    \File::deleteDirectory($extractTo);
+
+    $message = 'Upload berhasil.';
+    if (!empty($errors['photo']) || !empty($errors['qrcode'])) {
+        $message .= ' Tapi ada beberapa file gagal diproses.';
+    }
+
+    return redirect()->back()->with([
+        'success' => $message,
+        'upload_errors' => array_filter($errors),
+    ]);
+}
+
+private function processMediaFiles($folder, $column, $storageFolder)
+{
+    $errors = [];
+
+    if (!is_dir($folder)) return ["Folder $folder tidak ditemukan di dalam ZIP."];
+
+    foreach (scandir($folder) as $file) {
+        if (in_array($file, ['.', '..'])) continue;
+
+        $filename = pathinfo($file, PATHINFO_FILENAME);
+        $id_student = explode('_', $filename)[0] ?? null;
+
+        if (!$id_student || !is_numeric($id_student)) {
+            $errors[] = "$file → Format nama tidak valid. Gunakan format: [id_student]_[nama].ext";
+            continue;
+        }
+
+        $student = Student::where('id_student', $id_student)->first();
+        if (!$student) {
+            $errors[] = "$file → ID '$id_student' tidak ditemukan di database.";
+            continue;
+        }
+
+        // Simpan ke storage Laravel dengan nama asli
+        try {
+            $fullPath = $folder . '/' . $file;
+
+            // Buat instance UploadedFile agar bisa pakai store()
+            $uploaded = new \Illuminate\Http\UploadedFile(
+                $fullPath, $file, null, null, true // test mode
+            );
+
+            $storedPath = $uploaded->storeAs($storageFolder, $file, 'public');
+
+            // Update path ke kolom yg sesuai
+            $student->$column = $storedPath;
+            $student->save();
+        } catch (\Exception $e) {
+            $errors[] = "$file → Gagal disimpan: " . $e->getMessage();
+        }
+    }
+
+    return $errors;
+}
+private function findFolderPath($basePath, $targetFolder)
+{
+    foreach (scandir($basePath) as $item) {
+        if (in_array($item, ['.', '..'])) continue;
+
+        $fullPath = $basePath . '/' . $item;
+        if (is_dir($fullPath)) {
+            if (basename($fullPath) === $targetFolder) {
+                return $fullPath;
+            }
+
+            // Cek dalam subfolder satu tingkat
+            $nested = $this->findFolderPath($fullPath, $targetFolder);
+            if ($nested) return $nested;
+        }
+    }
+    return null;
+}
 }

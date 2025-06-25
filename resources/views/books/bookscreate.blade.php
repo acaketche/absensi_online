@@ -95,7 +95,7 @@
             <i class="fas fa-plus-circle me-2"></i> Form Tambah Buku
         </div>
         <div class="card-body p-4">
-            <form action="{{ route('books.store') }}" method="POST">
+            <form action="{{ route('books.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="mb-3">
                     <label for="title" class="form-label">Judul Buku</label>
@@ -125,6 +125,10 @@
                         <label for="stock" class="form-label">Jumlah Stok</label>
                         <input type="number" class="form-control" id="stock" name="stock" min="0" value="{{ old('stock') }}" required>
                     </div>
+                </div>
+                <div class="mb-3">
+                    <label for="cover" class="form-label">Cover Buku (Gambar)</label>
+                    <input type="file" class="form-control" id="cover" name="cover" accept="image/*">
                 </div>
 
                 <div class="d-flex justify-content-end gap-2 mt-4">
