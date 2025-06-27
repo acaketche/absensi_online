@@ -45,6 +45,27 @@
         border-radius: 10px 10px 0 0 !important;
     }
 
+    /* Form styling */
+    .form-container {
+        margin: 0 auto;
+    }
+
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #4266B9;
+        box-shadow: 0 0 0 0.25rem rgba(66, 102, 185, 0.25);
+    }
+
     @media (max-width: 768px) {
         .sidebar {
             width: 70px;
@@ -57,6 +78,10 @@
 
         .main-content {
             padding: 15px;
+        }
+
+        .form-container {
+            padding: 0 15px;
         }
     }
 </style>
@@ -90,45 +115,61 @@
     @endif
 
     <!-- Add Book Form -->
-    <div class="card">
+    <div class="card form-container">
         <div class="card-header">
             <i class="fas fa-plus-circle me-2"></i> Form Tambah Buku
         </div>
         <div class="card-body p-4">
             <form action="{{ route('books.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <div class="mb-3">
-                    <label for="title" class="form-label">Judul Buku</label>
-                    <input type="text" class="form-control" id="title" name="title" value="{{ old('title') }}" required>
-                </div>
-                <div class="mb-3">
-                    <label for="code" class="form-label">Kode Buku</label>
-                    <input type="text" name="code" class="form-control" value="{{ old('code', $book->code ?? '') }}" required>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-md-6 mb-3 mb-md-0">
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="title" class="form-label">Judul Buku</label>
+                        <input type="text" class="form-control" id="title" name="title" value="{{ old('title') }}" required>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="code" class="form-label">Kode Buku</label>
+                        <input type="text" name="code" class="form-control" value="{{ old('code', $book->code ?? '') }}" required>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="class_id" class="form-label">Kelas</label>
+                        <select name="class_id" id="class_id" class="form-select" required>
+                            <option value="">-- Pilih Kelas --</option>
+                            @foreach ($classes as $class)
+                                <option value="{{ $class->class_id }}" {{ old('class_id') == $class->class_id ? 'selected' : '' }}>
+                                    {{ $class->class_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
                         <label for="author" class="form-label">Penulis</label>
                         <input type="text" class="form-control" id="author" name="author" value="{{ old('author') }}" required>
                     </div>
-                    <div class="col-md-6">
+
+                    <div class="col-md-6 mb-3">
                         <label for="publisher" class="form-label">Penerbit</label>
                         <input type="text" class="form-control" id="publisher" name="publisher" value="{{ old('publisher') }}" required>
                     </div>
-                </div>
 
-                <div class="row mb-3">
-                    <div class="col-md-6 mb-3 mb-md-0">
+                    <div class="col-md-6 mb-3">
                         <label for="year_published" class="form-label">Tahun Terbit</label>
                         <input type="number" class="form-control" id="year_published" name="year_published" value="{{ old('year_published', date('Y')) }}" required>
                     </div>
-                    <div class="col-md-6">
+
+                    <div class="col-md-6 mb-3">
                         <label for="stock" class="form-label">Jumlah Stok</label>
                         <input type="number" class="form-control" id="stock" name="stock" min="0" value="{{ old('stock') }}" required>
                     </div>
-                </div>
-                <div class="mb-3">
-                    <label for="cover" class="form-label">Cover Buku (Gambar)</label>
-                    <input type="file" class="form-control" id="cover" name="cover" accept="image/*">
+
+                    <div class="col-md-12 mb-3">
+                        <label for="cover" class="form-label">Cover Buku (Gambar)</label>
+                        <input type="file" class="form-control" id="cover" name="cover" accept="image/*">
+                        <small class="text-muted">Format: JPG, PNG, JPEG (Maksimal 2MB)</small>
+                    </div>
                 </div>
 
                 <div class="d-flex justify-content-end gap-2 mt-4">

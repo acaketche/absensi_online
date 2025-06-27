@@ -16,23 +16,33 @@ class Book extends Model
         'publisher',
         'year_published',
         'stock',
-        'cover'
+        'cover',
+        'class_id', // <--- tambahkan ini
     ];
 
     protected $casts = [
         'year_published' => 'integer',
-        'stock' => 'integer'
+        'stock' => 'integer',
     ];
-        public function loans()
+
+    public function loans()
     {
         return $this->hasMany(BookLoan::class, 'book_id');
     }
+
     public function copies()
+    {
+        return $this->hasMany(BookCopy::class);
+    }
+
+    public function available_copies()
+    {
+        return $this->hasMany(BookCopy::class)->where('is_available', 1);
+    }
+
+   public function class()
 {
-    return $this->hasMany(BookCopy::class);
+    return $this->belongsTo(Classes::class, 'class_id', 'class_id');
 }
-public function available_copies()
-{
-    return $this->hasMany(BookCopy::class)->where('is_available', 1);
-}
+
 }

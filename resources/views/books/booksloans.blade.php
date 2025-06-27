@@ -278,21 +278,21 @@
         </a>
       </div>
     </header>
- <!-- Filter dan Pencarian -->
-<div class="filter-section">
-  <div class="row gy-3 align-items-center">
+<!-- Filter dan Pencarian -->
+<div class="filter-section mb-4">
+  <div class="row g-3 align-items-center">
     <!-- Pencarian -->
-    <div class="col-lg-6 col-md-12">
+    <div class="col-lg-4 col-md-6">
       <div class="search-box position-relative">
         <i class="fas fa-search search-icon position-absolute top-50 start-0 translate-middle-y ms-3"></i>
-        <input type="text" id="searchClass" class="form-control search-input ps-5" placeholder="Cari kelas atau wali kelas...">
+         <input type="text" id="searchClass" class="form-control search-input ps-5" placeholder="Cari kelas atau wali kelas...">
       </div>
     </div>
 
     <!-- Filter dan Reset -->
-    <div class="col-lg-6 col-md-12">
-      <form id="filterForm" class="d-flex flex-wrap gap-2">
-        <select class="form-select flex-grow-1" id="filterTingkat" name="tingkat">
+    <div class="col-lg-8 col-md-6">
+      <form id="filterForm" class="d-flex flex-wrap justify-content-lg-end gap-2">
+        <select class="form-select w-auto" id="filterTingkat" name="tingkat">
           <option value="">Semua Tingkat Kelas</option>
           <option value="X">Kelas 10</option>
           <option value="XI">Kelas 11</option>
@@ -308,7 +308,6 @@
     </div>
   </div>
 </div>
-
 
    <!-- Daftar Kelas -->
 <div id="classList" class="d-flex flex-wrap gap-3">
@@ -330,7 +329,7 @@
           <div class="stat-label">Siswa</div>
         </div>
         <div class="stat-item">
-          <div class="stat-value">{{ $classLoans[$class->id] ?? 0 }}</div>
+        <div class="stat-value">{{ $classLoans[$class->class_id] ?? 0 }}</div>
           <div class="stat-label">Pinjaman</div>
         </div>
       </div>

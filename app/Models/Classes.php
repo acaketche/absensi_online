@@ -44,5 +44,8 @@ class Classes extends Model
 {
     return $this->hasMany(Spp::class, 'class_id', 'class_id');
 }
-
+ public function books()
+    {
+        return $this->hasMany(Book::class);
+    }
 }

@@ -15,19 +15,22 @@ use Carbon\Carbon;
 class BookLoanController extends Controller
 {
     public function index()
-    {
-        $classes = Classes::with('students')->get();
-        $students = Student::withCount('borrowedBooks')->get();
+{
+    // Ambil semua kelas beserta siswa dan jumlah buku yang sedang dipinjam
+    $classes = Classes::with(['students' => function ($query) {
+        $query->withCount(['borrowedBooks']);
+    }, 'academicYear', 'employee'])->get(); // tambah relasi yang dibutuhkan
 
-        $classLoans = [];
-        foreach ($classes as $class) {
-            $studentsInClass = $students->where('class_id', $class->id);
-            $totalLoans = $studentsInClass->sum('borrowed_books_count');
-            $classLoans[$class->id] = $totalLoans;
-        }
-
-        return view('books.booksloans', compact('classes', 'classLoans'));
+    // Hitung total pinjaman per kelas
+    $classLoans = [];
+    foreach ($classes as $class) {
+        $totalLoans = $class->students->sum('borrowed_books_count');
+        $classLoans[$class->class_id] = $totalLoans;
     }
+
+    return view('books.booksloans', compact('classes', 'classLoans'));
+}
+
 
     public function create()
     {
