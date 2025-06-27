@@ -10,7 +10,7 @@
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #4361ee;
+            --primary-color: #4266B9;
             --secondary-color: #3f37c9;
             --accent-color: #4895ef;
             --success-color: #4cc9f0;

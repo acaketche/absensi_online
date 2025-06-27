@@ -14,19 +14,32 @@ use Illuminate\Support\Facades\Validator;
 class RaporController extends Controller
 {
     public function classes(Request $request)
-    {
-        $query = Classes::with(['employee', 'academicYear'])
-            ->withCount('students');
+{
+    $query = Classes::with(['employee', 'academicYear'])
+        ->withCount('students');
 
-        if ($request->filled('academic_year_id')) {
-            $query->where('academic_year_id', $request->academic_year_id);
-        }
-
-        $classes = $query->get();
-        $academicYears = AcademicYear::all();
-
-        return view('rapor.rapor', compact('classes', 'academicYears'));
+    // Filter berdasarkan tahun akademik jika ada
+    if ($request->filled('academic_year_id')) {
+        $query->where('academic_year_id', $request->academic_year_id);
     }
+
+    // ✅ Filter berdasarkan class_level jika dipilih
+    if ($request->filled('class_level')) {
+        $query->where('class_level', $request->class_level);
+    }
+
+    $classes = $query->get();
+    $academicYears = AcademicYear::all();
+
+    // Ambil hanya tingkatan unik untuk ditampilkan di dropdown
+    $classLevels = Classes::whereNotNull('class_level')
+        ->select('class_level')
+        ->distinct()
+        ->orderBy('class_level')
+        ->get();
+
+    return view('rapor.rapor', compact('classes', 'academicYears', 'classLevels'));
+}
 
     public function students($classId)
     {

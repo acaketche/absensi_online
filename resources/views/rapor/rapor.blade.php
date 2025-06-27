@@ -10,7 +10,7 @@
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #4361ee;
+            --primary-color: #4266B9;
             --secondary-color: #3f37c9;
             --accent-color: #4895ef;
             --success-color: #4cc9f0;
@@ -253,27 +253,6 @@
             margin-bottom: 20px;
         }
 
-        .toggle-filters {
-            background: none;
-            border: none;
-            color: var(--primary-color);
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            padding: 8px 15px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .toggle-filters:hover {
-            background-color: rgba(67, 97, 238, 0.1);
-        }
-
-        .toggle-filters i {
-            margin-right: 8px;
-        }
-
         @media (max-width: 768px) {
             .class-grid {
                 grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -316,13 +295,8 @@
             </div>
         </div>
 
-        <!-- Toggle Filters Button -->
-        <button class="toggle-filters mb-3" id="toggleFilters">
-            <i class="fas fa-filter"></i> Filter Kelas
-        </button>
-
         <!-- Filter Section -->
-        <div class="filter-section mb-4" id="filterSection" style="display: none;">
+        <div class="filter-section mb-4" id="filterSection">
             <div class="filter-title">
                 <i class="fas fa-sliders-h"></i>
                 <h5 class="mb-0">Filter Data Kelas</h5>
@@ -341,14 +315,24 @@
                             </select>
                 </div>
                 <div class="col-md-4">
-                    <label for="filterTingkat" class="form-label">Tingkat</label>
-                    <select class="form-select" id="filterTingkat" name="grade">
-                        <option value="">Semua Tingkat</option>
-                        <option value="10">Kelas 10</option>
-                        <option value="11">Kelas 11</option>
-                        <option value="12">Kelas 12</option>
-                    </select>
-                </div>
+    <label for="class_level" class="form-label">Tingkatan Kelas</label>
+    <select name="class_level" id="class_level" class="form-select" onchange="this.form.submit()">
+        <option value="">Semua Tingkatan</option>
+        @foreach($classLevels as $level)
+            @php
+                $angka = match($level->class_level) {
+                    'X' => 10,
+                    'XI' => 11,
+                    'XII' => 12,
+                    default => ''
+                };
+            @endphp
+            <option value="{{ $level->class_level }}" {{ request('class_level') == $level->class_level ? 'selected' : '' }}>
+                {{ $level->class_level }} (kelas {{ $angka }})
+            </option>
+        @endforeach
+    </select>
+</div>
                 <div class="col-12 mt-3">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-filter me-1"></i> Terapkan Filter
@@ -406,20 +390,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Toggle filter section
-    const toggleFilters = document.getElementById('toggleFilters');
-    const filterSection = document.getElementById('filterSection');
-
-    toggleFilters.addEventListener('click', function() {
-        if (filterSection.style.display === 'none') {
-            filterSection.style.display = 'block';
-            toggleFilters.innerHTML = '<i class="fas fa-times"></i> Tutup Filter';
-        } else {
-            filterSection.style.display = 'none';
-            toggleFilters.innerHTML = '<i class="fas fa-filter"></i> Filter Kelas';
-        }
-    });
-
     // Search functionality
     document.getElementById('searchInput').addEventListener('keyup', function() {
         const searchValue = this.value.toLowerCase();
@@ -444,9 +414,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('filterForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
-        const tahunAjaran = document.getElementById('filterTahunAjaran').value;
+        const tahunAjaran = document.getElementById('academicYearSelect').value;
         const tingkat = document.getElementById('filterTingkat').value;
-        const jurusan = document.getElementById('filterJurusan').value;
 
         // Update info text
         let infoText = 'Menampilkan kelas';
@@ -457,27 +426,19 @@ document.addEventListener('DOMContentLoaded', function() {
             infoText += ' semua tingkat';
         }
 
-        if (jurusan) {
-            infoText += ` jurusan <strong>${jurusan}</strong>`;
-        }
-
         if (tahunAjaran) {
-            const tahunSelect = document.getElementById('filterTahunAjaran');
+            const tahunSelect = document.getElementById('academicYearSelect');
             const tahunText = tahunSelect.options[tahunSelect.selectedIndex].text;
             infoText += ` untuk Tahun Ajaran <strong>${tahunText}</strong>`;
         }
 
-        document.getElementById('filterInfo').innerHTML = infoText;
-
         // In a real implementation, this would submit the form to the server
         // For now, we'll just simulate filtering
-        filterClassCards(tahunAjaran, tingkat, jurusan);
+        filterClassCards(tahunAjaran, tingkat);
     });
 
     // Reset filter button
     document.getElementById('filterForm').querySelector('button[type="reset"]').addEventListener('click', function() {
-        document.getElementById('filterInfo').innerHTML = 'Menampilkan semua kelas';
-
         // Reset class filtering
         const classCards = document.querySelectorAll('.class-card');
         classCards.forEach(card => {
@@ -486,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Simulate filtering class cards
-    function filterClassCards(tahunAjaran, tingkat, jurusan) {
+    function filterClassCards(tahunAjaran, tingkat) {
         const classCards = document.querySelectorAll('.class-card');
 
         classCards.forEach(card => {
@@ -498,10 +459,6 @@ document.addEventListener('DOMContentLoaded', function() {
             let showCard = true;
 
             if (tingkat && !className.includes(`kelas ${tingkat}`)) {
-                showCard = false;
-            }
-
-            if (jurusan && !classMeta.includes(jurusan.toLowerCase())) {
                 showCard = false;
             }
 

@@ -15,7 +15,7 @@ class Classes extends Model
     protected $keyType = 'string'; // Jika class_id bertipe UUID atau string
     public $timestamps = false; // Jika tabel tidak memiliki created_at & updated_at
 
-    protected $fillable = ['class_name', 'id_employee', 'academic_year_id', 'semester_id'];
+    protected $fillable = ['class_name', 'class_level', 'id_employee', 'academic_year_id', 'semester_id'];
 
     // Relasi ke Employee (Wali Kelas)
     public function employee()

@@ -134,17 +134,22 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label for="class_id" class="form-label">Kelas</label>
-                        <select name="class_id" id="class_id" class="form-select" required>
-                            <option value="">-- Pilih Kelas --</option>
-                            @foreach ($classes as $class)
-                                <option value="{{ $class->class_id }}" {{ old('class_id') == $class->class_id ? 'selected' : '' }}>
-                                    {{ $class->class_name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
+    <label for="class_level" class="form-label">Tingkatan Kelas</label>
+    <select name="class_level" id="class_level" class="form-select" required>
+        <option value="">-- Pilih Tingkatan --</option>
+        @foreach ($classLevels as $level)
+            @php
+                $angka = match($level) {
+                    'X' => 10,
+                    'XI' => 11,
+                    'XII' => 12,
+                    default => ''
+                };
+            @endphp
+            <option value="{{ $level }}">{{ $level }} (kelas {{ $angka }})</option>
+        @endforeach
+    </select>
+</div>
                     <div class="col-md-6 mb-3">
                         <label for="author" class="form-label">Penulis</label>
                         <input type="text" class="form-control" id="author" name="author" value="{{ old('author') }}" required>

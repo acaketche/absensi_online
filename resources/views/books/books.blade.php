@@ -11,7 +11,7 @@
   <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
   <style>
     :root {
-      --primary-color: #4361ee;
+      --primary-color: #4266B9;
       --primary-light: #eef2ff;
       --secondary-color: #3f37c9;
       --warning-color: #f72585;
@@ -303,226 +303,314 @@
     @include('components.profiladmin')
 
    <div class="container-fluid py-4">
-  <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
-    <div>
-      <h1 class="h3 mb-1">📚 Manajemen Buku</h1>
-      <p class="text-muted mb-0">Kelola koleksi buku perpustakaan dengan mudah dan cepat</p>
-    </div>
-    <div class="d-flex flex-wrap gap-2">
-      <a href="{{ route('book-loans.index') }}" class="btn btn-outline-primary">
-        <i class="fas fa-exchange-alt me-2"></i> Peminjaman
-      </a>
-      <a href="{{ route('books.create') }}" class="btn btn-primary">
-        <i class="fas fa-plus-circle me-2"></i> Tambah Buku
-      </a>
-    </div>
-  </div>
-
- <!-- Import Section -->
-<div class="card shadow-sm mb-4">
-  <div class="card-header bg-light">
-    <h5 class="mb-0">
-      <i class="fas fa-file-import me-2"></i> Import Data Buku dan Salinan
-    </h5>
-  </div>
-  <div class="card-body">
-    <form action="{{ route('books.import') }}" method="POST" enctype="multipart/form-data">
-      @csrf
-
-      <div class="mb-3">
-        <label for="file" class="form-label">Pilih File Excel</label>
-        <input type="file" class="form-control" id="file" name="file" required>
-        <div class="form-text">
-          File Excel harus memiliki 2 sheet:
-          <ul class="mb-0">
-            <li><strong>Books</strong> — Data buku utama</li>
-            <li><strong>Copies</strong> — Data salinan buku</li>
-          </ul>
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+        <div>
+          <h1 class="h3 mb-1">📚 Manajemen Buku</h1>
+          <p class="text-muted mb-0">Kelola koleksi buku perpustakaan dengan mudah dan cepat</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{{ route('book-loans.index') }}" class="btn btn-outline-primary">
+            <i class="fas fa-exchange-alt me-2"></i> Peminjaman
+          </a>
+          <a href="{{ route('books.create') }}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i> Tambah Buku
+          </a>
         </div>
       </div>
 
-      <div class="d-flex justify-content-end gap-2 mt-4">
-        <a href="{{ route('books.download-template') }}" class="btn btn-info">
-          <i class="fas fa-download"></i> Download Template
-        </a>
-        <button type="submit" class="btn btn-success">
-          <i class="fas fa-upload"></i> Import Sekarang
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
-  <!-- Alert Success -->
-  @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-      <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-  @endif
-
-      @if($books->count() > 0)
-      <div class="book-grid">
-        @foreach ($books as $book)
-        <div class="card book-card">
-          <div class="book-cover">
-            @if($book->cover)
-              <img src="{{ asset('storage/' . $book->cover) }}" alt="Cover {{ $book->title }}">
-            @else
-              <div class="default-cover">
-                <i class="fas fa-book"></i>
-              </div>
-            @endif
-          </div>
-          <div class="book-content">
-            <h5 class="book-title">{{ $book->title }}</h5>
-            <p class="book-author">
-              <i class="fas fa-user-edit me-1"></i> {{ $book->author }}
-            </p>
-            <div class="book-meta">
-              <span><i class="fas fa-building me-1"></i> {{ $book->publisher }}</span>
-              <span><i class="fas fa-calendar-alt me-1"></i> {{ $book->year_published }}</span>
-            </div>
-            <div class="book-footer">
-              <span class="stock-badge">
-                <i class="fas fa-book me-1"></i>  {{ $book->stock }} tersedia
-              </span>
-              <div class="book-actions">
-                <button type="button" class="btn btn-edit" data-bs-toggle="modal" data-bs-target="#editBookModal{{ $book->id }}">
-                  <i class="fas fa-edit"></i>
-                </button>
-                <form action="{{ route('books.destroy', $book->id) }}" method="POST" class="d-inline">
-                  @csrf
-                  @method('DELETE')
-                  <button type="submit" class="btn btn-delete" onclick="return confirm('Apakah Anda yakin ingin menghapus buku ini?')">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </form>
-              </div>
-            </div>
-          </div>
-          <a href="{{ route('books.copies.show', $book->id) }}" class="stretched-link"></a>
-        </div>
-
-      <!-- Edit Book Modal -->
-<div class="modal fade" id="editBookModal{{ $book->id }}" tabindex="-1" aria-labelledby="editBookModalLabel{{ $book->id }}" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="editBookModalLabel{{ $book->id }}">
-          <i class="fas fa-edit me-2"></i> Edit Buku
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <form action="{{ route('books.update', $book->id) }}" method="POST" enctype="multipart/form-data">
-        @csrf
-        @method('PUT')
-
-        <div class="modal-body">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="code" class="form-label">Kode Buku</label>
-                <input type="text" class="form-control" id="code" name="code" value="{{ $book->code }}" required>
-              </div>
-
-              <div class="mb-3">
-                <label for="title" class="form-label">Judul Buku</label>
-                <input type="text" class="form-control" id="title" name="title" value="{{ $book->title }}" required>
-              </div>
-
-              <div class="mb-3">
-                <label for="author" class="form-label">Pengarang</label>
-                <input type="text" class="form-control" id="author" name="author" value="{{ $book->author }}" required>
-              </div>
-            </div>
-
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label for="publisher" class="form-label">Penerbit</label>
-                <input type="text" class="form-control" id="publisher" name="publisher" value="{{ $book->publisher }}" required>
-              </div>
-
-              <div class="mb-3">
-                <label for="year_published" class="form-label">Tahun Terbit</label>
-                <input type="number" class="form-control" id="year_published" name="year_published" value="{{ $book->year_published }}" required>
-              </div>
-
-              <div class="mb-3">
-                <label for="class_id" class="form-label">Kelas</label>
-                <select name="class_id" id="class_id" class="form-select">
-                  <option value="">-- Pilih Kelas --</option>
-                  @foreach ($classes as $class)
-                    <option value="{{ $class->class_id }}" {{ old('class_id', $book->class_id) == $class->class_id ? 'selected' : '' }}>
-                      {{ $class->class_name }}
+      <!-- Filter Section -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <form action="{{ route('books.index') }}" method="GET">
+            <div class="row g-3 align-items-end">
+              <div class="col-md-3">
+                <label for="class_level" class="form-label">Tingkatan Kelas</label>
+                <select name="class_level" id="class_level" class="form-select">
+                  <option value="">Semua Tingkatan</option>
+                  @foreach($classes as $class)
+                    @php
+                      $angka = match($class->class_level) {
+                          'X' => 10,
+                          'XI' => 11,
+                          'XII' => 12,
+                          default => ''
+                      };
+                    @endphp
+                    <option value="{{ $class->class_level }}" {{ request('class_level') == $class->class_level ? 'selected' : '' }}>
+                      {{ $class->class_level }} (kelas {{ $angka }})
                     </option>
                   @endforeach
                 </select>
               </div>
+              <div class="col-md-6">
+  <label for="search" class="form-label">Pencarian</label>
+  <div class="input-group">
+    <input type="text" class="form-control" id="searchBooks"
+           placeholder="Cari judul, pengarang, penerbit atau kode...">
+    <button class="btn btn-primary" type="button" id="resetSearch">
+      <i class="fas fa-sync-alt"></i>
+    </button>
+  </div>
+</div>
+              <div class="col-md-3 d-flex">
+                <button type="submit" class="btn btn-primary me-2 flex-grow-1">
+                  <i class="fas fa-filter me-1"></i> Terapkan Filter
+                </button>
+                <a href="{{ route('books.index') }}" class="btn btn-outline-secondary">
+                  <i class="fas fa-sync-alt"></i>
+                </a>
+              </div>
             </div>
+          </form>
+        </div>
+      </div>
 
-            <!-- Full-width cover section -->
-            <div class="col-12">
+      <!-- Import Section -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            <i class="fas fa-file-import me-2"></i> Import Data Buku dan Salinan
+          </h5>
+          <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#importCollapse">
+            <i class="fas fa-chevron-down"></i>
+          </button>
+        </div>
+        <div class="collapse show" id="importCollapse">
+          <div class="card-body">
+            <form action="{{ route('books.import') }}" method="POST" enctype="multipart/form-data">
+              @csrf
               <div class="mb-3">
-                <label for="cover" class="form-label">Cover Buku</label>
-                <div class="border rounded p-3 bg-light">
-                  <div class="row align-items-center">
-                    <div class="col-md-8">
-                      <input type="file" class="form-control" id="cover" name="cover" accept="image/*">
-                      <div class="form-text mt-1">Format: JPG, PNG, JPEG (Maksimal 2MB)</div>
-                    </div>
-                    @if($book->cover)
-                    <div class="col-md-4 text-center">
-                      <p class="small text-muted mb-2">Cover saat ini:</p>
-                      <img src="{{ asset('storage/' . $book->cover) }}" alt="Current Cover" class="img-thumbnail" style="max-height: 150px;">
-                      <div class="form-check mt-2">
-                        <input class="form-check-input" type="checkbox" id="remove_cover_{{ $book->id }}" name="remove_cover">
-                        <label class="form-check-label small" for="remove_cover_{{ $book->id }}">
-                          Hapus cover saat ini
-                        </label>
-                      </div>
-                    </div>
-                    @endif
-                  </div>
+                <label for="file" class="form-label">Pilih File Excel</label>
+                <input type="file" class="form-control" id="file" name="file" required>
+                <div class="form-text">
+                  File Excel harus memiliki 2 sheet:
+                  <ul class="mb-0">
+                    <li><strong>Books</strong> — Data buku utama</li>
+                    <li><strong>Copies</strong> — Data salinan buku</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="d-flex justify-content-end gap-2 mt-4">
+                <a href="{{ route('books.download-template') }}" class="btn btn-info">
+                  <i class="fas fa-download"></i> Download Template
+                </a>
+                <button type="submit" class="btn btn-success">
+                  <i class="fas fa-upload"></i> Import Sekarang
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alert Success -->
+      @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      @endif
+
+      @if($books->count() > 0)
+        <div class="book-grid">
+          @foreach ($books as $book)
+          <div class="card book-card">
+            <div class="book-cover">
+              @if($book->cover)
+                <img src="{{ asset('storage/' . $book->cover) }}" alt="Cover {{ $book->title }}">
+              @else
+                <div class="default-cover">
+                  <i class="fas fa-book"></i>
+                </div>
+              @endif
+            </div>
+            <div class="book-content">
+              <h5 class="book-title">{{ $book->title }}</h5>
+              <p class="book-author">
+                <i class="fas fa-user-edit me-1"></i> {{ $book->author }}
+              </p>
+              <div class="book-meta">
+                <span><i class="fas fa-building me-1"></i> {{ $book->publisher }}</span>
+                <span><i class="fas fa-calendar-alt me-1"></i> {{ $book->year_published }}</span>
+              </div>
+              <div class="book-footer">
+                <span class="stock-badge">
+                  <i class="fas fa-book me-1"></i> {{ $book->stock }} tersedia
+                </span>
+                <div class="book-actions">
+                  <button type="button" class="btn btn-edit" data-bs-toggle="modal" data-bs-target="#editBookModal{{ $book->id }}">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <form action="{{ route('books.destroy', $book->id) }}" method="POST" class="d-inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-delete" onclick="return confirm('Apakah Anda yakin ingin menghapus buku ini?')">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
                 </div>
               </div>
             </div>
+            <a href="{{ route('books.copies.show', $book->id) }}" class="stretched-link"></a>
           </div>
-        </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            <i class="fas fa-times me-1"></i> Batal
-          </button>
-          <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save me-1"></i> Simpan Perubahan
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-        @endforeach
-      </div>
-      @else
-      <div class="card">
-        <div class="card-body empty-state">
-          <div class="empty-icon">
-            <i class="fas fa-book-open"></i>
+          <!-- Edit Book Modal -->
+          <div class="modal fade" id="editBookModal{{ $book->id }}" tabindex="-1" aria-labelledby="editBookModalLabel{{ $book->id }}" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                  <h5 class="modal-title" id="editBookModalLabel{{ $book->id }}">
+                    <i class="fas fa-edit me-2"></i> Edit Buku
+                  </h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('books.update', $book->id) }}" method="POST" enctype="multipart/form-data">
+                  @csrf
+                  @method('PUT')
+                  <div class="modal-body">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <div class="mb-3">
+                          <label for="code" class="form-label">Kode Buku</label>
+                          <input type="text" class="form-control" id="code" name="code" value="{{ $book->code }}" required>
+                        </div>
+                        <div class="mb-3">
+                          <label for="title" class="form-label">Judul Buku</label>
+                          <input type="text" class="form-control" id="title" name="title" value="{{ $book->title }}" required>
+                        </div>
+                        <div class="mb-3">
+                          <label for="author" class="form-label">Pengarang</label>
+                          <input type="text" class="form-control" id="author" name="author" value="{{ $book->author }}" required>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="mb-3">
+                          <label for="publisher" class="form-label">Penerbit</label>
+                          <input type="text" class="form-control" id="publisher" name="publisher" value="{{ $book->publisher }}" required>
+                        </div>
+                        <div class="mb-3">
+                          <label for="year_published" class="form-label">Tahun Terbit</label>
+                          <input type="number" class="form-control" id="year_published" name="year_published" value="{{ $book->year_published }}" required>
+                        </div>
+                        <div class="mb-3">
+                          <label for="class_id" class="form-label">Tingkatan Kelas</label>
+                          <select name="class_id" id="class_id" class="form-select" required>
+                            <option value="">-- Pilih Tingkatan --</option>
+                            @foreach($classes as $class)
+                              @php
+                                $angka = match($class->class_level) {
+                                    'X' => 10,
+                                    'XI' => 11,
+                                    'XII' => 12,
+                                    default => ''
+                                };
+                              @endphp
+                              <option value="{{ $class->class_id }}" {{ $book->class_id == $class->class_id ? 'selected' : '' }}>
+                                {{ $class->class_level }} (kelas {{ $angka }})
+                              </option>
+                            @endforeach
+                          </select>
+                        </div>
+                      </div>
+                      <div class="col-12">
+                        <div class="mb-3">
+                          <label for="cover" class="form-label">Cover Buku</label>
+                          <div class="border rounded p-3 bg-light">
+                            <div class="row align-items-center">
+                              <div class="col-md-8">
+                                <input type="file" class="form-control" id="cover" name="cover" accept="image/*">
+                                <div class="form-text mt-1">Format: JPG, PNG, JPEG (Maksimal 2MB)</div>
+                              </div>
+                              @if($book->cover)
+                              <div class="col-md-4 text-center">
+                                <p class="small text-muted mb-2">Cover saat ini:</p>
+                                <img src="{{ asset('storage/' . $book->cover) }}" alt="Current Cover" class="img-thumbnail" style="max-height: 150px;">
+                                <div class="form-check mt-2">
+                                  <input class="form-check-input" type="checkbox" id="remove_cover_{{ $book->id }}" name="remove_cover">
+                                  <label class="form-check-label small" for="remove_cover_{{ $book->id }}">
+                                    Hapus cover saat ini
+                                  </label>
+                                </div>
+                              </div>
+                              @endif
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                      <i class="fas fa-times me-1"></i> Batal
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                      <i class="fas fa-save me-1"></i> Simpan Perubahan
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
           </div>
-          <h5>Belum Ada Buku</h5>
-          <p class="text-muted">Belum ada data buku yang tersedia. Silakan tambahkan buku baru.</p>
-          <a href="{{ route('books.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus-circle me-2"></i> Tambah Buku Baru
-          </a>
+          @endforeach
         </div>
-      </div>
+      @else
+        <div class="card">
+          <div class="card-body empty-state">
+            <div class="empty-icon">
+              <i class="fas fa-book-open"></i>
+            </div>
+            <h5>Belum Ada Buku</h5>
+            <p class="text-muted">Belum ada data buku yang tersedia. Silakan tambahkan buku baru.</p>
+            <a href="{{ route('books.create') }}" class="btn btn-primary">
+              <i class="fas fa-plus-circle me-2"></i> Tambah Buku Baru
+            </a>
+          </div>
+        </div>
       @endif
     </div>
   </main>
 </div>
 @endif
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('searchBooks');
+  const resetBtn = document.getElementById('resetSearch');
+
+  // Live search functionality
+  searchInput.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase().trim();
+    const bookCards = document.querySelectorAll('.book-card');
+
+    if (searchTerm === '') {
+      // Show all if search is empty
+      bookCards.forEach(card => card.style.display = 'block');
+      return;
+    }
+
+    bookCards.forEach(card => {
+      // Get all searchable text from card
+      const cardText = [
+        card.querySelector('.book-title')?.textContent || '',
+        card.querySelector('.book-author')?.textContent || '',
+        card.querySelector('.book-meta span:nth-child(1)')?.textContent || '', // publisher
+        card.querySelector('.book-meta span:nth-child(2)')?.textContent || '', // year
+        card.getAttribute('data-code') || '' // if you add data-code attribute
+      ].join(' ').toLowerCase();
+
+      // Show/hide based on match
+      card.style.display = cardText.includes(searchTerm) ? 'block' : 'none';
+    });
+  });
+
+  // Reset search
+  resetBtn.addEventListener('click', function() {
+    searchInput.value = '';
+    document.querySelectorAll('.book-card').forEach(card => {
+      card.style.display = 'block';
+    });
+  });
+});
+</script>
 </body>
 </html>

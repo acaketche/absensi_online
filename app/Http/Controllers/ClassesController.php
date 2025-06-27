@@ -7,7 +7,6 @@ use App\Models\Classes;
 use App\Models\Employee;
 use App\Models\AcademicYear;
 use App\Models\Semester;
-use App\Models\Position;
 
 class ClassesController extends Controller
 {
@@ -44,9 +43,18 @@ class ClassesController extends Controller
             'id_employee' => 'required|exists:employees,id_employee',
         ]);
 
+        // Ambil class_level dari awal nama kelas (misalnya: "X IPA 1" → "X")
+        $classLevel = strtoupper(strtok($request->class_name, ' '));
+
+        // Pastikan hanya X, XI, XII yang valid
+        if (!in_array($classLevel, ['X', 'XI', 'XII'])) {
+            return redirect()->back()->withErrors(['class_name' => 'Nama kelas harus dimulai dengan X, XI, atau XII.'])->withInput();
+        }
+
         Classes::create([
-            'class_id' => uniqid(), // Menyesuaikan jika class_id adalah string/UUID
+            'class_id' => uniqid(), // Jika UUID, jika AUTO_INCREMENT, hapus field ini
             'class_name' => $request->class_name,
+            'class_level' => $classLevel,
             'id_employee' => $request->id_employee,
             'academic_year_id' => $activeAcademicYear->id,
             'semester_id' => $activeSemester->id,
@@ -70,17 +78,14 @@ class ClassesController extends Controller
         ]);
     }
 
+    // Menampilkan form edit
     public function edit($id)
-{
-    $class = Classes::where('class_id', $id)->firstOrFail();
+    {
+        $class = Classes::where('class_id', $id)->firstOrFail();
+        $waliKelas = Employee::where('position_id', 7)->get();
 
-    // Ambil hanya employee yang posisinya 'Wali Kelas'
-    $waliKelas = Employee::whereHas('position_id', function ($query) {
-        $query->where('name', 'Wali Kelas');
-    })->get();
-
-    return view('classes.edit', compact('class', 'waliKelas'));
-}
+        return view('classes.edit', compact('class', 'waliKelas'));
+    }
 
     // Memperbarui data kelas
     public function update(Request $request, $id)
@@ -92,8 +97,15 @@ class ClassesController extends Controller
 
         $class = Classes::where('class_id', $id)->firstOrFail();
 
+        // Ambil ulang class_level dari nama kelas
+        $classLevel = strtoupper(strtok($request->class_name, ' '));
+        if (!in_array($classLevel, ['X', 'XI', 'XII'])) {
+            return redirect()->back()->withErrors(['class_name' => 'Nama kelas harus dimulai dengan X, XI, atau XII.'])->withInput();
+        }
+
         $class->update([
             'class_name' => $request->class_name,
+            'class_level' => $classLevel,
             'id_employee' => $request->id_employee ?? $class->id_employee,
         ]);
 
@@ -108,19 +120,19 @@ class ClassesController extends Controller
 
         return redirect()->route('classes.index')->with('success', 'Kelas berhasil dihapus.');
     }
-// Mengambil data kelas dalam format JSON untuk modal edit
-public function getClassData($id)
-{
-    $class = Classes::with('employee')->where('class_id', $id)->first();
 
-    if (!$class) {
-        return response()->json(['message' => 'Data tidak ditemukan'], 404);
+    // API: Mengambil data kelas dalam format JSON
+    public function getClassData($id)
+    {
+        $class = Classes::with('employee')->where('class_id', $id)->first();
+
+        if (!$class) {
+            return response()->json(['message' => 'Data tidak ditemukan'], 404);
+        }
+
+        return response()->json([
+            'class_name' => $class->class_name,
+            'employee_nip' => $class->id_employee,
+        ]);
     }
-
-    return response()->json([
-        'class_name' => $class->class_name,
-        'employee_nip' => $class->id_employee,
-    ]);
-}
-
 }
