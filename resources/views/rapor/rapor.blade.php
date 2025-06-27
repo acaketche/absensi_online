@@ -279,7 +279,7 @@
     <!-- Main Content -->
     <main class="flex-grow-1 p-4">
         <!-- Header dengan Profil Admin -->
-     @include('components.profiladmin')
+        @include('components.profiladmin')
 
         <!-- Header Section -->
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
@@ -296,50 +296,49 @@
         </div>
 
         <!-- Filter Section -->
-        <div class="filter-section mb-4" id="filterSection">
+        <div class="filter-section mb-4">
             <div class="filter-title">
                 <i class="fas fa-sliders-h"></i>
                 <h5 class="mb-0">Filter Data Kelas</h5>
             </div>
-            <form id="filterForm" class="row g-3">
+            <form id="filterForm" method="GET" action="{{ route('rapor.classes') }}" class="row g-3">
                 <div class="col-md-4">
-                    <label for="filterTahunAjaran" class="form-label">Tahun Ajaran</label>
+                    <label for="academicYearSelect" class="form-label">Tahun Ajaran</label>
                     <select id="academicYearSelect" name="academic_year_id" class="form-control">
-                                <option value="">-- Pilih Tahun --</option>
-                                @foreach ($academicYears as $tahun)
-                                    <option value="{{ $tahun->id }}"
-                                        {{ request('academic_year_id') == $tahun->id ? 'selected' : '' }}>
-                                        {{ $tahun->year_name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                        <option value="">-- Pilih Tahun --</option>
+                        @foreach ($academicYears as $tahun)
+                            <option value="{{ $tahun->id }}" {{ request('academic_year_id') == $tahun->id ? 'selected' : '' }}>
+                                {{ $tahun->year_name }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="col-md-4">
-    <label for="class_level" class="form-label">Tingkatan Kelas</label>
-    <select name="class_level" id="class_level" class="form-select" onchange="this.form.submit()">
-        <option value="">Semua Tingkatan</option>
-        @foreach($classLevels as $level)
-            @php
-                $angka = match($level->class_level) {
-                    'X' => 10,
-                    'XI' => 11,
-                    'XII' => 12,
-                    default => ''
-                };
-            @endphp
-            <option value="{{ $level->class_level }}" {{ request('class_level') == $level->class_level ? 'selected' : '' }}>
-                {{ $level->class_level }} (kelas {{ $angka }})
-            </option>
-        @endforeach
-    </select>
-</div>
+                    <label for="class_level" class="form-label">Tingkatan Kelas</label>
+                    <select name="class_level" id="class_level" class="form-select">
+                        <option value="">Semua Tingkatan</option>
+                        @foreach($classLevels as $level)
+                            @php
+                                $angka = match($level->class_level) {
+                                    'X' => 10,
+                                    'XI' => 11,
+                                    'XII' => 12,
+                                    default => ''
+                                };
+                            @endphp
+                            <option value="{{ $level->class_level }}" {{ request('class_level') == $level->class_level ? 'selected' : '' }}>
+                                {{ $level->class_level }} (kelas {{ $angka }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="col-12 mt-3">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-filter me-1"></i> Terapkan Filter
                     </button>
-                    <button type="reset" class="btn btn-outline-secondary ms-2">
+                    <a href="{{ route('rapor.classes') }}" class="btn btn-outline-secondary ms-2">
                         <i class="fas fa-sync-alt me-1"></i> Reset
-                    </button>
+                    </a>
                 </div>
             </form>
         </div>
@@ -390,88 +389,42 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Search functionality
-    document.getElementById('searchInput').addEventListener('keyup', function() {
-        const searchValue = this.value.toLowerCase();
-        const classCards = document.querySelectorAll('.class-card');
-        let visibleCards = 0;
+    // Search functionality (client-side)
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const searchValue = this.value.toLowerCase();
+            const classCards = document.querySelectorAll('.class-card');
 
-        classCards.forEach(card => {
-            const className = card.querySelector('.class-title').textContent.toLowerCase();
-            const teacherName = card.querySelector('.class-teacher').textContent.toLowerCase();
-            const classMeta = card.querySelector('.class-meta').textContent.toLowerCase();
+            classCards.forEach(card => {
+                const className = card.querySelector('.class-title').textContent.toLowerCase();
+                const teacherName = card.querySelector('.class-teacher').textContent.toLowerCase();
+                const classMeta = card.querySelector('.class-meta').textContent.toLowerCase();
 
-            if (className.includes(searchValue) || teacherName.includes(searchValue) || classMeta.includes(searchValue)) {
-                card.style.display = '';
-                visibleCards++;
-            } else {
-                card.style.display = 'none';
-            }
-        });
-    });
-
-    // Filter form submission
-    document.getElementById('filterForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const tahunAjaran = document.getElementById('academicYearSelect').value;
-        const tingkat = document.getElementById('filterTingkat').value;
-
-        // Update info text
-        let infoText = 'Menampilkan kelas';
-
-        if (tingkat) {
-            infoText += ` tingkat <strong>${tingkat}</strong>`;
-        } else {
-            infoText += ' semua tingkat';
-        }
-
-        if (tahunAjaran) {
-            const tahunSelect = document.getElementById('academicYearSelect');
-            const tahunText = tahunSelect.options[tahunSelect.selectedIndex].text;
-            infoText += ` untuk Tahun Ajaran <strong>${tahunText}</strong>`;
-        }
-
-        // In a real implementation, this would submit the form to the server
-        // For now, we'll just simulate filtering
-        filterClassCards(tahunAjaran, tingkat);
-    });
-
-    // Reset filter button
-    document.getElementById('filterForm').querySelector('button[type="reset"]').addEventListener('click', function() {
-        // Reset class filtering
-        const classCards = document.querySelectorAll('.class-card');
-        classCards.forEach(card => {
-            card.style.display = '';
-        });
-    });
-
-    // Simulate filtering class cards
-    function filterClassCards(tahunAjaran, tingkat) {
-        const classCards = document.querySelectorAll('.class-card');
-
-        classCards.forEach(card => {
-            // In a real implementation, you would check actual data attributes
-            // This is just a simulation for demo purposes
-            const className = card.querySelector('.class-title').textContent.toLowerCase();
-            const classMeta = card.querySelector('.class-meta').textContent.toLowerCase();
-
-            let showCard = true;
-
-            if (tingkat && !className.includes(`kelas ${tingkat}`)) {
-                showCard = false;
-            }
-
-            // For tahunAjaran, we would need actual data attributes
-            // This is simplified for the demo
-
-            if (showCard) {
-                card.style.display = '';
-            } else {
-                card.style.display = 'none';
-            }
+                if (className.includes(searchValue) || teacherName.includes(searchValue) || classMeta.includes(searchValue)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
         });
     }
+
+    // Auto submit when class level changes
+    const classLevelSelect = document.getElementById('class_level');
+    if (classLevelSelect) {
+        classLevelSelect.addEventListener('change', function() {
+            document.getElementById('filterForm').submit();
+        });
+    }
+
+    // Add click event to all class cards
+    const classCards = document.querySelectorAll('.class-card');
+    classCards.forEach(card => {
+        card.addEventListener('click', function() {
+            window.location.href = this.getAttribute('onclick').match(/window\.location\.href='([^']+)'/)[1];
+        });
+    });
 });
 </script>
 </body>

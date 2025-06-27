@@ -11,7 +11,7 @@
   <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
   <style>
     :root {
-      --primary-color: #4361ee;
+      --primary-color: #4266B9;
       --secondary-color: #3a0ca3;
       --accent-color: #4895ef;
       --success-color: #4cc9f0;
@@ -43,7 +43,7 @@
 }
 
 .class-card-header {
-  background: linear-gradient(135deg, #3f37c9, #4361ee);
+  background: linear-gradient(135deg, #3f37c9, #4266B9);
   color: #fff;
   border-radius: 10px 10px 0 0;
 }
