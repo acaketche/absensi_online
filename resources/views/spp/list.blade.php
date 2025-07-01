@@ -260,13 +260,23 @@
             </div>
         </div>
 
-         <!-- Class Tabs -->
-        <div class="d-flex mb-4 border-bottom">
-            <div class="class-tab active me-4" data-class="all">Semua Kelas</div>
-            @foreach(\App\Models\Classes::select(DB::raw('SUBSTRING(class_name, 1, 2) as grade'))->distinct()->get() as $grade)
-                <div class="class-tab me-4" data-class="{{ $grade->grade }}">Kelas {{ $grade->grade }}</div>
-            @endforeach
-        </div>
+    @php
+    $activeYear = \App\Models\AcademicYear::where('is_active', true)->first();
+@endphp
+
+<!-- Class Tabs -->
+<div class="d-flex mb-4 border-bottom">
+    <div class="class-tab active me-4" data-class="all">Semua Kelas</div>
+ @foreach(
+    \App\Models\Classes::where('academic_year_id', $activeYear?->id)
+        ->select(DB::raw("SUBSTRING_INDEX(class_name, ' ', 1) as grade"))
+        ->distinct()
+        ->orderBy('grade')
+        ->get() as $grade
+)
+    <div class="class-tab me-4" data-class="{{ $grade->grade }}">Kelas {{ $grade->grade }}</div>
+@endforeach
+</div>
 
         <!-- Month Selector -->
         <div class="month-selector mb-4">
@@ -361,7 +371,12 @@
         </div>
 
         <h5 class="fw-bold mb-3">Upload Pembayaran</h5>
-        <form action="{{ route('payments.import', $spp->id) }}" method="POST" enctype="multipart/form-data">
+       @if($spp)
+<form action="{{ route('payments.import', $spp->id) }}" method="POST" enctype="multipart/form-data">
+@else
+<p class="text-danger">Data SPP tidak ditemukan.</p>
+@endif
+
             @csrf
             <div class="mb-3">
                 <label for="file" class="form-label fw-semibold">Pilih File Excel:</label>

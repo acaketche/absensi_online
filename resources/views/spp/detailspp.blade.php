@@ -161,17 +161,22 @@
         @include('components.profiladmin')
 
         <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-            <div>
-                <h2 class="mb-1 text-primary">Detail SPP - {{ $spp->classes->class_name ?? 'Kelas' }}</h2>
-            </div>
-            <div>
-                <a href="{{ route('payment.listdata') }}" class="btn btn-outline-secondary shadow-sm">
-                    <i class="fas fa-arrow-left me-2"></i> Kembali
-                </a>
-            </div>
-        </div>
-
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+    <div>
+        <h2 class="mb-1 text-primary">
+            Detail SPP - {{ $spp->classes->class_name ?? 'Kelas' }}
+        </h2>
+        <p class="mb-0 text-muted small">
+            Tahun Ajaran: <strong>{{ $activeAcademicYear->year_name ?? '-' }}</strong> |
+            Semester: <strong>{{ $activeSemester->semester_name ?? '-' }}</strong>
+        </p>
+    </div>
+    <div>
+        <a href="{{ route('payment.listdata') }}" class="btn btn-outline-secondary shadow-sm">
+            <i class="fas fa-arrow-left me-2"></i> Kembali
+        </a>
+    </div>
+</div>
         <!-- Filter Section -->
         <div class="filter-section mb-4">
             <h5 class="mb-3">Pilih Bulan Pembayaran</h5>

@@ -429,6 +429,7 @@
                         <h5 class="modal-title">Edit Semester</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
+                    <input type="hidden" name="academic_year_id" value="{{ $semester->academic_year_id }}">
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="semester_name{{ $semester->id }}" class="form-label">Nama Semester</label>

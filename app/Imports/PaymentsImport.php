@@ -4,7 +4,9 @@ namespace App\Imports;
 
 use App\Models\Payment;
 use App\Models\Spp;
+use App\Models\Student;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
@@ -24,6 +26,7 @@ class PaymentsImport implements ToCollection, WithHeadingRow
         $processedCount = 0;
         $errors = [];
 
+        // Map nama bulan ke angka
         $bulanMap = [
             'januari' => 1,
             'februari' => 2,
@@ -36,66 +39,92 @@ class PaymentsImport implements ToCollection, WithHeadingRow
             'september' => 9,
             'oktober' => 10,
             'november' => 11,
-            'desember' => 12,
+            'desember' => 12
         ];
 
         foreach ($rows as $index => $row) {
             try {
+                // Ambil nilai dari kolom, perhatikan berbagai kemungkinan nama header
                 $nipd = $row['nipd'] ?? $row['NIPD'] ?? null;
                 $bulanRaw = $row['bulan_1_12'] ?? $row['bulan'] ?? $row['Bulan'] ?? $row['month'] ?? '';
                 $status = $row['status_pembayaran'] ?? $row['Status Pembayaran'] ?? $row['status'] ?? null;
 
-                // Lewati jika NIPD kosong
+                // Validasi minimal
                 if (empty($nipd)) {
-                    $errors[] = "Baris " . ($index + 2) . ": NIPD kosong";
+                    $errors[] = "Baris " . ($index + 2) . ": NIPD kosong.";
                     continue;
                 }
 
-                // Lewati jika bulan atau status kosong (tanpa error)
                 if (empty($bulanRaw) || empty($status)) {
+                    continue; // Tidak diproses, tapi tidak dianggap error
+                }
+
+                // Validasi apakah siswa ada
+                $student = Student::where('id_student', $nipd)->first();
+                if (!$student) {
+                    $errors[] = "Baris " . ($index + 2) . ": Siswa dengan NIPD $nipd tidak ditemukan.";
                     continue;
                 }
 
-                // Normalisasi dan mapping nama bulan
-                $bulanText = strtolower(preg_replace('/\s+/', '', $bulanRaw));
-                if (!isset($bulanMap[$bulanText])) {
-                    continue; // Lewati jika bulan tidak valid (tanpa error)
+                // Konversi bulan ke angka
+                $bulanText = strtolower(trim(preg_replace('/\s+/', '', $bulanRaw)));
+                $month = null;
+
+                if (is_numeric($bulanText) && $bulanText >= 1 && $bulanText <= 12) {
+                    $month = (int) $bulanText;
+                } elseif (isset($bulanMap[$bulanText])) {
+                    $month = $bulanMap[$bulanText];
                 }
 
-                $month = $bulanMap[$bulanText];
+                if (!$month) {
+                    continue; // Lewati jika bulan tidak dikenali
+                }
 
-                // Normalisasi status pembayaran
+                // Normalisasi status
                 $status = strtolower(trim($status)) === 'lunas' ? 'Lunas' : 'Belum';
 
-                $paymentData = [
-                    'academic_year_id' => $spp->academic_year_id,
-                    'semester_id' => $spp->semester_id,
-                    'amount' => $spp->amount,
-                    'status' => $status,
-                    'last_update' => now(),
-                    'notes' => 'Imported from Excel'
-                ];
-
+                // Simpan pembayaran
                 Payment::updateOrCreate(
                     [
                         'id_student' => $nipd,
                         'id_spp' => $this->sppId,
                         'month' => $month,
                     ],
-                    $paymentData
+                    [
+                        'academic_year_id' => $spp->academic_year_id,
+                        'semester_id' => $spp->semester_id,
+                        'amount' => $spp->amount,
+                        'status' => $status,
+                        'last_update' => now(),
+                        'notes' => 'Imported from Excel'
+                    ]
+                );
+
+                // Tambahkan siswa ke student_semester jika belum ada
+                DB::table('student_semester')->updateOrInsert(
+                    [
+                        'student_id' => $nipd,
+                        'academic_year_id' => $spp->academic_year_id,
+                        'semester_id' => $spp->semester_id
+                    ],
+                    [
+                        'class_id' => $spp->class_id
+                    ]
                 );
 
                 $processedCount++;
+
             } catch (\Exception $e) {
                 $errors[] = "Baris " . ($index + 2) . ": " . $e->getMessage();
                 continue;
             }
         }
 
+        // Jika ada error, lempar exception agar bisa ditampilkan di controller
         if (!empty($errors)) {
             throw new \Exception(
                 "Import selesai. {$processedCount} data berhasil disimpan.\n" .
-                "Terdapat kesalahan:\n" . implode("\n", array_slice($errors, 0, 10))
+                "Terdapat kesalahan:\n" . implode("\n", array_slice($errors, 0, 10)) // tampilkan max 10 error
             );
         }
     }
