@@ -3,111 +3,177 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>E-School</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>E-School - Data Kelas</title>
+   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
+  <style>
+    .table-container {
+      max-height: 600px;
+      overflow-y: auto;
+      border: 1px solid #dee2e6;
+      border-radius: 0.25rem;
+    }
+
+    .table-container thead th {
+      position: sticky;
+      top: 0;
+      background-color: #f8f9fa;
+      z-index: 10;
+    }
+
+    .teacher-photo {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+    }
+
+    .class-badge {
+      font-size: 0.8rem;
+      padding: 0.25rem 0.5rem;
+    }
+
+    .badge-X { background-color: #6f42c1; }
+    .badge-XI { background-color: #fd7e14; }
+    .badge-XII { background-color: #20c997; }
+
+    .empty-state {
+      height: 300px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #6c757d;
+    }
+  </style>
 </head>
-@if(Auth::guard('employee')->check())
 <body class="bg-light">
+@if(Auth::guard('employee')->check())
 <div class="d-flex">
-  <!-- Sidebar -->
   @include('components.sidebar')
 
-  <!-- Main Content -->
   <main class="flex-grow-1 p-4">
-    <!-- Header dengan Profil Admin -->
     @include('components.profiladmin')
-      <header class="d-flex justify-content-between align-items-center mb-4">
-          <h2 class="fs-4 fw-bold">Data Kelas</h2>
-          <div class="d-flex align-items-center">
-              <input type="text" placeholder="Cari kelas" class="form-control me-3" style="width: 200px;" id="searchInput">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="fs-4 fw-bold mb-0">
+        <i class="fas fa-chalkboard-teacher me-2"></i>Data Kelas
+      </h2>
+      <div class="d-flex align-items-center">
+            <input type="text" placeholder="Cari kelas" class="form-control me-3" style="width: 200px;" id="searchInput">
               <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addClassModal">
                   <i class="fas fa-plus me-1"></i> Tambah Kelas
               </button>
-          </div>
-      </header>
+      </div>
+    </div>
 
-    <!-- Filter Kelas -->
-<div class="filter-section mb-4">
-    <h5>Filter Kelas</h5>
-    <form id="filterForm" class="row g-2">
-        <div class="col-md-6">
-            <select class="form-select" id="filterTingkat" name="tingkat">
-                <option value="">Pilih Tingkat</option>
-                <option value="X">10</option>
-                <option value="XI">11</option>
-                <option value="XII">12</option>
+    <!-- Filter Section -->
+    <div class="card mb-4 border-0 shadow-sm">
+      <div class="card-header bg-white border-bottom">
+        <i class="fas fa-filter me-2"></i>Filter Kelas
+      </div>
+      <div class="card-body">
+        <form id="filterForm" method="GET" action="{{ route('classes.index') }}" class="row g-3">
+          <div class="col-md-3">
+            <label for="class_level" class="form-label">Tingkatan Kelas</label>
+            <select name="class_level" id="class_level" class="form-select">
+              <option value="">Semua Tingkatan</option>
+              <option value="X" {{ request('class_level') == 'X' ? 'selected' : '' }}>X (Kelas 10)</option>
+              <option value="XI" {{ request('class_level') == 'XI' ? 'selected' : '' }}>XI (Kelas 11)</option>
+              <option value="XII" {{ request('class_level') == 'XII' ? 'selected' : '' }}>XII (Kelas 12)</option>
             </select>
-        </div>
-        <div class="col-auto">
-            <button type="submit" class="btn btn-primary btn-sm">
-                <i class="fas fa-filter"></i> Filter
+          </div>
+
+          <div class="col-md-4">
+            <label for="academic_year_id" class="form-label">Tahun Ajaran</label>
+            <select name="academic_year_id" id="academic_year_id" class="form-select">
+              <option value="">Semua Tahun Ajaran</option>
+              @foreach ($academicYears as $tahun)
+                <option value="{{ $tahun->id }}"
+                  {{ request('academic_year_id') == $tahun->id ? 'selected' : '' }}
+                  {{ $activeAcademicYear && $tahun->id == $activeAcademicYear->id ? 'selected' : '' }}>
+                  {{ $tahun->year_name }}
+                </option>
+              @endforeach
+            </select>
+          </div>
+
+          <div class="col-auto d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-filter me-1"></i> Terapkan
             </button>
-            <button type="reset" class="btn btn-secondary btn-sm ms-2">
-                <i class="fas fa-sync-alt"></i> Reset
+            <a href="{{ route('classes.index') }}" class="btn btn-outline-secondary">
+              <i class="fas fa-sync-alt me-1"></i> Reset
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Data Kelas -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <i class="fas fa-list me-2"></i>Daftar Kelas
+      </div>
+      <div class="card-body p-0">
+        @if($classes->isEmpty())
+          <div class="empty-state">
+            <i class="fas fa-chalkboard-teacher fa-3x mb-3"></i>
+            <h5 class="mb-2">Tidak Ada Data Kelas</h5>
+            <p class="text-muted mb-4">Silahkan tambahkan kelas baru menggunakan tombol di atas</p>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addClassModal">
+              <i class="fas fa-plus me-1"></i> Tambah Kelas
             </button>
-        </div>
-    </form>
-</div>
-     <!-- Data Kelas -->
-<div class="card">
-    <div class="card-header bg-primary text-white">Daftar Kelas</div>
-    <div class="card-body">
-        <!-- Loading Indicator -->
-        <div id="loadingIndicator" class="text-center d-none">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-2">Memuat data...</p>
-        </div>
+          </div>
+        @else
+          <div class="table-container">
+            <table class="table table-hover mb-0" id="classTable">
+              <thead class="table-light">
+                <tr>
+                  <th width="5%">No</th>
+                  <th width="25%">Nama Kelas</th>
+                  <th width="40%">Wali Kelas</th>
+                  <th width="15%">Tahun Ajaran</th>
+                  <th width="15%">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach($classes as $class)
+                <tr>
+                  <td>{{ $loop->iteration }}</td>
+                  <td>
+                    {{ $class->class_name }}
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <img src="{{ $class->employee?->photo ? asset('storage/' . $class->employee->photo) : asset('images/default-profile.png') }}"
+                        alt="Foto {{ $class->employee?->fullname ?? 'Tidak Ada Data' }}"
+                        class="teacher-photo rounded-circle me-3">
+                      <div>
+                        <p class="mb-0 fw-medium">
+                          {{ $class->employee?->fullname ?? 'Belum Ada Wali Kelas' }}
+                        </p>
+                        <small class="text-muted">
+                          <i class="fas fa-id-card me-1"></i>{{ $class->employee?->id_employee ?? '-' }}
+                        </small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge bg-light text-dark">
+                      {{ $class->academicYear->year_name ?? '-' }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="d-flex gap-2">
+                      <a href="{{ route('classes.show', $class->class_id) }}"
+                        class="btn btn-sm btn-info" title="Detail">
+                        <i class="fas fa-eye"></i>
+                      </a>
 
-        <!-- Error Message -->
-        <div id="errorMessage" class="alert alert-danger d-none">
-            Terjadi kesalahan saat memuat data. Silahkan coba lagi.
-        </div>
-
-        <!-- Table Responsive -->
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover" id="classTable">
-                <thead class="table-light">
-                    <tr>
-                        <th width="5%">No</th>
-                        <th width="20%">Nama Kelas</th>
-                        <th width="35%">Wali Kelas</th>
-                        <th width="15%">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($classes as $class)
-                    <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td>{{ $class->class_name }}</td>
-                        <td>
-                            <div class="teacher-info d-flex align-items-center">
-                               <img src="{{ $class->employee?->photo ? asset('storage/' . $class->employee->photo) : 'https://via.placeholder.com/150' }}"
-                                alt="Foto {{ $class->employee?->fullname ?? 'Tidak Ada Data' }}"
-                                class="teacher-photo rounded-circle me-3"
-                                width="50" height="60">
-                                <div class="teacher-details">
-                                    <p class="teacher-name mb-0">
-                                        {{ $class->employee?->fullname ?? 'Tidak Ada Data' }}
-                                        {{ $class->employee?->qualification ? ', ' . $class->employee?->qualification : '' }}
-                                    </p>
-                                    <small class="text-muted">NIP: {{ $class->employee?->id_employee ?? '-' }}</small>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="d-flex gap-1">
-                                <a href="{{ route('classes.show', $class->class_id) }}" class="btn btn-info btn-sm">
-                                    <i class="fas fa-eye me-1"></i>
-                                </a>
-
-                                <!-- Tombol Edit -->
+                        <!-- Tombol Edit -->
                                 <button class="btn btn-sm btn-warning"
                                         data-bs-toggle="modal"
                                         data-bs-target="#editClassModal"
@@ -115,43 +181,22 @@
                                     <i class="fas fa-edit me-1"></i>
                                 </button>
 
-                                <!-- Tombol Hapus -->
-                                <button class="btn btn-sm btn-danger delete-class"
-                                        data-class-id="{{ $class->class_id }}"
-                                        data-class-name="{{ $class->class_name }}">
-                                    <i class="fas fa-trash me-1"></i>
-                                </button>
-                            </div>
-
-                            <form class="delete-class-form" action="{{ route('classes.destroy', $class->class_id) }}" method="POST" style="display: none;">
-                                @csrf
-                                @method('DELETE')
-                            </form>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
+                      <button class="btn btn-sm btn-danger delete-class"
+                        data-class-id="{{ $class->class_id }}"
+                        data-class-name="{{ $class->class_name }}"
+                        title="Hapus">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                @endforeach
+              </tbody>
             </table>
-        </div>
-    </div>
-</div>
-
-              <!-- Pagination -->
-              <nav aria-label="Page navigation" class="mt-4">
-                  <ul class="pagination justify-content-center">
-                      <li class="page-item disabled">
-                          <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-                      </li>
-                      <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                      <li class="page-item"><a class="page-link" href="#">2</a></li>
-                      <li class="page-item"><a class="page-link" href="#">3</a></li>
-                      <li class="page-item">
-                          <a class="page-link" href="#">Next</a>
-                      </li>
-                  </ul>
-              </nav>
           </div>
+        @endif
       </div>
+    </div>
   </main>
 </div>
 
@@ -209,7 +254,7 @@
                   @method('PUT')
                   <div class="mb-3">
                       <label for="edit_class_name" class="form-label">Nama Kelas</label>
-                      <input type="text" class="form-control" id="edit_class_name" name="class_name" required>
+                     <input type="text" id="edit_class_name" name="class_name" class="form-control" />
                       <div class="form-text">Contoh: X IPA 1, XI IPS 2, XII IPA 3, dll.</div>
                   </div>
                  <div class="mb-3">
@@ -235,7 +280,6 @@
       </div>
   </div>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   // Fungsi pencarian
@@ -256,79 +300,58 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   });
 
-  // Fungsi filter
-  document.addEventListener('DOMContentLoaded', function () {
-    // Filter saat submit form
-    document.getElementById('filterForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const tingkat = document.getElementById('filterTingkat').value;
-
-        const tableRows = document.querySelectorAll('#classTable tbody tr');
-
-        tableRows.forEach(row => {
-            let showRow = true;
-
-            // Filter berdasarkan tingkat
-            if (tingkat && !row.cells[1].textContent.startsWith(tingkat)) {
-                showRow = false;
-            }
-
-            row.style.display = showRow ? '' : 'none';
-        });
-    });
-
-    // Reset filter
-    document.querySelector('#filterForm button[type="reset"]').addEventListener('click', function() {
-        const tableRows = document.querySelectorAll('#classTable tbody tr');
-        tableRows.forEach(row => {
-            row.style.display = '';
-        });
-    });
-});
-
   // Fungsi untuk modal edit kelas
-  const editClassModal = document.getElementById('editClassModal');
-  if (editClassModal) {
-      editClassModal.addEventListener('show.bs.modal', function(event) {
-          const button = event.relatedTarget;
-          const classId = button.getAttribute('data-class-id');
+ // Fungsi untuk modal edit kelas
+const editClassModal = document.getElementById('editClassModal');
+if (editClassModal) {
+  editClassModal.addEventListener('show.bs.modal', function(event) {
+    const button = event.relatedTarget;
+    const classId = button.getAttribute('data-class-id');
 
-          if (!classId) {
-              console.error('ID kelas tidak ditemukan');
-              return;
+    if (!classId) {
+      console.error('ID kelas tidak ditemukan');
+      return;
+    }
+
+    // Update action URL form
+    document.getElementById('editClassForm').action = `/classes/${classId}`;
+
+    // Ambil data kelas via fetch
+    fetch(`/classes/json/${classId}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(response => {
+        const data = response.data;
+
+        console.log('Data yang diambil:', data); // Debug
+
+        // Isi input nama kelas
+        const classInput = document.getElementById('edit_class_name');
+        if (classInput) {
+          classInput.value = data.class_name;
+        }
+
+        // Isi wali kelas
+        const selectElement = document.getElementById('edit_id_employee');
+        const options = selectElement.options;
+
+        for (let i = 0; i < options.length; i++) {
+          if (options[i].value === data.employee_nip) {
+            selectElement.selectedIndex = i;
+            break;
           }
-
-          // Update action URL form
-          document.getElementById('editClassForm').action = `/classes/${classId}`;
-
-        fetch(`/classes/json/${classId}`)
-              .then(response => {
-                  if (!response.ok) {
-                      throw new Error('Network response was not ok');
-                  }
-                  return response.json();
-              })
-              .then(data => {
-                  // Isi form dengan data yang diterima
-                  document.getElementById('edit_class_name').value = data.class_name;
-
-                  // Pilih wali kelas yang sesuai
-                  const selectElement = document.getElementById('edit_id_employee');
-                  const options = selectElement.options;
-
-                  for (let i = 0; i < options.length; i++) {
-                      if (options[i].value === data.employee_nip) {
-                          selectElement.selectedIndex = i;
-                          break;
-                      }
-                  }
-              })
-              .catch(error => {
-                  console.error('Error fetching class data for edit:', error);
-                  alert('Gagal mengambil data kelas untuk diedit.');
-              });
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching class data for edit:', error);
+        alert('Gagal mengambil data kelas untuk diedit.');
       });
-  }
+  });
+}
 
   // Fungsi untuk modal hapus kelas
   document.querySelectorAll(".delete-class").forEach(button => {
@@ -354,7 +377,8 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   });
 });
+
 </script>
 </body>
-</html>
 @endif
+</html>

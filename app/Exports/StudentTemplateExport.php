@@ -2,82 +2,177 @@
 
 namespace App\Exports;
 
-use App\Models\Student;
-use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use App\Models\{Student, Classes, AcademicYear};
+use Maatwebsite\Excel\Concerns\{
+    FromArray, WithHeadings, WithEvents, WithStyles,
+    WithColumnWidths, WithTitle
+};
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+use Maatwebsite\Excel\Events\AfterSheet;
 
-class StudentTemplateExport implements FromArray, WithHeadings, WithStyles, WithColumnWidths
+class StudentTemplateExport implements
+    FromArray,
+    WithHeadings,
+    WithEvents,
+    WithStyles,
+    WithColumnWidths,
+    WithTitle
 {
+    protected $mode;
+    protected $classes;
+    protected $year;
+    protected $activeYear;
+
+    public function __construct($mode = 'empty')
+    {
+        $this->mode = $mode;
+        $this->activeYear = AcademicYear::where('is_active', 1)->first();
+        $this->classes = $this->activeYear
+            ? Classes::where('academic_year_id', $this->activeYear->id)->pluck('class_name')->toArray()
+            : [];
+        $this->year = $this->activeYear?->year_name ?? date('Y');
+    }
+
+    public function title(): string
+    {
+        return 'Siswa';
+    }
+
     public function headings(): array
     {
         return [
-            'nipd',
-            'nama_siswa',
-            'password',
-            'tempat_lahir',
-            'tanggal_lahir',
-            'jenis_kelamin',
-            'no_orang_tua',
-            'kelas'
+            'NIPD',
+            'Nama Siswa',
+            'Password',
+            'Tempat Lahir',
+            'Tanggal Lahir',
+            'Jenis Kelamin',
+            'No Orang Tua',
+            'Kelas'
         ];
     }
 
-    public function array(): array
-    {
-        $recentStudents = Student::with('class')
-            ->orderBy('created_at', 'desc')
-            ->take(1)
+   public function array(): array
+{
+    if ($this->mode === 'filled') {
+        $previousYear = $this->activeYear
+            ? AcademicYear::where('id', '<', $this->activeYear->id)->orderByDesc('id')->first()
+            : null;
+
+        if (!$previousYear) {
+            return [];
+        }
+
+        $students = Student::whereHas('studentSemesters', function ($query) use ($previousYear) {
+                $query->where('academic_year_id', $previousYear->id);
+            })
+            ->whereHas('classes', function ($query) {
+                $query->where('class_level', '!=', 'XII');
+            })
+            ->with(['studentSemesters.class' => function ($query) use ($previousYear) {
+                $query->where('academic_year_id', $previousYear->id);
+            }])
             ->get()
-            ->map(function ($student) {
-                return [
-                    $student->id_student,
-                    $student->fullname,
-                    'password123',
-                    $student->birth_place,
-                    $student->birth_date ? $student->birth_date->format('d-m-Y') : '',
-                    $student->gender,
-                    $student->parent_phonecell,
-                    $student->class->class_name ?? 'Kelas Tidak Ditemukan'
-                ];
-            })->toArray();
+            ->sortBy(function ($student) use ($previousYear) {
+                return $student->studentSemesters
+                    ->where('academic_year_id', $previousYear->id)
+                    ->first()?->class->class_name ?? '';
+            });
 
-        // Tambahkan satu baris kosong agar bisa digunakan sebagai template
-        $recentStudents[] = ['', '', '', '', '', '', '', ''];
+        return $students->map(function ($student) use ($previousYear) {
+            $class = $student->studentSemesters
+                ->where('academic_year_id', $previousYear->id)
+                ->first()?->class;
 
-        return $recentStudents;
+            return [
+                $student->id_student,
+                $student->fullname,
+                $student->id_student,
+                $student->birth_place,
+                $student->birth_date ? $student->birth_date->format('d-m-Y') : '',
+                $student->gender,
+                $student->parent_phonecell,
+                $class?->class_name ?? '',
+            ];
+        })->toArray();
     }
+
+    // Template kosong
+    return [[
+        '12345',
+        'Contoh Nama',
+        '12345',
+        'Kota Contoh',
+        '01-01-2010',
+        'L',
+        '081234567890',
+        ''
+    ]];
+}
 
     public function styles(Worksheet $sheet)
     {
-        // Hanya header (baris 1) yang di-bold dan diberi warna
+        // Menebalkan baris header
         $sheet->getStyle('A1:H1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:H1')->getFill()->setFillType('solid')->getStartColor()->setRGB('E6E6FA');
 
-        // Validasi dropdown untuk kolom jenis kelamin (F)
-        for ($row = 2; $row <= 100; $row++) {
-            $validation = $sheet->getCell("F{$row}")->getDataValidation();
-            $validation->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
-            $validation->setFormula1('"L,P"');
-            $validation->setShowDropDown(true);
-        }
-
-        return [];
+        // Memberi warna latar belakang header
+        $sheet->getStyle('A1:H1')->getFill()->setFillType('solid')->getStartColor()->setRGB('D9E1F2');
     }
 
     public function columnWidths(): array
     {
         return [
-            'A' => 10,  // nipd
-            'B' => 30,  // nama_siswa
-            'C' => 25,  // password
-            'D' => 20,  // tempat_lahir
-            'E' => 20,  // tanggal_lahir
-            'F' => 15,  // jenis_kelamin
-            'G' => 20,  // no_orang_tua
-            'H' => 20   // kelas
+            'A' => 10,  // NIPD
+            'B' => 30,  // Nama
+            'C' => 10,  // Password
+            'D' => 20,  // Tempat Lahir
+            'E' => 20,  // Tanggal Lahir
+            'F' => 10,  // Jenis Kelamin
+            'G' => 20,  // No Orang Tua
+            'H' => 15,  // Kelas
         ];
     }
+
+    public function registerEvents(): array
+{
+    return [
+        AfterSheet::class => function (AfterSheet $event) {
+            $sheet = $event->sheet->getDelegate();
+            $colKelas = 'Z';
+            $rowStart = 2;
+
+            // Tulis semua nama kelas ke kolom Z tersembunyi
+            foreach ($this->classes as $index => $className) {
+                $sheet->setCellValue("{$colKelas}" . ($rowStart + $index), $className);
+            }
+
+            // Sembunyikan kolom Z
+            $sheet->getColumnDimension($colKelas)->setVisible(false);
+
+            // Hitung jumlah kelas untuk menentukan rentang validasi
+            $rowEnd = $rowStart + count($this->classes) - 1;
+            $kelasRange = count($this->classes) > 0 ? "\${$colKelas}\${$rowStart}:\${$colKelas}\${$rowEnd}" : null;
+
+            // Tambahkan validasi ke baris 2 - 1000
+            for ($row = 2; $row <= 1000; $row++) {
+                // Validasi Jenis Kelamin
+                $genderValidation = $sheet->getCell("F{$row}")->getDataValidation();
+                $genderValidation->setType(DataValidation::TYPE_LIST);
+                $genderValidation->setFormula1('"L,P"');
+                $genderValidation->setAllowBlank(true);
+                $genderValidation->setShowDropDown(true);
+
+                // Validasi Kelas
+                if ($kelasRange) {
+                    $classValidation = $sheet->getCell("H{$row}")->getDataValidation();
+                    $classValidation->setType(DataValidation::TYPE_LIST);
+                    $classValidation->setFormula1("={$kelasRange}");
+                    $classValidation->setAllowBlank(true);
+                    $classValidation->setShowDropDown(true);
+                }
+            }
+        }
+    ];
+}
 }

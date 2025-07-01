@@ -143,7 +143,7 @@
                                 <p class="text-muted mb-4">
                                     File Excel siap pakai dengan format yang sudah disesuaikan
                                 </p>
-                                <a href="{{ route('students.template.download') }}" class="btn btn-success btn-download w-100">
+                                <a href="{{ route('students.template.empty') }}" class="btn btn-success btn-download w-100">
                                     <i class="fas fa-download me-2"></i> Download Template
                                 </a>
                                 <div class="mt-3">
@@ -168,7 +168,7 @@
                                             <i class="fas fa-check-circle"></i>
                                         </div>
                                         <div>
-                                            <strong>NIS harus unik</strong>
+                                            <strong>NIPD harus unik</strong>
                                             <p class="text-muted small mb-0">Tidak boleh sama dengan data yang sudah ada</p>
                                         </div>
                                     </li>

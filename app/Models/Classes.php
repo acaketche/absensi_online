@@ -9,13 +9,19 @@ class Classes extends Model
 {
     use HasFactory;
 
-    protected $table = 'classes'; // Pastikan sesuai dengan nama tabel
-    protected $primaryKey = 'class_id'; // Pastikan nama primary key benar
-    public $incrementing = false; // Jika primary key bukan auto-increment
-    protected $keyType = 'string'; // Jika class_id bertipe UUID atau string
-    public $timestamps = false; // Jika tabel tidak memiliki created_at & updated_at
+    protected $table = 'classes';
+    protected $primaryKey = 'class_id';
+    public $incrementing = false;
+    protected $keyType = 'string';
+    public $timestamps = false;
 
-    protected $fillable = ['class_name', 'class_level', 'id_employee', 'academic_year_id', 'semester_id'];
+    protected $fillable = [
+        'class_name',
+        'class_level',
+        'id_employee',
+        'academic_year_id',
+        'semester_id'
+    ];
 
     // Relasi ke Employee (Wali Kelas)
     public function employee()
@@ -25,8 +31,16 @@ class Classes extends Model
 
     // Relasi ke Student (Siswa dalam kelas)
     public function students()
+{
+    return $this->belongsToMany(Student::class, 'student_semester', 'class_id', 'student_id')
+        ->withPivot('academic_year_id', 'semester_id');
+}
+
+    public function currentStudents()
     {
-        return $this->hasMany(Student::class, 'class_id', 'class_id');
+        return $this->students()
+            ->wherePivot('academic_year_id', AcademicYear::active()->id)
+            ->wherePivot('semester_id', Semester::active()->id);
     }
 
     // Relasi ke Tahun Akademik
@@ -35,17 +49,24 @@ class Classes extends Model
         return $this->belongsTo(AcademicYear::class, 'academic_year_id', 'id');
     }
 
-    // Relasi ke Semester
+    // Relasi ke Semester - NEWLY ADDED
     public function semester()
     {
         return $this->belongsTo(Semester::class, 'semester_id', 'id');
     }
+
     public function spp()
-{
-    return $this->hasMany(Spp::class, 'class_id', 'class_id');
-}
- public function books()
+    {
+        return $this->hasMany(Spp::class, 'class_id', 'class_id');
+    }
+
+    public function books()
     {
         return $this->hasMany(Book::class);
+    }
+
+    public function studentSemesters()
+    {
+        return $this->hasMany(StudentSemester::class, 'class_id', 'class_id');
     }
 }

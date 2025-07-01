@@ -30,8 +30,11 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
     Route::get('/student/search', [StudentAttendanceController::class, 'searchStudent']);
     Route::post('/students/import', [StudentController::class, 'import'])->name('students.import');
     Route::get('/students/import/template', [StudentController::class, 'showTemplate'])->name('students.template.page');
-    Route::get('/students/import/template/download', [StudentController::class, 'downloadTemplate'])->name('students.template.download');
+    Route::get('/template-siswa-kosong', [StudentController::class, 'downloadTemplateEmpty'])->name('students.template.empty');
+    Route::get('/template-siswa-isi', [StudentController::class, 'downloadTemplateFilled'])->name('students.template.filled');
     Route::post('/students/upload-media', [StudentController::class, 'uploadMediaZip'])->name('students.uploadMediaZip');
+    Route::get('/get-semesters/{academicYearId}', [SemesterController::class, 'getSemesters'])->name('ajax.semesters');
+    Route::get('/get-classes/{academicYearId}', [ClassesController::class, 'getClasses'])->name('ajax.classes');
 
 
     // Class Management

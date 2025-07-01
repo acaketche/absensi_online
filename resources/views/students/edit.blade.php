@@ -79,17 +79,16 @@
                                     <label for="parent_phonecell" class="form-label">No Orang Tua</label>
                                     <input type="text" class="form-control" id="parent_phonecell" name="parent_phonecell" value="{{ $student->parent_phonecell }}" required>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="class_id" class="form-label">Kelas</label>
-                                    <select id="class_id" name="class_id" class="form-control" required>
-                                        <option value="">-- Pilih Kelas --</option>
-                                        @foreach ($classes as $class)
-                                            <option value="{{ $class->class_id }}" {{ $student->class_id == $class->class_id ? 'selected' : '' }}>
-                                                {{ $class->class_name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                               <div class="mb-3">
+    <label for="class_id" class="form-label">Kelas</label>
+    <select id="class_id" name="class_id" class="form-control" required>
+        @foreach ($classes as $class)
+            <option value="{{ $class->class_id }}" {{ $student->class_id == $class->class_id ? 'selected' : '' }}>
+                {{ $class->class_name }}
+            </option>
+        @endforeach
+    </select>
+</div>
                                 <div class="mb-3">
                                     <label for="photo" class="form-label">Foto</label>
                                     <div class="mb-2">
@@ -104,11 +103,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Input hidden untuk Tahun Ajaran & Semester Aktif -->
-                        <input type="hidden" name="academic_year_id" value="{{ $activeAcademicYear->id ?? '' }}">
-                        <input type="hidden" name="semester_id" value="{{ $activeSemester->id ?? '' }}">
-
                         <div class="d-flex justify-content-end mt-3">
                             <a href="{{ route('students.index') }}" class="btn btn-secondary me-2">Batal</a>
                             <button type="submit" class="btn btn-primary">Simpan Perubahan</button>

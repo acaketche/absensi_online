@@ -8,78 +8,106 @@ use App\Models\AcademicYear;
 
 class SemesterController extends Controller
 {
-    // Menampilkan semua semester
+    // Menampilkan semua semester (sebaiknya dipindah ke AcademicYearController)
     public function index()
     {
-        $semesters = Semester::with('academicYear')->get();
-        $academicYears = AcademicYear::all(); // Tambahkan ini
+        $semesters = Semester::with('academicYear')->latest()->get();
+        $academicYears = AcademicYear::all();
         return view('academicyear.index', compact('semesters', 'academicYears'));
     }
 
     // Menampilkan form tambah semester
     public function create()
     {
-        $academicYears = AcademicYear::all();
+        $academicYears = AcademicYear::orderBy('year_name', 'desc')->get();
         return view('semesters.create', compact('academicYears'));
     }
 
     // Menyimpan semester baru
     public function store(Request $request)
-{
+    {
+        $validated = $request->validate([
+            'academic_year_id' => 'required|exists:academic_years,id',
+            'semester_name' => 'required|string|in:Ganjil,Genap',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'is_active' => 'sometimes|boolean',
+        ]);
 
-    // Validasi input
-    $request->validate([
-        'academic_year_id' => 'required|exists:academic_years,id',
-        'semester_name' => 'required|string',
-        'start_date' => 'required|date',
-        'end_date' => 'required|date|after:start_date',
-        'is_active' => 'required|boolean',
-    ]);
+        // Cek duplikasi semester
+        $existing = Semester::where('academic_year_id', $validated['academic_year_id'])
+                          ->where('semester_name', $validated['semester_name'])
+                          ->exists();
 
-    // Simpan ke database
-    Semester::create([
-        'academic_year_id' => $request->academic_year_id,
-        'semester_name' => $request->semester_name,
-        'start_date' => $request->start_date,
-        'end_date' => $request->end_date,
-        'is_active' => $request->is_active,
-    ]);
+        if ($existing) {
+            return back()->withErrors([
+                'semester_name' => 'Semester ' . $validated['semester_name'] . ' sudah ada untuk tahun ajaran ini'
+            ])->withInput();
+        }
 
-    return redirect()->back()->with('success', 'Semester berhasil ditambahkan');
-}
+        // Jika mengaktifkan semester, nonaktifkan yang lain
+        if ($request->is_active) {
+            Semester::where('academic_year_id', $validated['academic_year_id'])
+                  ->update(['is_active' => false]);
+        }
+
+        Semester::create($validated);
+
+        return redirect()->route('academicyear.index')
+                       ->with('success', 'Semester berhasil ditambahkan');
+    }
 
     // Menampilkan detail semester
-    public function show($id)
+    public function show(Semester $semester)
     {
-        $semester = Semester::with('academicYear')->findOrFail($id);
         return view('semesters.show', compact('semester'));
     }
 
     // Menampilkan form edit semester
-    public function edit($id)
+    public function edit(Semester $semester)
     {
-        $semester = Semester::findOrFail($id);
-        $academicYears = AcademicYear::all();
+        $academicYears = AcademicYear::orderBy('year_name', 'desc')->get();
         return view('semesters.edit', compact('semester', 'academicYears'));
     }
 
-    // Memperbarui data semester
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'academic_year_id' => 'required|exists:academic_years,id',
-            'semester_name' => 'required|in:Ganjil,Genap',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
-            'is_active' => 'boolean',
-        ]);
+ public function update(Request $request, Semester $semester)
+{
+    $validated = $request->validate([
+        'academic_year_id' => 'nullable|exists:academic_years,id',
+        'semester_name' => 'required|in:Ganjil,Genap',
+        'start_date' => 'required|date',
+        'end_date' => 'required|date|after:start_date',
+        'is_active' => 'sometimes|boolean',
+    ]);
 
-        $semester = Semester::findOrFail($id);
-        $semester->update($request->all());
+    // Gunakan academic_year_id dari input, atau fallback ke yang lama
+    $academicYearId = $validated['academic_year_id'] ?? $semester->academic_year_id;
 
-        return redirect()->route('semesters.index')->with('success', 'Semester berhasil diperbarui.');
+    // Cek duplikasi semester
+    $existing = Semester::where('academic_year_id', $academicYearId)
+                      ->where('semester_name', $validated['semester_name'])
+                      ->where('id', '!=', $semester->id)
+                      ->exists();
+
+    if ($existing) {
+        return back()->withErrors([
+            'semester_name' => 'Semester ' . $validated['semester_name'] . ' sudah ada untuk tahun ajaran ini'
+        ])->withInput();
     }
 
+    // Jika diaktifkan, nonaktifkan semester lain
+    if ($request->is_active) {
+        Semester::where('academic_year_id', $academicYearId)
+              ->where('id', '!=', $semester->id)
+              ->update(['is_active' => false]);
+    }
+
+    // Update semester
+    $semester->update(array_merge($validated, ['academic_year_id' => $academicYearId]));
+
+    return redirect()->route('academicyear.index')
+                   ->with('success', 'Semester berhasil diperbarui');
+}
     public function destroy($id)
     {
         $semester = Semester::findOrFail($id);
@@ -88,17 +116,32 @@ class SemesterController extends Controller
         return back()->with('success', 'Semester berhasil dihapus');
     }
 
-    public function activate($id)
-{
-    // Nonaktifkan semua semester sebelumnya dalam tahun ajaran yang sama
-    $semester = Semester::findOrFail($id);
-    Semester::where('academic_year_id', $semester->academic_year_id)
-        ->update(['is_active' => 0]);
+    // Mengaktifkan semester
+    public function activate(Semester $semester)
+    {
+        // Nonaktifkan semua semester dalam tahun ajaran yang sama
+        Semester::where('academic_year_id', $semester->academic_year_id)
+              ->update(['is_active' => false]);
 
-    // Aktifkan semester yang dipilih
-    $semester->is_active = 1;
-    $semester->save();
+        // Aktifkan semester yang dipilih
+        $semester->update(['is_active' => true]);
 
-    return back()->with('success', 'Semester berhasil diaktifkan');
-}
+        // Aktifkan tahun ajaran terkait jika belum aktif
+        $academicYear = $semester->academicYear;
+        if (!$academicYear->is_active) {
+            $academicYear->update(['is_active' => true]);
+        }
+
+        return back()->with('success', 'Semester berhasil diaktifkan');
+    }
+
+    // Mendapatkan daftar semester berdasarkan tahun ajaran (API)
+    public function getSemesters($academicYearId)
+    {
+        $semesters = Semester::where('academic_year_id', $academicYearId)
+                           ->orderBy('semester_name')
+                           ->get();
+
+        return response()->json($semesters);
+    }
 }

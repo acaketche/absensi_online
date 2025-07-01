@@ -51,9 +51,17 @@
             @include('components.profiladmin')
 
             <!-- Page Header -->
-            <header class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h4 fw-bold mb-0">Data Siswa</h1>
-            </header>
+<header class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h4 fw-bold mb-1">Data Siswa</h1>
+        @if ($activeYear && $activeSemester)
+            <small class="text-muted">
+                Tahun Ajaran Aktif: <strong>{{ $activeYear->year_name }}</strong> |
+                Semester Aktif: <strong>{{ $activeSemester->semester_name }}</strong>
+            </small>
+        @endif
+    </div>
+</header>
 
             <!-- Filter Card -->
             <div class="card mb-4 border-primary shadow-sm">
@@ -80,26 +88,19 @@
                             <div class="col-md-4">
                                 <label for="semesterSelect" class="form-label fw-bold">Semester</label>
                                 <select id="semesterSelect" name="semester_id" class="form-select">
-                                    <option value="">-- Pilih Semester --</option>
-                                    @foreach ($semesters as $semester)
-                                        <option value="{{ $semester->id }}" {{ request('semester_id') == $semester->id ? 'selected' : '' }}>
-                                            {{ $semester->semester_name }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <option value="">-- Pilih Semester --</option>
+                                {{-- Dynamic --}}
+                            </select>
                             </div>
 
                             <!-- Class -->
                             <div class="col-md-4">
                                 <label for="classSelect" class="form-label fw-bold">Kelas</label>
-                                <select name="class_id" id="classSelect" class="form-select">
-                                    <option value="">-- Pilih Kelas --</option>
-                                    @foreach ($classes as $class)
-                                        <option value="{{ $class->class_id }}" {{ request('class_id') == $class->class_id ? 'selected' : '' }}>
-                                            {{ $class->class_name }}
-                                        </option>
-                                    @endforeach
-                                </select>
+
+                            <select id="classSelect" name="class_id" class="form-select">
+                                <option value="">-- Pilih Kelas --</option>
+                                {{-- Dynamic --}}
+                            </select>
                             </div>
                         </div>
 
@@ -118,30 +119,47 @@
                 </div>
             </div>
 
-            <!-- Import Card -->
-            <div class="card mb-4 border-success shadow-sm">
-                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center py-2">
-                    <span><i class="fas fa-file-import me-2"></i>Import Data Siswa</span>
+       <!-- Import Card -->
+<div class="card mb-4 border-success shadow-sm">
+    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center py-2">
+        <span><i class="fas fa-file-import me-2"></i>Import Data Siswa</span>
+    </div>
+    <div class="card-body">
+        <form action="{{ route('students.import') }}" method="POST" enctype="multipart/form-data" class="mb-3">
+            @csrf
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <label for="file" class="form-label">File Excel</label>
+                    <input type="file" name="file" id="file" class="form-control" accept=".xlsx,.xls">
+                    <small class="text-muted">Format: Excel (.xlsx, .xls), Maksimal 2MB</small>
                 </div>
-                <div class="card-body">
-                    <form action="{{ route('students.import') }}" method="POST" enctype="multipart/form-data" class="mb-3">
-                        @csrf
-                        <div class="row g-3">
-                            <div class="col-md-12">
-                                <label for="file" class="form-label">File Excel</label>
-                                <input type="file" name="file" id="file" class="form-control" accept=".xlsx,.xls">
-                                <small class="text-muted">Format: Excel (.xlsx, .xls), Maksimal 2MB</small>
-                            </div>
 
-                            <div class="col-12">
-                                <button type="submit" class="btn btn-success me-2">
-                                    <i class="fas fa-upload me-1"></i> Import Data
-                                </button>
-                                <a href="{{ route('students.template.page') }}" class="btn btn-outline-primary">
-                                    <i class="fas fa-file-excel me-1"></i> Download Template
+                <div class="col-12 d-flex flex-wrap align-items-center gap-2 mt-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-upload me-1"></i> Import Data
+                    </button>
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-file-excel me-1"></i> Download Template
+                        </button>
+                        <ul class="dropdown-menu">
+                          <li>
+    <a class="dropdown-item" href="{{ route('students.template.page') }}">
+        <i class="fas fa-file me-1"></i> Template Kosong
+    </a>
+</li>
+
+                            <li>
+                                <a class="dropdown-item" href="{{ route('students.template.filled') }}">
+                                    <i class="fas fa-database me-1"></i> Template dari Data
                                 </a>
-                            </div>
-                        </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
                     </form>
 
                     <form action="{{ route('students.uploadMediaZip') }}" method="POST" enctype="multipart/form-data">
@@ -170,15 +188,16 @@
                         <div class="alert alert-danger mt-3">{{ session('error') }}</div>
                     @endif
 
-                    @if(session('errors'))
-                        <div class="alert alert-danger mt-3">
-                            <ul class="mb-0">
-                                @foreach((array) session('errors') as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
+                   @if ($errors->import->any())
+    <div class="alert alert-danger mt-3">
+        <h5 class="alert-heading">Gagal Impor Data:</h5>
+        <ul class="mb-0">
+            @foreach ($errors->import->all() as $message)
+                <li>{{ $message }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 
                     @if(session('upload_errors'))
                         <div class="alert alert-warning mt-3">
@@ -228,23 +247,33 @@
                     </tr>
                 </thead>
                 <tbody id="studentsTbody">
-                    @php
-                        $currentClass = null;
-                        $rowNumber = 1;
-                    @endphp
+                  @php
+    $currentClass = null;
+    $rowNumber = 1;
+@endphp
 
-                    @foreach ($students as $student)
-                        @if ($student->class && $student->class->class_name != $currentClass)
-                            <tr class="table-class-header text-uppercase bg-light fw-bold">
-                                <td colspan="11">
-                                    <i class="fas fa-chalkboard me-2"></i> Kelas: {{ $student->class->class_name ?? 'Tidak Ada Kelas' }}
-                                </td>
-                            </tr>
-                            @php
-                                $currentClass = $student->class->class_name ?? null;
-                                $rowNumber = 1;
-                            @endphp
-                        @endif
+@foreach ($students as $student)
+    @php
+      $className = $student->studentSemesters
+    ->where('academic_year_id', $selectedYear)
+    ->when($selectedSemester, function ($q) use ($selectedSemester) {
+        return $q->where('semester_id', $selectedSemester);
+    })
+    ->first()?->class?->class_name;
+
+    @endphp
+
+    @if ($className && $className != $currentClass)
+        <tr class="table-class-header text-uppercase bg-light fw-bold">
+            <td colspan="11">
+                <i class="fas fa-chalkboard me-2"></i> Kelas: {{ $className }}
+            </td>
+        </tr>
+        @php
+            $currentClass = $className;
+            $rowNumber = 1;
+        @endphp
+    @endif
 
                         <tr>
                             <td class="text-center">{{ $rowNumber++ }}</td>
@@ -254,12 +283,22 @@
                             <td>{{ $student->birth_date->format('Y-m-d') }}</td>
                             <td>{{ $student->gender == 'L' ? 'Laki-laki' : 'Perempuan' }}</td>
                             <td>{{ $student->parent_phonecell }}</td>
-                            <td>{{ $student->class->class_name ?? '-' }}</td>
+                          <td>
+                                {{
+                                   $student->studentSemesters
+    ->where('academic_year_id', $selectedYear)
+    ->when($selectedSemester, function ($q) use ($selectedSemester) {
+        return $q->where('semester_id', $selectedSemester);
+    })
+    ->first()?->class?->class_name ?? '-'
+
+                                }}
+                            </td>
                             <td class="text-center">
                                 @if ($student->photo)
                                     <img src="{{ asset('storage/' . $student->photo) }}" class="img-thumbnail" width="50">
                                 @else
-                                    <i class="fas fa-user text-muted"></i>
+                                    <i class="fas fa-qrcode text-muted"></i>
                                 @endif
                             </td>
                             <td class="text-center">
@@ -302,66 +341,89 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Academic Year and Semester Filter
-            const academicYearSelect = document.getElementById("academicYearSelect");
-            const semesterSelect = document.getElementById("semesterSelect");
-            const semesters = @json($semesters);
+   <script>
+document.addEventListener("DOMContentLoaded", function () {
+    const academicYearSelect = document.getElementById("academicYearSelect");
+    const semesterSelect = document.getElementById("semesterSelect");
+    const classSelect = document.getElementById("classSelect");
 
-            academicYearSelect?.addEventListener("change", function() {
-                const selectedYearId = this.value;
-                semesterSelect.innerHTML = '<option value="">-- Pilih Semester --</option>';
+    const semesters = @json($semesters);
+    const selectedAcademicYear = "{{ $selectedYear }}";
+    const selectedSemester = "{{ request('semester_id') }}";
+    const selectedClass = "{{ request('class_id') }}";
 
-                if (selectedYearId) {
-                    const filteredSemesters = semesters.filter(sem => sem.academic_year_id == selectedYearId);
-                    filteredSemesters.forEach(sem => {
-                        const option = document.createElement("option");
-                        option.value = sem.id;
-                        option.textContent = sem.semester_name;
-                        semesterSelect.appendChild(option);
-                    });
+    // 1. Langsung tampilkan kelas berdasarkan tahun ajaran aktif
+    if (selectedAcademicYear) {
+        fetch(`/get-classes/${selectedAcademicYear}`)
+            .then(res => res.json())
+            .then(response => {
+                const data = response.data ?? response; // antisipasi struktur json
+                classSelect.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+                data.forEach(kelas => {
+                    const option = document.createElement('option');
+                    option.value = kelas.class_id;
+                    option.textContent = kelas.class_name;
+                    if (kelas.class_id == selectedClass) option.selected = true;
+                    classSelect.appendChild(option);
+                });
+            });
+    }
+
+    // 2. Saat tahun ajaran dipilih, baru tampilkan semester
+    academicYearSelect?.addEventListener("change", function () {
+        const selectedYearId = this.value;
+
+        semesterSelect.innerHTML = '<option value="">-- Pilih Semester --</option>';
+        if (selectedYearId) {
+            const filteredSemesters = semesters.filter(sem => sem.academic_year_id == selectedYearId);
+            filteredSemesters.forEach(sem => {
+                const option = document.createElement("option");
+                option.value = sem.id;
+                option.textContent = sem.semester_name;
+                if (sem.id == selectedSemester) option.selected = true;
+                semesterSelect.appendChild(option);
+            });
+        }
+    });
+});
+    // Konfirmasi hapus siswa
+    document.querySelectorAll(".delete-student").forEach(button => {
+        button.addEventListener("click", function () {
+            const studentId = this.getAttribute("data-student-id");
+            const form = document.querySelector(`.delete-student-form[action$='${studentId}']`);
+
+            Swal.fire({
+                title: "Apakah Anda yakin?",
+                text: "Data siswa akan dihapus secara permanen!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "Ya, hapus!",
+                cancelButtonText: "Batal"
+            }).then((result) => {
+                if (result.isConfirmed && form) {
+                    form.submit();
                 }
             });
-
-            // Delete Student Confirmation
-            document.querySelectorAll(".delete-student").forEach(button => {
-                button.addEventListener("click", function() {
-                    const studentId = this.getAttribute("data-student-id");
-                    const form = document.querySelector(`.delete-student-form[action$='${studentId}']`);
-
-                    Swal.fire({
-                        title: "Apakah Anda yakin?",
-                        text: "Data siswa akan dihapus secara permanen!",
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonColor: "#d33",
-                        cancelButtonColor: "#3085d6",
-                        confirmButtonText: "Ya, hapus!",
-                        cancelButtonText: "Batal"
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            form.submit();
-                        }
-                    });
-                });
-            });
-
-            // Search Functionality
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.addEventListener('keyup', function() {
-                    const searchTerm = this.value.toLowerCase();
-                    const tableRows = document.querySelectorAll('tbody tr:not(.table-secondary)');
-
-                    tableRows.forEach(row => {
-                        const text = row.textContent.toLowerCase();
-                        row.style.display = text.includes(searchTerm) ? '' : 'none';
-                    });
-                });
-            }
         });
-    </script>
+    });
+
+    // Fitur pencarian siswa
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function () {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('tbody tr:not(.table-secondary)');
+
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    }
+});
+</script>
 </body>
 @endif
 </html>

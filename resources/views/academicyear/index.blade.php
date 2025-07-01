@@ -61,6 +61,12 @@
             min-width: 110px;
         }
 
+        .add-semester-container {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 width: 70px;
@@ -83,271 +89,280 @@
     <!-- Sidebar -->
    @include('components.sidebar')
 
-    <!-- Main Content -->
-    <main class="flex-grow-1 p-4">
-       @include('components.profiladmin')
-        <header class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fs-4 fw-bold">Data Tahun Ajaran & Semester</h2>
-            <div class="d-flex align-items-center">
-                <div class="dropdown">
-                    <button class="btn btn-primary dropdown-toggle" type="button" id="addDataDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        + Tambah Data
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="addDataDropdown">
-                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addAcademicYearModal">Tambah Tahun Ajaran</a></li>
-                    </ul>
+   <!-- Main Content -->
+<main class="flex-grow-1 p-4">
+    @include('components.profiladmin')
+    <header class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fs-4 fw-bold">Data Tahun Ajaran & Semester</h2>
+        <div class="d-flex align-items-center">
+            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#addAcademicYearModal">
+                <i class="fas fa-plus me-1"></i> Tambah Tahun Ajaran
+            </button>
+        </div>
+    </header>
+
+    <!-- Data Tahun Ajaran & Semester -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">Daftar Tahun Ajaran & Semester</div>
+        <div class="card-body">
+            <div id="loadingIndicator" class="text-center d-none">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
                 </div>
+                <p class="mt-2">Memuat data...</p>
             </div>
-        </header>
+            <div id="errorMessage" class="alert alert-danger d-none">
+                Terjadi kesalahan saat memuat data. Silahkan coba lagi.
+            </div>
+            <table class="table table-bordered" id="academicYearTable">
+                <thead>
+                    <tr>
+                        <th>NO</th>
+                        <th>Tahun Ajaran</th>
+                        <th>Tanggal Mulai</th>
+                        <th>Tanggal Selesai</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($academicYears as $tahun)
+                    @php
+                        $hasGanjil = $tahun->semesters->contains('semester_name', 'Ganjil');
+                        $hasGenap = $tahun->semesters->contains('semester_name', 'Genap');
+                    @endphp
+                    <tr>
+                        <td>{{ $loop->iteration }}</td>
+                        <td>
+                          <div class="d-flex align-items-center">
+                            <span>{{ $tahun->year_name }}</span>
+                            <span class="ms-2 toggle-semesters" data-year-id="{{ $tahun->id }}">
+                                <i class="fas fa-chevron-down"></i>
+                            </span>
+                            @php
+                                $activeSemester = $tahun->semesters->where('is_active', 1)->first();
+                            @endphp
+                            <span class="badge bg-success semester-badge" id="active-semester-badge-{{ $tahun->id }}"
+                                  style="{{ $activeSemester ? '' : 'display: none;' }}">
+                                {{ $activeSemester ? $activeSemester->semester_name : '' }}
+                            </span>
+                          </div>
+                        </td>
+                        <td>{{ \Carbon\Carbon::parse($tahun->start_date)->format('d/m/Y') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($tahun->end_date)->format('d/m/Y') }}</td>
+                        <td>
+                            <button class="btn btn-sm {{ $tahun->is_active ? 'btn-success' : 'btn-danger' }} status-toggle"
+                                data-id="{{ $tahun->id }}"
+                                data-status="{{ $tahun->is_active }}"
+                                data-type="academic-year">
+                            <i class="fas {{ $tahun->is_active ? 'fa-check-circle' : 'fa-times-circle' }} me-1"></i>
+                            {{ $tahun->is_active ? 'Aktif' : 'Tidak Aktif' }}
+                            </button>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editYearModal{{ $tahun->id }}">
+                                <i class="fas fa-edit"></i>
+                            </button>
 
-        <!-- Data Tahun Ajaran & Semester -->
-        <div class="card">
-            <div class="card-header bg-primary text-white">Daftar Tahun Ajaran & Semester</div>
-            <div class="card-body">
-                <div id="loadingIndicator" class="text-center d-none">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2">Memuat data...</p>
-                </div>
-                <div id="errorMessage" class="alert alert-danger d-none">
-                    Terjadi kesalahan saat memuat data. Silahkan coba lagi.
-                </div>
-                <table class="table table-bordered" id="academicYearTable">
-                    <thead>
-                        <tr>
-                            <th>NO</th>
-                            <th>Tahun Ajaran</th>
-                            <th>Tanggal Mulai</th>
-                            <th>Tanggal Selesai</th>
-                            <th>Status</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($academicYears as $tahun)
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <span>{{ $tahun->year_name }}</span>
-                                    <span class="ms-2 toggle-semesters" data-year-id="{{ $tahun->id }}">
-                                        <i class="fas fa-chevron-down"></i>
-                                    </span>
-                                    @php
-                                        $activeSemester = $tahun->semesters->where('is_active', 1)->first();
-                                    @endphp
-                                    @if($activeSemester)
-                                        <span class="badge bg-success semester-badge">{{ $activeSemester->semester_name }}</span>
-                                    @endif
-                                </div>
-                            </td>
-                            <td>{{ \Carbon\Carbon::parse($tahun->start_date)->format('d/m/Y') }}</td>
-                            <td>{{ \Carbon\Carbon::parse($tahun->end_date)->format('d/m/Y') }}</td>
-                            <td>
-                                <button class="btn btn-sm {{ $tahun->is_active ? 'btn-success' : 'btn-danger' }} status-toggle"
-                                    data-id="{{ $tahun->id }}"
-                                    data-status="{{ $tahun->is_active }}"
-                                    data-type="academic-year">
-                                <i class="fas {{ $tahun->is_active ? 'fa-check-circle' : 'fa-times-circle' }} me-1"></i>
-                                {{ $tahun->is_active ? 'Aktif' : 'Tidak Aktif' }}
-                                </button>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editYearModal{{ $tahun->id }}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
+                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal{{ $tahun->id }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
 
-                                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal{{ $tahun->id }}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-
-                            <!-- Modal Konfirmasi Hapus -->
-                            <div class="modal fade" id="confirmDeleteModal{{ $tahun->id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $tahun->id }}" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
-                                        <div class="modal-header bg-danger text-white">
-                                            <h5 class="modal-title" id="deleteModalLabel{{ $tahun->id }}"><i class="fas fa-exclamation-triangle"></i> Konfirmasi Penghapusan</h5>
-                                            <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body text-center">
-                                            <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
-                                            <p><strong>Dengan menghapus tahun ini, semua data terkait termasuk ujian dan nilai akan terhapus.</strong></p>
-                                            <p>Apakah Anda yakin ingin melanjutkan?</p>
-                                        </div>
-                                        <div class="modal-footer d-flex justify-content-center">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                            <form action="{{ route('academicyear.destroy', $tahun->id) }}" method="POST">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger">Ya, Hapus</button>
-                                            </form>
-                                        </div>
+                        <!-- Modal Konfirmasi Hapus -->
+                        <div class="modal fade" id="confirmDeleteModal{{ $tahun->id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $tahun->id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-danger text-white">
+                                        <h5 class="modal-title" id="deleteModalLabel{{ $tahun->id }}"><i class="fas fa-exclamation-triangle"></i> Konfirmasi Penghapusan</h5>
+                                        <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body text-center">
+                                        <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                                        <p><strong>Dengan menghapus tahun ini, semua data terkait termasuk ujian dan nilai akan terhapus.</strong></p>
+                                        <p>Apakah Anda yakin ingin melanjutkan?</p>
+                                    </div>
+                                    <div class="modal-footer d-flex justify-content-center">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                        <form action="{{ route('academicyear.destroy', $tahun->id) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger">Ya, Hapus</button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
-                        </tr>
-                        <tr class="semester-row" id="semesters-{{ $tahun->id }}">
-                            <td colspan="6" class="p-0">
-                                <div class="semester-container">
-                                    <h6 class="mb-3">Semester untuk Tahun Ajaran {{ $tahun->year_name }}</h6>
-                                    @if($tahun->semesters->count() > 0)
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Semester</th>
-                                                <th>Tanggal Mulai</th>
-                                                <th>Tanggal Selesai</th>
-                                                <th>Status</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($tahun->semesters as $semester)
-                                            <tr data-year-id="{{ $tahun->id }}">
-                                                <td>
-                                                    <span class="badge bg-success semester-badge">{{ $semester->semester_name }}</span>
-                                                </td>
-                                                <td>
-                                                    {{
-                                                        $loop->iteration % 2 != 0
-                                                            ? \Carbon\Carbon::parse($tahun->start_date)->format('d/m/Y')
-                                                            : \Carbon\Carbon::parse($semester->start_date)->format('d/m/Y')
-                                                    }}
-                                                </td>
-                                                <td>
-                                                    {{
-                                                        $loop->iteration % 2 == 0
-                                                            ? \Carbon\Carbon::parse($tahun->end_date)->format('d/m/Y')
-                                                            : \Carbon\Carbon::parse($semester->end_date)->format('d/m/Y')
-                                                    }}
-                                                </td>
-                                                <td>
-                                                    <button class="btn btn-sm {{ $semester->is_active ? 'btn-success' : 'btn-danger' }} status-toggle"
-                                                        data-id="{{ $semester->id }}"
-                                                        data-status="{{ $semester->is_active }}"
-                                                        data-type="semester"
-                                                        data-year-id="{{ $tahun->id }}">
-                                                        <i class="fas {{ $semester->is_active ? 'fa-check-circle' : 'fa-times-circle' }} me-1"></i>
-                                                        {{ $semester->is_active ? 'Aktif' : 'Tidak Aktif' }}
+                        </div>
+                    </tr>
+                    <tr class="semester-row" id="semesters-{{ $tahun->id }}">
+                        <td colspan="6" class="p-0">
+                            <div class="semester-container">
+                                <h6 class="mb-3">Semester untuk Tahun Ajaran {{ $tahun->year_name }}</h6>
+                                @if($tahun->semesters->count() > 0)
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Semester</th>
+                                            <th>Tanggal Mulai</th>
+                                            <th>Tanggal Selesai</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($tahun->semesters as $semester)
+                                        <tr data-year-id="{{ $tahun->id }}" id="semester-row-{{ $semester->id }}">
+                                            <td>
+                                                <span class="badge bg-{{ $semester->is_active ? 'success' : 'secondary' }} semester-badge semester-name-{{ $semester->id }}">{{ $semester->semester_name }}</span>
+                                            </td>
+                                            <td>
+                                                {{
+                                                    $loop->iteration % 2 != 0
+                                                        ? \Carbon\Carbon::parse($tahun->start_date)->format('d/m/Y')
+                                                        : \Carbon\Carbon::parse($semester->start_date)->format('d/m/Y')
+                                                }}
+                                            </td>
+                                            <td>
+                                                {{
+                                                    $loop->iteration % 2 == 0
+                                                        ? \Carbon\Carbon::parse($tahun->end_date)->format('d/m/Y')
+                                                        : \Carbon\Carbon::parse($semester->end_date)->format('d/m/Y')
+                                                }}
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm {{ $semester->is_active ? 'btn-success' : 'btn-danger' }} status-toggle"
+                                                    data-id="{{ $semester->id }}"
+                                                    data-status="{{ $semester->is_active }}"
+                                                    data-type="semester"
+                                                    data-year-id="{{ $tahun->id }}">
+                                                    <i class="fas {{ $semester->is_active ? 'fa-check-circle' : 'fa-times-circle' }} me-1"></i>
+                                                    {{ $semester->is_active ? 'Aktif' : 'Tidak Aktif' }}
+                                                </button>
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editSemesterModal{{ $semester->id }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <form action="{{ route('semesters.destroy', $semester->id) }}" method="POST" style="display:inline;">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus semester ini?')">
+                                                        <i class="fas fa-trash"></i>
                                                     </button>
-                                                </td>
-                                                <td>
-                                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editSemesterModal{{ $semester->id }}">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                    <form action="{{ route('semesters.destroy', $semester->id) }}" method="POST" style="display:inline;">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus semester ini?')">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                    @else
-                                    <div class="text-center py-3">
-                                        <p class="text-muted">Belum ada data semester untuk tahun ajaran ini.</p>
-                                        <button class="btn btn-sm btn-outline-primary add-semester-btn" data-bs-toggle="modal" data-bs-target="#addSemesterModal" data-academic-year-id="{{ $tahun->id }}">
-                                            <i class="fas fa-plus me-1"></i> Tambah Semester
-                                        </button>
-                                    </div>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                                @endif
+
+                                <!-- Tombol Tambah Semester (Hanya tampil jika belum ada Ganjil atau Genap) -->
+                                <div class="add-semester-container text-center">
+                                    @if(!$hasGanjil || !$hasGenap)
+                                    <button class="btn btn-sm btn-outline-primary add-semester-btn" data-bs-toggle="modal" data-bs-target="#addSemesterModal" data-academic-year-id="{{ $tahun->id }}">
+                                        <i class="fas fa-plus me-1"></i> Tambah Semester
+                                    </button>
                                     @endif
                                 </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
-    </main>
+    </div>
+</main>
 </div>
-
 <!-- Modal Tambah Tahun Ajaran -->
 <div class="modal fade" id="addAcademicYearModal" tabindex="-1" aria-labelledby="addAcademicYearModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addAcademicYearModalLabel">Tambah Tahun Ajaran</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form action="{{ route('academicyear.store') }}" method="POST">
-                    @csrf
+            <form action="{{ route('academicyear.store') }}" method="POST">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Tahun Ajaran</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    @if($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                     <div class="mb-3">
-                        <label for="year_name" class="form-label">Tahun Ajaran</label>
-                        <input type="text" class="form-control" id="year_name" name="year_name" placeholder="Contoh: 2023-2024" required>
+                        <label for="year_name">Tahun Ajaran</label>
+                        <input type="text" name="year_name" class="form-control" placeholder="Contoh: 2023-2024" required>
                     </div>
                     <div class="mb-3">
-                        <label for="start_date" class="form-label">Tanggal Mulai</label>
-                        <input type="date" class="form-control" id="start_date" name="start_date" required>
+                        <label for="start_date">Tanggal Mulai</label>
+                        <input type="date" name="start_date" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label for="end_date" class="form-label">Tanggal Selesai</label>
-                        <input type="date" class="form-control" id="end_date" name="end_date" required>
+                        <label for="end_date">Tanggal Selesai</label>
+                        <input type="date" name="end_date" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label for="is_active" class="form-label">Status</label>
-                        <select class="form-control" id="is_active" name="is_active" required>
+                        <label for="is_active">Status</label>
+                        <select name="is_active" class="form-control" required>
                             <option value="1">Aktif</option>
-                            <option value="0">Tidak Aktif</option>
+                            <option value="0" selected>Tidak Aktif</option>
                         </select>
                     </div>
+                </div>
+                <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Simpan</button>
-                </form>
-            </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<!-- Modal Edit Tahun Ajaran (Dinamis) -->
+<!-- Modal Edit Tahun Ajaran -->
 @foreach($academicYears as $tahun)
 <div class="modal fade" id="editYearModal{{ $tahun->id }}" tabindex="-1" aria-labelledby="editYearModalLabel{{ $tahun->id }}" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editYearModalLabel{{ $tahun->id }}">Edit Tahun Ajaran</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form action="{{ route('academicyear.update', $tahun->id) }}" method="POST">
-                    @csrf
-                    @method('PUT')
+        <form action="{{ route('academicyear.update', $tahun->id) }}" method="POST">
+            @csrf
+            @method('PUT')
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Tahun Ajaran</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
                     <div class="mb-3">
                         <label for="year_name{{ $tahun->id }}" class="form-label">Tahun Ajaran</label>
-                        <input type="text" class="form-control" id="year_name{{ $tahun->id }}" name="year_name" value="{{ $tahun->year_name }}" required>
+                        <input type="text" name="year_name" id="year_name{{ $tahun->id }}" class="form-control" value="{{ $tahun->year_name }}" required>
                     </div>
                     <div class="mb-3">
                         <label for="start_date{{ $tahun->id }}" class="form-label">Tanggal Mulai</label>
-                        <input type="date" class="form-control" id="start_date{{ $tahun->id }}" name="start_date" value="{{ $tahun->start_date }}" required>
+                        <input type="date" name="start_date" id="start_date{{ $tahun->id }}" class="form-control" value="{{ $tahun->start_date }}" required>
                     </div>
                     <div class="mb-3">
                         <label for="end_date{{ $tahun->id }}" class="form-label">Tanggal Selesai</label>
-                        <input type="date" class="form-control" id="end_date{{ $tahun->id }}" name="end_date" value="{{ $tahun->end_date }}" required>
+                        <input type="date" name="end_date" id="end_date{{ $tahun->id }}" class="form-control" value="{{ $tahun->end_date }}" required>
                     </div>
                     <div class="mb-3">
                         <label for="is_active{{ $tahun->id }}" class="form-label">Status</label>
-                        <select class="form-control" id="is_active{{ $tahun->id }}" name="is_active" required>
+                        <select name="is_active" id="is_active{{ $tahun->id }}" class="form-select">
                             <option value="1" {{ $tahun->is_active ? 'selected' : '' }}>Aktif</option>
                             <option value="0" {{ !$tahun->is_active ? 'selected' : '' }}>Tidak Aktif</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label for="semester" class="form-label">Semester</label>
-                        <select class="form-control" id="semester" name="semester" required>
-                            <option value="Ganjil">Ganjil</option>
-                            <option value="Genap">Genap</option>
-                        </select>
-                    </div>
+                </div>
+                <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                </form>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 @endforeach
@@ -355,275 +370,384 @@
 <!-- Modal Tambah Semester -->
 <div class="modal fade" id="addSemesterModal" tabindex="-1" aria-labelledby="addSemesterModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addSemesterModalLabel">Tambah Semester</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form action="{{ route('semesters.store') }}" method="POST">
-                    @csrf
+        <form action="{{ route('semesters.store') }}" method="POST" id="addSemesterForm">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addSemesterModalLabel">Tambah Semester</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="academic_year_id" id="academic_year_id">
+
                     <div class="mb-3">
-                        <label for="academic_year_id" class="form-label">Tahun Ajaran</label>
-                        <select class="form-control" id="academic_year_id" name="academic_year_id" required>
-                            <option value="">-- Pilih Tahun Ajaran --</option>
-                            @foreach($academicYears as $tahun)
-                            <option value="{{ $tahun->id }}">{{ $tahun->year_name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="semester_name" class="form-label">Nama Semester</label>
-                        <select class="form-control" id="semester_name" name="semester_name" required>
+                        <label for="semester_name" class="form-label">Semester</label>
+                        <select name="semester_name" id="semester_name" class="form-select" required>
                             <option value="">-- Pilih Semester --</option>
                             <option value="Ganjil">Ganjil</option>
                             <option value="Genap">Genap</option>
                         </select>
                     </div>
+
                     <div class="mb-3">
                         <label for="start_date" class="form-label">Tanggal Mulai</label>
-                        <input type="date" class="form-control" id="start_date" name="start_date" required>
+                        <input type="date" name="start_date" id="start_date" class="form-control" required>
                     </div>
+
                     <div class="mb-3">
                         <label for="end_date" class="form-label">Tanggal Selesai</label>
-                        <input type="date" class="form-control" id="end_date" name="end_date" required>
+                        <input type="date" name="end_date" id="end_date" class="form-control" required>
                     </div>
+
                     <div class="mb-3">
                         <label for="is_active" class="form-label">Status</label>
-                        <select class="form-control" id="is_active" name="is_active" required>
+                        <select name="is_active" id="is_active" class="form-select">
                             <option value="1">Aktif</option>
-                            <option value="0">Tidak Aktif</option>
+                            <option value="0" selected>Tidak Aktif</option>
                         </select>
                     </div>
+                </div>
+                <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Simpan</button>
-                </form>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 
-<!-- Modal Edit Semester (Dinamis) -->
+<!-- Modal Edit Semester -->
 @foreach($academicYears as $tahun)
     @foreach($tahun->semesters as $semester)
     <div class="modal fade" id="editSemesterModal{{ $semester->id }}" tabindex="-1" aria-labelledby="editSemesterModalLabel{{ $semester->id }}" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editSemesterModalLabel{{ $semester->id }}">Edit Semester</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form action="{{ route('semesters.update', $semester->id) }}" method="POST">
-                        @csrf
-                        @method('PUT')
-                        <div class="mb-3">
-                            <label for="academic_year_id{{ $semester->id }}" class="form-label">Tahun Ajaran</label>
-                            <select class="form-control" id="academic_year_id{{ $semester->id }}" name="academic_year_id" required>
-                                <option value="">-- Pilih Tahun Ajaran --</option>
-                                @foreach($academicYears as $year)
-                                <option value="{{ $year->id }}" {{ $semester->academic_year_id == $year->id ? 'selected' : '' }}>{{ $year->year_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+            <form action="{{ route('semesters.update', $semester->id) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Semester</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
                         <div class="mb-3">
                             <label for="semester_name{{ $semester->id }}" class="form-label">Nama Semester</label>
-                            <select class="form-control" id="semester_name{{ $semester->id }}" name="semester_name" required>
-                                <option value="">-- Pilih Semester --</option>
+                            <select name="semester_name" id="semester_name{{ $semester->id }}" class="form-select" required>
                                 <option value="Ganjil" {{ $semester->semester_name == 'Ganjil' ? 'selected' : '' }}>Ganjil</option>
                                 <option value="Genap" {{ $semester->semester_name == 'Genap' ? 'selected' : '' }}>Genap</option>
                             </select>
                         </div>
                         <div class="mb-3">
                             <label for="start_date{{ $semester->id }}" class="form-label">Tanggal Mulai</label>
-                            <input type="date" class="form-control" id="start_date{{ $semester->id }}" name="start_date"
-                                value="{{ $semester->semester_name == 'Ganjil' ? $tahun->start_date : $semester->start_date }}" required>
+                            <input type="date" name="start_date" id="start_date{{ $semester->id }}" class="form-control" value="{{ $semester->start_date }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="end_date{{ $semester->id }}" class="form-label">Tanggal Selesai</label>
-                            <input type="date" class="form-control" id="end_date{{ $semester->id }}" name="end_date"
-                                value="{{ $semester->semester_name == 'Genap' ? $tahun->end_date : $semester->end_date }}" required>
+                            <input type="date" name="end_date" id="end_date{{ $semester->id }}" class="form-control" value="{{ $semester->end_date }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="is_active{{ $semester->id }}" class="form-label">Status</label>
-                            <select class="form-control" id="is_active{{ $semester->id }}" name="is_active" required>
-                                <option value="1" {{ $semester->is_active ? 'selected' : '' }}>Aktif</option>
-                                <option value="0" {{ !$semester->is_active ? 'selected' : '' }}>Tidak Aktif</option>
+                            <select name="is_active" id="is_active{{ $semester->id }}" class="form-select">
+                                <option value="1" {{ $semester->is_active == 1 ? 'selected' : '' }}>Aktif</option>
+                                <option value="0" {{ $semester->is_active == 0 ? 'selected' : '' }}>Tidak Aktif</option>
                             </select>
                         </div>
+                    </div>
+                    <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                    </form>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
     @endforeach
 @endforeach
 
-<!-- Modal Konfirmasi Perubahan Status -->
-<div class="modal fade" id="confirmStatusModal" tabindex="-1" aria-labelledby="confirmStatusModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmStatusModalLabel">Konfirmasi Perubahan Status</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p id="confirmStatusMessage">Apakah Anda yakin ingin mengubah status?</p>
-                <input type="hidden" id="confirm_id">
-                <input type="hidden" id="confirm_type">
-                <input type="hidden" id="confirm_status">
-                <input type="hidden" id="confirm_year_id">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-primary" id="confirmStatusBtn">Ya, Ubah Status</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Sembunyikan semua baris semester saat halaman dimuat
-    const semesterRows = document.querySelectorAll('.semester-row');
-    semesterRows.forEach(row => {
+document.addEventListener('DOMContentLoaded', function () {
+    // Inisialisasi semua modal Bootstrap
+    const modalElements = document.querySelectorAll('.modal');
+    modalElements.forEach(modalEl => {
+        new bootstrap.Modal(modalEl);
+    });
+
+    // 1. SEMBUNYIKAN SEMUA BARIS SEMESTER SAAT PERTAMA KALI DIMUAT
+    document.querySelectorAll('.semester-row').forEach(row => {
         row.style.display = 'none';
     });
 
-    // Toggle tampilan semester saat ikon panah diklik
-    const toggleButtons = document.querySelectorAll('.toggle-semesters');
-    toggleButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const yearId = this.getAttribute('data-year-id');
+    // 2. TOGGLE TAMPILAN BARIS SEMESTER
+    document.addEventListener('click', function (e) {
+        const toggleBtn = e.target.closest('.toggle-semesters');
+        if (toggleBtn) {
+            const yearId = toggleBtn.dataset.yearId;
             const semesterRow = document.getElementById(`semesters-${yearId}`);
-            const icon = this.querySelector('i');
+            const icon = toggleBtn.querySelector('i');
 
             if (semesterRow.style.display === 'none') {
                 semesterRow.style.display = 'table-row';
-                icon.classList.remove('fa-chevron-down');
-                icon.classList.add('fa-chevron-up');
+                icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
             } else {
                 semesterRow.style.display = 'none';
-                icon.classList.remove('fa-chevron-up');
-                icon.classList.add('fa-chevron-down');
+                icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
             }
-        });
+        }
     });
 
-    // Fungsi pencarian
-    document.getElementById('searchInput').addEventListener('keyup', function() {
-        const searchValue = this.value.toLowerCase();
-        const academicYearRows = document.querySelectorAll('#academicYearTable tbody tr:not(.semester-row)');
+    // 3. FUNGSI UNTUK MENGUBAH TAMPILAN TOMBOL STATUS DAN BADGE
+    function updateStatusButton(button, isActive) {
+        const id = button.dataset.id;
+        const type = button.dataset.type;
+        const yearId = button.dataset.yearId || null;
 
-        academicYearRows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            const yearId = row.querySelector('.toggle-semesters')?.getAttribute('data-year-id');
-            const semesterRow = yearId ? document.getElementById(`semesters-${yearId}`) : null;
+        // Update tombol status
+        button.dataset.status = isActive ? '1' : '0';
+        button.className = `btn btn-sm ${isActive ? 'btn-success' : 'btn-danger'} status-toggle`;
+        button.innerHTML = `<i class="fas ${isActive ? 'fa-check-circle' : 'fa-times-circle'} me-1"></i> ${isActive ? 'Aktif' : 'Tidak Aktif'}`;
 
-            if (text.includes(searchValue)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-                if (semesterRow) {
-                    semesterRow.style.display = 'none';
+        // Jika ini adalah semester
+        if (type === 'semester') {
+            // Update badge semester
+            const badge = document.querySelector(`.semester-name-${id}`);
+            if (badge) {
+                badge.className = `badge bg-${isActive ? 'success' : 'secondary'} semester-badge semester-name-${id}`;
+            }
+
+            // Update badge aktif di tahun ajaran
+            const activeBadge = document.querySelector(`#active-semester-badge-${yearId}`);
+            if (activeBadge) {
+                // Cari semester aktif di tahun ini
+                const activeSemesterButton = document.querySelector(`.status-toggle[data-type="semester"][data-year-id="${yearId}"][data-status="1"]`);
+
+                if (activeSemesterButton) {
+                    // Jika ada semester aktif, update badge
+                    const activeSemesterName = activeSemesterButton.closest('tr').querySelector('.semester-badge').textContent;
+                    activeBadge.textContent = activeSemesterName;
+                    activeBadge.style.display = '';
+                } else {
+                    // Jika tidak ada semester aktif, sembunyikan badge
+                    activeBadge.style.display = 'none';
                 }
             }
-        });
-    });
+        }
+    }
 
-    // Fungsi untuk tombol toggle status
-    const statusToggleButtons = document.querySelectorAll('.status-toggle');
-    const confirmStatusModal = new bootstrap.Modal(document.getElementById('confirmStatusModal'));
+    // 4. EVENT UNTUK TOGGLE STATUS TAHUN AJARAN / SEMESTER
+document.addEventListener('click', async function (e) {
+    const statusBtn = e.target.closest('.status-toggle');
+    if (!statusBtn) return;
 
-    statusToggleButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const id = this.getAttribute('data-id');
-            const currentStatus = this.getAttribute('data-status');
-            const type = this.getAttribute('data-type');
-            const yearId = this.getAttribute('data-year-id') || '';
-            const newStatus = currentStatus == '1' ? '0' : '1';
-            const typeName = type === 'academic-year' ? 'Tahun Ajaran' : 'Semester';
+    const id = statusBtn.dataset.id;
+    const type = statusBtn.dataset.type;
+    const currentStatus = statusBtn.dataset.status === '1';
+    const newStatus = !currentStatus;
+    const yearId = statusBtn.dataset.yearId || null;
 
-            // Set nilai untuk konfirmasi
-            document.getElementById('confirm_id').value = id;
-            document.getElementById('confirm_type').value = type;
-            document.getElementById('confirm_status').value = newStatus;
-            document.getElementById('confirm_year_id').value = yearId;
+    // Jika status sudah sesuai, tidak perlu melakukan apa-apa
+    if ((currentStatus && newStatus) || (!currentStatus && !newStatus)) {
+        return;
+    }
 
-            // Set pesan konfirmasi
-            const statusText = newStatus == '1' ? 'mengaktifkan' : 'menonaktifkan';
-            document.getElementById('confirmStatusMessage').textContent =
-                `Apakah Anda yakin ingin ${statusText} ${typeName} ini?`;
+    const originalContent = statusBtn.innerHTML;
+    statusBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Memproses...';
+    statusBtn.disabled = true;
 
-            // Tampilkan modal konfirmasi
-            confirmStatusModal.show();
-        });
-    });
+    try {
+        const endpoint = type === 'academic-year'
+            ? `/academic-year/toggle-status/${id}`
+            : `/semester/toggle-status/${id}`;
 
-    // Fungsi untuk tombol konfirmasi perubahan status
-    document.getElementById('confirmStatusBtn').addEventListener('click', function() {
-        const id = document.getElementById('confirm_id').value;
-        const type = document.getElementById('confirm_type').value;
-        const newStatus = document.getElementById('confirm_status').value;
-        const yearId = document.getElementById('confirm_year_id').value;
-
-        // Tampilkan loading indicator
-        document.getElementById('loadingIndicator').classList.remove('d-none');
-
-        // Kirim permintaan AJAX untuk mengubah status
-        fetch(`/${type}/toggle-status/${id}`, {
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             },
             body: JSON.stringify({
-                status: newStatus,
-                id: yearId
+                status: newStatus ? 1 : 0,
+                year_id: yearId
             })
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Sembunyikan loading indicator
-            document.getElementById('loadingIndicator').classList.add('d-none');
-
-            if (data.success) {
-                // Reload halaman untuk memperbarui tampilan
-                window.location.reload();
-            } else {
-                // Tampilkan pesan error
-                alert(data.message || 'Gagal mengubah status');
-            }
-        })
-        .catch(error => {
-            // Sembunyikan loading indicator
-            document.getElementById('loadingIndicator').classList.add('d-none');
-
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat mengubah status');
         });
 
-        // Tutup modal konfirmasi
-        confirmStatusModal.hide();
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message || 'Gagal memperbarui status');
+
+        // Update tombol yang diklik
+        updateStatusButton(statusBtn, newStatus);
+
+        // === Jika tipe adalah Tahun Ajaran ===
+        if (type === 'academic-year') {
+            // Nonaktifkan semua tahun ajaran lainnya jika tahun ini diaktifkan
+            if (newStatus) {
+                document.querySelectorAll(`.status-toggle[data-type="academic-year"]`).forEach(btn => {
+                    if (btn !== statusBtn && btn.dataset.status === '1') {
+                        // Nonaktifkan tahun ajaran lain
+                        updateStatusButton(btn, false);
+
+                        // Nonaktifkan semua semester dari tahun ajaran yang dinonaktifkan
+                        const deactivatedYearId = btn.dataset.id;
+                        document.querySelectorAll(`.status-toggle[data-type="semester"][data-year-id="${deactivatedYearId}"]`).forEach(semesterBtn => {
+                            if (semesterBtn.dataset.status === '1') {
+                                updateStatusButton(semesterBtn, false);
+
+                                // Kirim request untuk menonaktifkan semester
+                                fetch(`/semester/toggle-status/${semesterBtn.dataset.id}`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                    },
+                                    body: JSON.stringify({
+                                        status: 0,
+                                        year_id: deactivatedYearId
+                                    })
+                                }).catch(error => {
+                                    console.error('Failed to deactivate semester:', error);
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Nonaktifkan semua semester dalam tahun ini jika tahun dinonaktifkan
+            if (!newStatus) {
+                document.querySelectorAll(`.status-toggle[data-type="semester"][data-year-id="${id}"]`).forEach(btn => {
+                    if (btn.dataset.status === '1') {
+                        // Update UI immediately
+                        updateStatusButton(btn, false);
+
+                        // Send request to deactivate
+                        fetch(`/semester/toggle-status/${btn.dataset.id}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({
+                                status: 0,
+                                year_id: id
+                            })
+                        }).catch(error => {
+                            console.error('Failed to deactivate semester:', error);
+                        });
+                    }
+                });
+            }
+        }
+
+        // === Jika tipe adalah Semester ===
+        if (type === 'semester') {
+            // Nonaktifkan semua semester lain dalam tahun yang sama
+            if (newStatus && yearId) {
+                document.querySelectorAll(`.status-toggle[data-type="semester"][data-year-id="${yearId}"]`).forEach(btn => {
+                    if (btn !== statusBtn && btn.dataset.status === '1') {
+                        updateStatusButton(btn, false);
+                    }
+                });
+
+                // Aktifkan tahun ajaran terkait jika belum aktif
+                const ayBtn = document.querySelector(`.status-toggle[data-id="${yearId}"][data-type="academic-year"]`);
+                if (ayBtn && ayBtn.dataset.status === '0') {
+                    updateStatusButton(ayBtn, true);
+                }
+
+                // Nonaktifkan semua semester dari tahun ajaran lain yang aktif
+                document.querySelectorAll(`.status-toggle[data-type="semester"]`).forEach(btn => {
+                    if (btn.dataset.yearId !== yearId && btn.dataset.status === '1') {
+                        updateStatusButton(btn, false);
+
+                        // Kirim request untuk menonaktifkan semester dari tahun lain
+                        fetch(`/semester/toggle-status/${btn.dataset.id}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({
+                                status: 0,
+                                year_id: btn.dataset.yearId
+                            })
+                        }).catch(error => {
+                            console.error('Failed to deactivate semester:', error);
+                        });
+                    }
+                });
+            }
+        }
+
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan: ' + (error.message || 'Gagal memperbarui status'));
+        statusBtn.innerHTML = originalContent;
+        updateStatusButton(statusBtn, currentStatus); // Kembalikan ke status semula jika error
+    } finally {
+        statusBtn.disabled = false;
+    }
+});
+    // 5. HANDLE TOMBOL TAMBAH SEMESTER (Menggunakan event delegation)
+    document.addEventListener('click', function(e) {
+        const addSemesterBtn = e.target.closest('.add-semester-btn');
+        if (addSemesterBtn) {
+            const yearId = addSemesterBtn.dataset.academicYearId;
+            const form = document.getElementById('addSemesterForm');
+            const semesterSelect = form.querySelector('#semester_name');
+
+            // Reset form dan set academic_year_id
+            form.reset();
+            document.querySelector('#addSemesterForm input[name="academic_year_id"]').value = yearId;
+
+            // Get existing semesters for this academic year
+            const existingSemesters = [];
+            document.querySelectorAll(`#semesters-${yearId} .semester-badge`).forEach(badge => {
+                existingSemesters.push(badge.textContent.trim());
+            });
+
+            // Update semester options
+            semesterSelect.innerHTML = '<option value="" selected disabled>-- Pilih Semester --</option>';
+            if (!existingSemesters.includes('Ganjil')) {
+                semesterSelect.innerHTML += '<option value="Ganjil">Ganjil</option>';
+            }
+            if (!existingSemesters.includes('Genap')) {
+                semesterSelect.innerHTML += '<option value="Genap">Genap</option>';
+            }
+
+            // Set status default ke Tidak Aktif
+            document.querySelector('#addSemesterForm select[name="is_active"]').value = '0';
+
+            // Set tanggal default berdasarkan tahun ajaran
+            const yearRow = addSemesterBtn.closest('tr').previousElementSibling;
+            if (yearRow) {
+                const startDateText = yearRow.querySelector('td:nth-child(3)').textContent;
+                const endDateText = yearRow.querySelector('td:nth-child(4)').textContent;
+
+                if (startDateText) {
+                    const [d, m, y] = startDateText.split('/');
+                    document.querySelector('#addSemesterForm input[name="start_date"]').value = `${y}-${m}-${d}`;
+                }
+
+                if (endDateText) {
+                    const [d, m, y] = endDateText.split('/');
+                    document.querySelector('#addSemesterForm input[name="end_date"]').value = `${y}-${m}-${d}`;
+                }
+            }
+        }
     });
 
-    // Fungsi untuk tombol tambah semester dari baris tahun ajaran
-    const addSemesterButtons = document.querySelectorAll('.add-semester-btn');
-    addSemesterButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const yearId = this.getAttribute('data-academic-year-id');
-            const selectElement = document.getElementById('academic_year_id');
-
-            // Set nilai tahun ajaran di form tambah semester
-            if (selectElement) {
-                selectElement.value = yearId;
-            }
-        });
+    // Reset form saat modal tambah semester ditutup
+    document.getElementById('addSemesterModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('addSemesterForm').reset();
     });
 });
 </script>
 
-<!-- Tambahkan script untuk menangani form submit dengan AJAX jika diperlukan -->
 </body>
 </html>
 @endif

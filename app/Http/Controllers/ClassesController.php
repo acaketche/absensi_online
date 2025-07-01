@@ -4,135 +4,213 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Classes;
-use App\Models\Employee;
+use App\Models\Student;
 use App\Models\AcademicYear;
+use App\Models\Employee;
 use App\Models\Semester;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\Rule;
 
 class ClassesController extends Controller
 {
-    // Menampilkan daftar kelas
-    public function index()
+    public function index(Request $request)
     {
-        $classes = Classes::with('employee')->get();
-        $waliKelas = Employee::where('position_id', 7)->get();
+        // Cache academic years for 1 hour
+        $academicYears = Cache::remember('academic_years', 3600, function () {
+            return AcademicYear::orderBy('year_name', 'desc')->get();
+        });
+
         $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
-        $activeSemester = Semester::where('is_active', 1)->first();
 
-        return view('classes.classes', compact('classes', 'waliKelas', 'activeAcademicYear', 'activeSemester'));
+        // Validate filter input
+        $request->validate([
+            'academic_year_id' => 'nullable|exists:academic_years,id',
+            'class_level' => 'nullable|in:X,XI,XII'
+        ]);
+
+        // Base query with eager loading
+        $query = Classes::with(['employee', 'academicYear'])
+            ->orderBy('class_level')
+            ->orderBy('class_name');
+
+        // Apply filters
+        if ($request->filled('academic_year_id')) {
+            $query->where('academic_year_id', $request->academic_year_id);
+        } elseif ($activeAcademicYear) {
+            $query->where('academic_year_id', $activeAcademicYear->id);
+        }
+
+        if ($request->filled('class_level')) {
+            $query->where('class_level', $request->class_level);
+        }
+
+        // Get filtered classes
+        $classes = $query->get();
+
+        // Cache homeroom teachers for 1 hour
+        $waliKelas = Cache::remember('homeroom_teachers', 3600, function () {
+            return Employee::where('position_id', 7)
+                ->orderBy('fullname')
+                ->get();
+        });
+
+        return view('classes.classes', compact(
+            'classes',
+            'academicYears',
+            'waliKelas',
+            'activeAcademicYear'
+        ));
     }
 
-    // Menampilkan form tambah kelas
-    public function create()
-    {
-        $waliKelas = Employee::where('role_id', '1')->get();
-        return view('classes.create', compact('waliKelas'));
-    }
-
-    // Menyimpan data kelas baru
     public function store(Request $request)
     {
-        $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
-        $activeSemester = Semester::where('is_active', 1)->first();
-
-        if (!$activeAcademicYear || !$activeSemester) {
-            return redirect()->back()->withErrors(['error' => 'Tahun akademik atau semester aktif tidak ditemukan.'])->withInput();
-        }
+        $activeAcademicYear = AcademicYear::where('is_active', 1)->firstOrFail();
 
         $request->validate([
-            'class_name' => 'required|string|max:50',
-            'id_employee' => 'required|exists:employees,id_employee',
+            'class_name' => [
+                'required',
+                'string',
+                'max:50',
+                'regex:/^(X|XI|XII)\s.+$/i',
+                Rule::unique('classes')->where(function ($query) use ($activeAcademicYear) {
+                    return $query->where('academic_year_id', $activeAcademicYear->id);
+                })
+            ],
+            'id_employee' => 'required|exists:employees,id_employee'
+        ], [
+            'class_name.regex' => 'Format nama kelas harus diawali dengan X, XI, atau XII diikuti spasi dan nama kelas',
+            'class_name.unique' => 'Kelas dengan nama ini sudah ada di tahun ajaran aktif'
         ]);
-
-        // Ambil class_level dari awal nama kelas (misalnya: "X IPA 1" → "X")
-        $classLevel = strtoupper(strtok($request->class_name, ' '));
-
-        // Pastikan hanya X, XI, XII yang valid
-        if (!in_array($classLevel, ['X', 'XI', 'XII'])) {
-            return redirect()->back()->withErrors(['class_name' => 'Nama kelas harus dimulai dengan X, XI, atau XII.'])->withInput();
-        }
 
         Classes::create([
-            'class_id' => uniqid(), // Jika UUID, jika AUTO_INCREMENT, hapus field ini
+            'class_id' => uniqid(),
             'class_name' => $request->class_name,
-            'class_level' => $classLevel,
+            'class_level' => strtoupper(strtok($request->class_name, ' ')),
             'id_employee' => $request->id_employee,
             'academic_year_id' => $activeAcademicYear->id,
-            'semester_id' => $activeSemester->id,
         ]);
 
-        return redirect()->route('classes.index')->with('success', 'Kelas berhasil ditambahkan.');
+        return redirect()->route('classes.index')
+            ->with('success', 'Kelas berhasil ditambahkan.');
     }
 
-    // Menampilkan detail kelas
-    public function show($id)
-    {
-        $class = Classes::with('employee', 'students')->where('class_id', $id)->first();
+public function show($classId)
+{
+    // Ambil data kelas lengkap
+    $class = Classes::with(['employee', 'academicYear', 'semester'])->findOrFail($classId);
 
-        if (!$class) {
-            abort(404, 'Data tidak ditemukan');
+    // Ambil tahun ajaran & semester aktif (default)
+    $activeYear = AcademicYear::where('is_active', 1)->first();
+    $activeSemester = Semester::where('is_active', 1)->first();
+
+    // Gunakan tahun ajaran & semester dari kelas jika tersedia, jika tidak pakai yang aktif
+    $selectedYear = $class->academic_year_id ?? $activeYear?->id;
+    $selectedSemester = $class->semester_id ?? $activeSemester?->id;
+
+    // Ambil siswa yang ada di kelas ini, tahun ajaran & semester yang dipilih
+    $students = Student::whereHas('studentSemesters', function ($q) use ($classId, $selectedYear, $selectedSemester) {
+        $q->where('class_id', $classId)
+          ->where('academic_year_id', $selectedYear);
+
+        if ($selectedSemester) {
+            $q->where('semester_id', $selectedSemester);
         }
+    })
+    ->with(['studentSemesters' => function ($q) use ($selectedYear, $selectedSemester) {
+        $q->where('academic_year_id', $selectedYear);
+        if ($selectedSemester) {
+            $q->where('semester_id', $selectedSemester);
+        }
+        $q->with('class'); // include nama kelas
+    }])
+    ->orderBy('fullname')
+    ->get();
 
-        return view('classes.classesshow', [
-            'class' => $class,
-            'students' => $class->students,
-        ]);
-    }
+return view('classes.classesshow', compact(
+    'class',
+    'students',
+    'selectedYear',
+    'selectedSemester',
+    'activeYear',      // tambahkan ini
+    'activeSemester'   // dan ini
+));
+}
 
-    // Menampilkan form edit
-    public function edit($id)
-    {
-        $class = Classes::where('class_id', $id)->firstOrFail();
-        $waliKelas = Employee::where('position_id', 7)->get();
-
-        return view('classes.edit', compact('class', 'waliKelas'));
-    }
-
-    // Memperbarui data kelas
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'class_name' => 'required|string|max:50',
-            'id_employee' => 'nullable|exists:employees,id_employee',
-        ]);
-
         $class = Classes::where('class_id', $id)->firstOrFail();
 
-        // Ambil ulang class_level dari nama kelas
-        $classLevel = strtoupper(strtok($request->class_name, ' '));
-        if (!in_array($classLevel, ['X', 'XI', 'XII'])) {
-            return redirect()->back()->withErrors(['class_name' => 'Nama kelas harus dimulai dengan X, XI, atau XII.'])->withInput();
-        }
+        $request->validate([
+            'class_name' => [
+                'required',
+                'string',
+                'max:50',
+                'regex:/^(X|XI|XII)\s.+$/i',
+                Rule::unique('classes')
+                    ->ignore($class->id)
+                    ->where(function ($query) use ($class) {
+                        return $query->where('academic_year_id', $class->academic_year_id);
+                    })
+            ],
+            'id_employee' => 'required|exists:employees,id_employee'
+        ], [
+            'class_name.regex' => 'Format nama kelas harus diawali dengan X, XI, atau XII diikuti spasi dan nama kelas',
+            'class_name.unique' => 'Kelas dengan nama ini sudah ada di tahun ajaran ini'
+        ]);
 
         $class->update([
             'class_name' => $request->class_name,
-            'class_level' => $classLevel,
-            'id_employee' => $request->id_employee ?? $class->id_employee,
+            'class_level' => strtoupper(strtok($request->class_name, ' ')),
+            'id_employee' => $request->id_employee,
         ]);
 
-        return redirect()->route('classes.index')->with('success', 'Kelas berhasil diperbarui.');
+        return redirect()->route('classes.index')
+            ->with('success', 'Data kelas berhasil diperbarui.');
     }
 
-    // Menghapus kelas
     public function destroy($id)
     {
         $class = Classes::where('class_id', $id)->firstOrFail();
-        $class->delete();
 
-        return redirect()->route('classes.index')->with('success', 'Kelas berhasil dihapus.');
-    }
-
-    // API: Mengambil data kelas dalam format JSON
-    public function getClassData($id)
-    {
-        $class = Classes::with('employee')->where('class_id', $id)->first();
-
-        if (!$class) {
-            return response()->json(['message' => 'Data tidak ditemukan'], 404);
+        // Check if class has students before deleting
+        if ($class->students()->exists()) {
+            return redirect()->back()
+                ->with('error', 'Tidak dapat menghapus kelas karena masih memiliki siswa');
         }
 
+        $class->delete();
+
+        return redirect()->route('classes.index')
+            ->with('success', 'Kelas berhasil dihapus.');
+    }
+
+    public function getClassData($id)
+    {
+        $class = Classes::with('employee')
+            ->where('class_id', $id)
+            ->firstOrFail();
+
         return response()->json([
-            'class_name' => $class->class_name,
-            'employee_nip' => $class->id_employee,
+            'success' => true,
+            'data' => [
+                'class_name' => $class->class_name,
+                'employee_nip' => $class->id_employee,
+                'academic_year_id' => $class->academic_year_id
+            ]
         ]);
+    }
+
+  public function getClasses($academicYearId)
+{
+    $classes = Classes::where('academic_year_id', $academicYearId)
+        ->orderBy('class_name')
+        ->select('class_id', 'class_name') // pastikan hanya ambil field yang dibutuhkan
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'data' => $classes
+    ]);
+
     }
 }

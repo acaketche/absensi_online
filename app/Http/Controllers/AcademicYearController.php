@@ -29,17 +29,15 @@ class AcademicYearController extends Controller
     // Menyimpan tahun akademik baru
     public function store(Request $request)
     {
-        dd($request->all());
         $request->validate([
             'year_name' => 'required|string|max:20|unique:academic_years',
-            'semester' => 'required|in:Ganjil,Genap',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'is_active' => 'boolean',
         ]);
         AcademicYear::create($request->all());
 
-        return redirect()->route('academic_years.index')->with('success', 'Tahun Akademik berhasil ditambahkan.');
+        return redirect()->route('academicyear.index')->with('success', 'Tahun Akademik berhasil ditambahkan.');
     }
 
     // Menampilkan form edit tahun akademik

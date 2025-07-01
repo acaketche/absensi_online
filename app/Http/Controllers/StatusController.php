@@ -5,59 +5,99 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\AcademicYear;
 use App\Models\Semester;
+use Illuminate\Support\Facades\DB;
 
 class StatusController extends Controller
 {
     public function toggleAcademicYearStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:0,1',
+            'status' => 'required|boolean',
         ]);
 
-        // Nonaktifkan semua tahun ajaran terlebih dahulu
-        AcademicYear::query()->update(['is_active' => 0]);
+        DB::beginTransaction();
+        try {
+            $academicYear = AcademicYear::with('semesters')->findOrFail($id);
 
-        // Aktifkan tahun ajaran yang dipilih
-        $academicYear = AcademicYear::find($id);
-        if ($academicYear) {
+            // Nonaktifkan semua tahun ajaran lainnya
+            AcademicYear::where('id', '!=', $id)->update(['is_active' => false]);
+
+            // Update tahun ajaran yang dipilih
             $academicYear->update(['is_active' => $request->status]);
 
-            // Jika Academic Year diaktifkan, pastikan setidaknya satu semester juga aktif
-            if ($request->status == 1) {
-                Semester::where('academic_year_id', $id)->update(['is_active' => 1]);
+            // Update semester terkait
+            if ($request->status) {
+                // Aktifkan semester pertama jika tidak ada yang aktif
+                if (!$academicYear->semesters->where('is_active', true)->count()) {
+                    $firstSemester = $academicYear->semesters->first();
+                    if ($firstSemester) {
+                        $academicYear->semesters()->update(['is_active' => false]);
+                        $firstSemester->update(['is_active' => true]);
+                    }
+                }
             } else {
-                Semester::where('academic_year_id', $id)->update(['is_active' => 0]);
+                // Nonaktifkan semua semester jika tahun ajaran dinonaktifkan
+                $academicYear->semesters()->update(['is_active' => false]);
             }
 
-            return response()->json(['success' => true]);
-        }
+            DB::commit();
 
-        return response()->json(['success' => false, 'message' => 'Academic Year not found'], 404);
+            return response()->json([
+                'success' => true,
+                'academic_year' => $academicYear,
+                'semesters' => $academicYear->semesters
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update academic year status'
+            ], 500);
+        }
     }
 
     public function toggleSemesterStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:0,1',
-            'id' => 'required|integer',
+            'status' => 'required|boolean',
         ]);
 
-        // Nonaktifkan semua semester dalam tahun akademik yang sama
-        Semester::where('academic_year_id', $request->id)->update(['is_active' => 0]);
+        DB::beginTransaction();
+        try {
+            $semester = Semester::with('academicYear')->findOrFail($id);
+            $academicYear = $semester->academicYear;
 
-        // Aktifkan semester yang dipilih
-        $semester = Semester::find($id);
-        if ($semester) {
-            $semester->update(['is_active' => $request->status]);
+            // Jika mengaktifkan semester, nonaktifkan semua semester lain di tahun yang sama
+            if ($request->status) {
+                $academicYear->semesters()
+                    ->where('id', '!=', $id)
+                    ->update(['is_active' => false]);
 
-            // Jika semester diaktifkan, aktifkan academic year terkait
-            if ($request->status == 1) {
-                AcademicYear::where('id', $request->id)->update(['is_active' => 1]);
+                // Pastikan tahun ajaran aktif
+                if (!$academicYear->is_active) {
+                    AcademicYear::where('id', '!=', $academicYear->id)->update(['is_active' => false]);
+                    $academicYear->update(['is_active' => true]);
+                }
             }
 
-            return response()->json(['success' => true]);
-        }
+            // Update semester yang dipilih
+            $semester->update(['is_active' => $request->status]);
 
-        return response()->json(['success' => false, 'message' => 'Semester not found'], 404);
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'semester' => $semester,
+                'academic_year' => $academicYear
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update semester status'
+            ], 500);
+        }
     }
 }

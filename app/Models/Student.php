@@ -28,9 +28,6 @@ class Student extends Authenticatable
         'birth_date',
         'gender',
         'parent_phonecell',
-        'class_id',
-        'academic_year_id',
-        'semester_id',
         'photo',
         'qrcode'
     ];
@@ -44,30 +41,25 @@ class Student extends Authenticatable
         'birth_date' => 'date',
     ];
 
-    // Relasi ke Kelas
-    public function class()
-    {
-        return $this->belongsTo(Classes::class, 'class_id', 'class_id');
-    }
-
-    // Relasi ke Tahun Ajaran
-    public function academicYear()
-    {
-        return $this->belongsTo(AcademicYear::class, 'academic_year_id', 'id');
-    }
-
-    // Relasi ke Semester
-    public function semester()
-    {
-        return $this->belongsTo(Semester::class, 'semester_id');
-    }
-
     public function rapor()
     {
         return $this->hasMany(Rapor::class, 'id_student', 'id_student');
     }
 
+public function classes()
+{
+    return $this->belongsToMany(Classes::class, 'student_semester', 'student_id', 'class_id')
+        ->withPivot('academic_year_id', 'semester_id');
+}
 
+
+public function activeClass()
+{
+    return $this->classes()
+        ->wherePivot('academic_year_id', AcademicYear::active()->id)
+        ->wherePivot('semester_id', Semester::active()->id)
+        ->first();
+}
     public function bookLoans()
     {
         return $this->hasMany(BookLoan::class, 'id_student', 'id_student');
@@ -94,5 +86,8 @@ class Student extends Authenticatable
 {
     return $this->hasMany(Payment::class, 'id_student', 'id_student');
 }
-
+public function studentSemesters()
+{
+    return $this->hasMany(StudentSemester::class, 'student_id', 'id_student');
+}
 }
