@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Exports\BooksExport;
 use App\Imports\BooksImport;
+use App\Models\AcademicYear;
+use App\Models\Semester;
 use Maatwebsite\Excel\Facades\Excel;
 
 class BookController extends Controller
@@ -45,8 +47,10 @@ class BookController extends Controller
             $book->update(['stock' => $book->available_copies_count]);
         }
     }
+ $activeAcademicYear = AcademicYear::where('is_active', true)->first();
+    $activeSemester = Semester::where('is_active', true)->first();
 
-    return view('books.books', compact('books', 'classes'));
+    return view('books.books', compact('books', 'classes','activeAcademicYear','activeSemester'));
 }
 
    public function create()

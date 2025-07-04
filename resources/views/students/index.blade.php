@@ -74,14 +74,14 @@
                             <!-- Academic Year -->
                             <div class="col-md-4">
                                 <label for="academicYearSelect" class="form-label fw-bold">Tahun Ajaran</label>
-                                <select id="academicYearSelect" name="academic_year_id" class="form-select">
-                                    <option value="">-- Pilih Tahun --</option>
-                                    @foreach ($academicYears as $tahun)
-                                        <option value="{{ $tahun->id }}" {{ request('academic_year_id') == $tahun->id ? 'selected' : '' }}>
-                                            {{ $tahun->year_name }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                 <select id="academicYearSelect" name="academic_year_id" class="form-select">
+        <option value="">-- Pilih Tahun Ajaran --</option>
+        @foreach($academicYears as $year)
+            <option value="{{ $year->id }}" {{ request('academic_year_id') == $year->id ? 'selected' : '' }}>
+                {{ $year->year_name }}
+            </option>
+        @endforeach
+    </select>
                             </div>
 
                             <!-- Semester -->
@@ -341,7 +341,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-   <script>
+  <script>
 document.addEventListener("DOMContentLoaded", function () {
     const academicYearSelect = document.getElementById("academicYearSelect");
     const semesterSelect = document.getElementById("semesterSelect");
@@ -352,41 +352,52 @@ document.addEventListener("DOMContentLoaded", function () {
     const selectedSemester = "{{ request('semester_id') }}";
     const selectedClass = "{{ request('class_id') }}";
 
-    // 1. Langsung tampilkan kelas berdasarkan tahun ajaran aktif
-    if (selectedAcademicYear) {
-        fetch(`/get-classes/${selectedAcademicYear}`)
+    // Fungsi: Tampilkan daftar semester berdasarkan tahun ajaran
+    function populateSemesters(academicYearId, selected = null) {
+        semesterSelect.innerHTML = '<option value="">-- Pilih Semester --</option>';
+        if (academicYearId) {
+            const filtered = semesters.filter(s => s.academic_year_id == academicYearId);
+            filtered.forEach(s => {
+                const opt = document.createElement("option");
+                opt.value = s.id;
+                opt.textContent = s.semester_name;
+                if (selected && s.id == selected) opt.selected = true;
+                semesterSelect.appendChild(opt);
+            });
+        }
+    }
+
+    // Fungsi: Tampilkan kelas berdasarkan tahun ajaran
+    function populateClasses(academicYearId, selected = null) {
+        fetch(`/get-classes/${academicYearId}`)
             .then(res => res.json())
             .then(response => {
-                const data = response.data ?? response; // antisipasi struktur json
+                const data = response.data ?? response;
                 classSelect.innerHTML = '<option value="">-- Pilih Kelas --</option>';
                 data.forEach(kelas => {
                     const option = document.createElement('option');
                     option.value = kelas.class_id;
                     option.textContent = kelas.class_name;
-                    if (kelas.class_id == selectedClass) option.selected = true;
+                    if (selected && kelas.class_id == selected) option.selected = true;
                     classSelect.appendChild(option);
                 });
             });
     }
 
-    // 2. Saat tahun ajaran dipilih, baru tampilkan semester
-    academicYearSelect?.addEventListener("change", function () {
-        const selectedYearId = this.value;
+    // Saat halaman dimuat, jika tahun ajaran sudah terisi, tampilkan semester & kelas
+    if (selectedAcademicYear) {
+        populateSemesters(selectedAcademicYear, selectedSemester);
+        populateClasses(selectedAcademicYear, selectedClass);
+    }
 
-        semesterSelect.innerHTML = '<option value="">-- Pilih Semester --</option>';
-        if (selectedYearId) {
-            const filteredSemesters = semesters.filter(sem => sem.academic_year_id == selectedYearId);
-            filteredSemesters.forEach(sem => {
-                const option = document.createElement("option");
-                option.value = sem.id;
-                option.textContent = sem.semester_name;
-                if (sem.id == selectedSemester) option.selected = true;
-                semesterSelect.appendChild(option);
-            });
-        }
+    // Saat tahun ajaran diubah
+    academicYearSelect?.addEventListener("change", function () {
+        const newYearId = this.value;
+        populateSemesters(newYearId); // kosongkan selected
+        populateClasses(newYearId);   // kosongkan selected
     });
-});
-    // Konfirmasi hapus siswa
+
+    // --- KONFIRMASI HAPUS SISWA ---
     document.querySelectorAll(".delete-student").forEach(button => {
         button.addEventListener("click", function () {
             const studentId = this.getAttribute("data-student-id");
@@ -409,7 +420,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // Fitur pencarian siswa
+    // --- FITUR PENCARIAN SISWA ---
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('keyup', function () {

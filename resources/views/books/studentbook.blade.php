@@ -176,6 +176,20 @@
         font-size: 2rem;
       }
     }
+    #copy_dropdown {
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin; /* Firefox */
+}
+
+#copy_dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+#copy_dropdown::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
   </style>
 </head>
 @if(Auth::guard('employee')->check())
@@ -194,9 +208,9 @@
       <div>
         <h2 class="h4 fw-bold mb-1">Buku Dipinjam</h2>
       </div>
-      <a href="{{ route('book-loans.class-students', $student->class_id) }}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left me-1"></i> Kembali
-      </a>
+     <a href="{{ route('book-loans.class-students', ['classId' => $class->class_id]) }}" class="btn btn-outline-primary btn-sm">
+  <i class="fas fa-arrow-left me-1"></i> Kembali ke Kelas
+</a>
     </div>
 
     <!-- Informasi Siswa -->
@@ -224,7 +238,7 @@
             <div class="student-info-card h-100">
               <h5 class="mb-3">{{ $student->fullname }}</h5>
               <div class="mb-2">
-                <span class="fw-bold">Kelas:</span> {{ $student->class->class_name ?? '-' }}
+                <span class="fw-bold">Kelas:</span> {{ $student->studentSemester->class->class_name ?? '-' }}
               </div>
               <div class="mb-2">
                 <span class="fw-bold">Jenis Kelamin:</span> {{ $student->gender == 'L' ? 'Laki-laki' : 'Perempuan' }}

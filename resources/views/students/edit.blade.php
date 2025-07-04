@@ -81,13 +81,14 @@
                                 </div>
                                <div class="mb-3">
     <label for="class_id" class="form-label">Kelas</label>
-    <select id="class_id" name="class_id" class="form-control" required>
-        @foreach ($classes as $class)
-            <option value="{{ $class->class_id }}" {{ $student->class_id == $class->class_id ? 'selected' : '' }}>
-                {{ $class->class_name }}
-            </option>
-        @endforeach
-    </select>
+<select name="class_id" class="form-control" required>
+    @foreach ($classes as $class)
+        <option value="{{ $class->class_id }}"
+            {{ (old('class_id') ?? $studentSemester?->class_id) == $class->class_id ? 'selected' : '' }}>
+            {{ $class->class_name }}
+        </option>
+    @endforeach
+</select>
 </div>
                                 <div class="mb-3">
                                     <label for="photo" class="form-label">Foto</label>

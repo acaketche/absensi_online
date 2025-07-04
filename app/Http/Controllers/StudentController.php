@@ -14,102 +14,111 @@ use ZipArchive;
 class StudentController extends Controller
 {
    public function index(Request $request)
-{
-    $academicYears = AcademicYear::all();
-    $semesters = Semester::all();
+    {
+        $academicYears = AcademicYear::all();
+        $semesters = Semester::all();
 
-    $activeYear = AcademicYear::where('is_active', 1)->first();
+        $activeYear = AcademicYear::where('is_active', 1)->first();
+        $activeSemester = Semester::where('is_active', 1)->first();
+
+        $selectedYear = $request->academic_year_id ?? $activeYear?->id;
+        $selectedSemester = $request->semester_id; // tidak default ke activeSemester
+        $selectedClass = $request->class_id;
+
+        // Kelas hanya berdasarkan tahun ajaran yang dipilih
+        $classes = Classes::where('academic_year_id', $selectedYear)->get();
+
+        // Ambil siswa berdasarkan studentSemesters
+        $students = Student::whereHas('studentSemesters', function ($q) use ($selectedYear, $selectedSemester, $selectedClass) {
+            $q->where('academic_year_id', $selectedYear);
+
+            if ($selectedSemester) {
+                $q->where('semester_id', $selectedSemester);
+            }
+
+            if ($selectedClass) {
+                $q->where('class_id', $selectedClass);
+            }
+        })
+        ->with(['studentSemesters.class'])
+        ->get()
+        // Sorting berdasarkan nama kelas (jika semester tersedia, filter spesifik semester; jika tidak, ambil kelas pertama dari tahun ajaran tersebut)
+        ->sortBy(function ($student) use ($selectedYear, $selectedSemester) {
+            $class = $student->studentSemesters
+                ->where('academic_year_id', $selectedYear)
+                ->when($selectedSemester, fn($q) => $q->where('semester_id', $selectedSemester))
+                ->first()?->class?->class_name;
+
+            return $class ?? ''; // fallback jika class_name tidak tersedia
+        })->values();
+
+        return view('students.index', compact(
+            'students', 'academicYears', 'semesters', 'classes',
+            'selectedYear', 'selectedSemester', 'selectedClass',
+            'activeYear', 'activeSemester'
+        ));
+    }
+
+   public function create()
+{
+    $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
     $activeSemester = Semester::where('is_active', 1)->first();
 
-    $selectedYear = $request->academic_year_id ?? $activeYear?->id;
-    $selectedSemester = $request->semester_id ?? $activeSemester?->id;
-    $selectedClass = $request->class_id;
+    $classes = Classes::where('academic_year_id', $activeAcademicYear?->id)->get();
 
-    $classes = Classes::where('academic_year_id', $selectedYear)->get();
-    // Query siswa berdasarkan studentSemester
-    $students = Student::whereHas('studentSemesters', function ($q) use ($selectedYear, $selectedSemester, $selectedClass) {
-    $q->where('academic_year_id', $selectedYear);
-
-    if ($selectedSemester) {
-        $q->where('semester_id', $selectedSemester);
-    }
-
-    if ($selectedClass) {
-        $q->where('class_id', $selectedClass);
-    }
-})
-->with(['studentSemesters.class'])
-->orderBy('fullname')
-->get()
-->sortBy(function ($student) use ($selectedYear, $selectedSemester) {
-    return $student->studentSemesters
-        ->where('academic_year_id', $selectedYear)
-        ->when($selectedSemester, function ($q) use ($selectedSemester) {
-            return $q->where('semester_id', $selectedSemester);
-        })
-        ->first()?->class?->class_name ?? '';
-})->values(); //
-
-    return view('students.index', compact(
-        'students', 'academicYears', 'semesters', 'classes',
-        'selectedYear', 'selectedSemester', 'activeYear', 'activeSemester'
-    ));
+    return view('students.create', [
+        'classes' => $classes,
+        'activeAcademicYear' => $activeAcademicYear,
+        'activeSemester' => $activeSemester,
+    ]);
 }
 
-    public function create()
-    {
-        return view('students.create', [
-            'classes' => Classes::all(),
-            'activeAcademicYear' => AcademicYear::where('is_active', 1)->first(),
-            'activeSemester' => Semester::where('is_active', 1)->first(),
-        ]);
-    }
-
     public function store(Request $request)
-    {
-        try {
-            $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
-            $activeSemester = Semester::where('is_active', 1)->first();
+{
+    try {
+        $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
+        $activeSemester = Semester::where('is_active', 1)->first();
 
-            $request->validate([
-                'id_student' => 'required|numeric|unique:students,id_student',
-                'fullname' => 'required|string|max:100',
-                'parent_phonecell' => 'required|string|max:15',
-                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'qr_code' => 'nullable|image|mimes:png|max:1024',
-                'birth_place' => 'required|string|max:255',
-                'birth_date' => 'required|date',
-                'gender' => 'required|in:L,P',
-                'password' => 'required|string|min:6'
-            ]);
+        $request->validate([
+            'id_student' => 'required|numeric|unique:students,id_student',
+            'fullname' => 'required|string|max:100',
+            'parent_phonecell' => 'required|string|max:15',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'qr_code' => 'nullable|image|mimes:png|max:1024',
+            'birth_place' => 'required|string|max:255',
+            'birth_date' => 'required|date',
+            'gender' => 'required|in:L,P',
+            'password' => 'required|string|min:6',
+            'class_id' => 'required|exists:classes,class_id',
+        ]);
 
-            $photoPath = $request->hasFile('photo') ? $request->file('photo')->store('photo_siswa', 'public') : null;
-            $qrPath = $request->hasFile('qr_code') ? $request->file('qr_code')->store('qrcode_siswa', 'public') : null;
+        $photoPath = $request->hasFile('photo') ? $request->file('photo')->store('photo_siswa', 'public') : null;
+        $qrPath = $request->hasFile('qr_code') ? $request->file('qr_code')->store('qrcode_siswa', 'public') : null;
 
-            $student = Student::create([
-                'id_student' => $request->id_student,
-                'fullname' => $request->fullname,
-                'password' => Hash::make($request->password),
-                'birth_place' => $request->birth_place,
-                'birth_date' => $request->birth_date,
-                'gender' => $request->gender,
-                'parent_phonecell' => $request->parent_phonecell,
-                'photo' => $photoPath,
-                'qr_code' => $qrPath,
-            ]);
+        $student = Student::create([
+            'id_student' => $request->id_student,
+            'fullname' => $request->fullname,
+            'password' => Hash::make($request->password),
+            'birth_place' => $request->birth_place,
+            'birth_date' => $request->birth_date,
+            'gender' => $request->gender,
+            'parent_phonecell' => $request->parent_phonecell,
+            'photo' => $photoPath,
+            'qr_code' => $qrPath,
+        ]);
 
-            StudentSemester::create([
-                'student_id' => $student->id_student,
-                'class_id' => $student->class_id,
-                'academic_year_id' => $activeAcademicYear->id,
-                'semester_id' => $activeSemester->id,
-            ]);
+        StudentSemester::create([
+            'student_id' => $student->id_student,
+            'class_id' => $request->class_id,
+            'academic_year_id' => $activeAcademicYear->id,
+            'semester_id' => $activeSemester->id,
+        ]);
 
-            return redirect()->route('students.index')->with('success', 'Siswa berhasil ditambahkan.');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
-        }
+        return redirect()->route('students.index')->with('success', 'Siswa berhasil ditambahkan.');
+    } catch (\Exception $e) {
+        return back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
     }
+}
 
     public function show($id)
     {
@@ -124,22 +133,40 @@ class StudentController extends Controller
         return view('students.detail', compact('student', 'semesters'));
     }
 
-    public function edit($id)
-    {
+public function edit($id)
+{
+    $student = Student::findOrFail($id);
+    $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
+    $activeSemester = Semester::where('is_active', 1)->first();
 
-        return view('students.edit', [
-            'student' => Student::findOrFail($id),
-            'classes' => Classes::all(),
-            'activeAcademicYear' => AcademicYear::where('is_active', 1)->first(),
-            'activeSemester' => Semester::where('is_active', 1)->first(),
-        ]);
+    // Fallback jika tidak ada data semester aktif
+    $studentSemester = StudentSemester::with('class')
+        ->where('student_id', $student->id_student)
+        ->where('academic_year_id', $activeAcademicYear?->id)
+        ->where('semester_id', $activeSemester?->id)
+        ->first();
+
+    if (!$studentSemester) {
+        $studentSemester = StudentSemester::with('class')
+            ->where('student_id', $student->id_student)
+            ->orderByDesc('academic_year_id')
+            ->orderByDesc('semester_id')
+            ->first();
     }
 
-   public function update(Request $request, $id)
+$classes = Classes::where('academic_year_id', $activeAcademicYear?->id)
+    ->orWhere('class_id', $studentSemester?->class_id)
+    ->get();
+
+    return view('students.edit', compact('student', 'classes', 'activeAcademicYear', 'activeSemester', 'studentSemester'));
+}
+
+  public function update(Request $request, $id)
 {
     try {
         $student = Student::findOrFail($id);
 
+        // Validasi input
         $request->validate([
             'id_student' => 'required|numeric|unique:students,id_student,' . $id . ',id_student',
             'fullname' => 'required|string|max:100',
@@ -149,58 +176,58 @@ class StudentController extends Controller
             'birth_place' => 'required|string|max:255',
             'birth_date' => 'required|date',
             'gender' => 'required|in:L,P',
-            'password' => 'nullable|string|min:6'
+            'password' => 'nullable|string|min:6',
+            'class_id' => 'required|exists:classes,class_id', // class_id dari form wajib
         ]);
 
-        // Debug: Check incoming class_id
-        \Log::info('Updating student class', [
-            'student_id' => $id,
-            'current_class' => $student->class_id,
-            'new_class' => $request->class_id
-        ]);
+        $classId = $request->class_id;
 
-        $data = $request->except(['photo', 'qr_code', 'password']);
+        // Ambil data selain file dan password
+        $data = $request->except(['photo', 'qr_code', 'password', 'class_id']);
 
+        // Hash password jika diisi
         if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
+            $data['password'] = \Hash::make($request->password);
         }
 
+        // Upload foto jika ada
         if ($request->hasFile('photo')) {
             if ($student->photo) {
-                Storage::disk('public')->delete($student->photo);
+                \Storage::disk('public')->delete($student->photo);
             }
             $data['photo'] = $request->file('photo')->store('photo_siswa', 'public');
         }
 
+        // Upload QR code jika ada
         if ($request->hasFile('qr_code')) {
             if ($student->qr_code) {
-                Storage::disk('public')->delete($student->qr_code);
+                \Storage::disk('public')->delete($student->qr_code);
             }
             $data['qr_code'] = $request->file('qr_code')->store('qrcode_siswa', 'public');
         }
 
-        // Update the student record
+        // Update data siswa
         $student->update($data);
 
+        // Cek tahun dan semester aktif
         $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
         $activeSemester = Semester::where('is_active', 1)->first();
 
         if ($activeAcademicYear && $activeSemester) {
-            // Find existing record or create new one
+            // Update atau buat student_semester
             $studentSemester = StudentSemester::firstOrNew([
                 'student_id' => $student->id_student,
                 'academic_year_id' => $activeAcademicYear->id,
                 'semester_id' => $activeSemester->id,
             ]);
 
-            // Update class_id if it's different
-            if ($studentSemester->class_id != $student->class_id) {
-                $studentSemester->class_id = $student->class_id;
+            if ($studentSemester->class_id != $classId) {
+                $studentSemester->class_id = $classId;
                 $studentSemester->save();
 
                 \Log::info('Updated student semester record', [
                     'student_id' => $student->id_student,
-                    'new_class_id' => $student->class_id
+                    'new_class_id' => $classId
                 ]);
             }
         }
@@ -211,15 +238,22 @@ class StudentController extends Controller
         return back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
     }
 }
-    public function destroy($id)
-    {
-        $student = Student::findOrFail($id);
-        if ($student->photo) Storage::disk('public')->delete($student->photo);
-        if ($student->qr_code) Storage::disk('public')->delete($student->qr_code);
-        $student->delete();
 
-        return redirect()->route('students.index')->with('success', 'Siswa berhasil dihapus.');
-    }
+  public function destroy($id)
+{
+    $student = Student::findOrFail($id);
+
+    // Hapus relasi dari student_semester terlebih dahulu
+    StudentSemester::where('student_id', $student->id_student)->delete();
+
+    // Hapus media
+    if ($student->photo) Storage::disk('public')->delete($student->photo);
+    if ($student->qr_code) Storage::disk('public')->delete($student->qr_code);
+
+    $student->delete();
+
+    return redirect()->route('students.index')->with('success', 'Siswa berhasil dihapus.');
+}
 
     public function getStudentData($id)
     {

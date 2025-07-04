@@ -85,26 +85,65 @@
     <!-- Header dengan Profil Admin -->
     @include('components.profiladmin')
     <!-- Judul Halaman dan Tombol Kembali -->
-    <header class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fs-4 fw-bold">Daftar Siswa Kelas {{ $class->class_name }}</h2>
-        <a href="{{ route('book-loans.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Kembali
-        </a>
-    </header>
+<!-- Header -->
+<!-- Header -->
+<header class="mb-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap">
+    <div>
+      <h2 class="fs-4 fw-bold mb-1">Daftar Siswa Kelas {{ $class->class_name }}</h2>
+      <p class="text-muted mb-0">
+        Tahun Ajaran: <strong>{{ $activeAcademicYear->year_name ?? '-' }}</strong> |
+        Semester: <strong>{{ $activeSemester->semester_name ?? '-' }}</strong>
+      </p>
+    </div>
 
-    <!-- Daftar Siswa -->
-    <div class="card">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <div>
-                <i class="fas fa-users me-1"></i> Daftar Siswa Kelas {{ $class->class_name }}
-            </div>
-            <div class="d-flex">
-                <input type="text" id="searchStudent" class="form-control form-control-sm me-2" placeholder="Cari siswa...">
-                <button class="btn btn-sm btn-light" id="printStudentList">
-                    <i class="fas fa-print me-1"></i> Cetak
-                </button>
-            </div>
+    <!-- Tombol Kembali -->
+     <a href="{{ route('book-loans.index') }}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Kembali
+  </a>
+  </div>
+</header>
+
+<!-- Daftar Siswa -->
+<div class="card shadow-sm">
+  <div class="card-header bg-primary text-white">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <!-- Judul -->
+      <div class="fw-semibold">
+        <i class="fas fa-users me-2"></i> Daftar Siswa Kelas {{ $class->class_name }}
+      </div>
+
+      <!-- Tombol Aksi -->
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <!-- Input Pencarian -->
+        <div class="input-group input-group-sm" style="width: 180px;">
+          <span class="input-group-text bg-white">
+            <i class="fas fa-search text-dark"></i>
+          </span>
+          <input type="text" id="searchStudent" class="form-control" placeholder="Cari siswa...">
         </div>
+
+        <!-- Tombol Cetak -->
+        <button class="btn btn-sm btn-light" id="printStudentList">
+          <i class="fas fa-print me-1"></i> Cetak
+        </button>
+
+        <!-- Tombol Import -->
+        <form action="{{ route('book-loans.import') }}" method="POST" enctype="multipart/form-data" class="btn btn-sm btn-success">
+          @csrf
+            <i class="fas fa-file-import me-1"></i> Import
+            <input type="file" name="import_file" accept=".xlsx, .xls" onchange="this.form.submit()" hidden>
+          </label>
+        </form>
+
+        <!-- Tombol Export -->
+        <a href="{{ route('export.bookloan.class', ['classId' => $class->class_id]) }}" class="btn btn-sm btn-success">
+          <i class="fas fa-file-excel me-1"></i> Export
+        </a>
+      </div>
+    </div>
+  </div>
+
        <div class="card-body">
     @if($students->count() > 0)
         <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">

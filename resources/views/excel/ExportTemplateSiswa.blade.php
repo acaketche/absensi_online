@@ -95,13 +95,14 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @php
-                                                // Get the 2 most recently added students
-                                                $recentStudents = App\Models\Student::with('class')
-                                                    ->orderBy('created_at', 'desc')
-                                                    ->take(2)
-                                                    ->get();
-                                            @endphp
+                                           @php
+                                        use App\Models\Student;
+
+                                        $recentStudents = Student::with('studentSemesters.class')
+                                            ->orderBy('created_at', 'desc')
+                                            ->take(2)
+                                            ->get();
+                                    @endphp
 
                                             @forelse($recentStudents as $student)
                                             <tr>

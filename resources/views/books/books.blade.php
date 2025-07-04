@@ -304,20 +304,23 @@
 
    <div class="container-fluid py-4">
       <!-- Header -->
-      <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
-        <div>
-          <h1 class="h3 mb-1">📚 Manajemen Buku</h1>
-          <p class="text-muted mb-0">Kelola koleksi buku perpustakaan dengan mudah dan cepat</p>
-        </div>
-        <div class="d-flex flex-wrap gap-2">
-          <a href="{{ route('book-loans.index') }}" class="btn btn-outline-primary">
-            <i class="fas fa-exchange-alt me-2"></i> Peminjaman
-          </a>
-          <a href="{{ route('books.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus-circle me-2"></i> Tambah Buku
-          </a>
-        </div>
-      </div>
+<div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+  <div>
+    <h1 class="h3 mb-1">📚 Manajemen Buku</h1>
+    <p class="text-muted mb-0">
+      Kelola koleksi buku perpustakaan dengan mudah dan cepat<br>
+      <small>
+        Tahun Ajaran: <strong>{{ $activeAcademicYear->year_name ?? '-' }}</strong> |
+        Semester: <strong>{{ $activeSemester->semester_name ?? '-' }}</strong>
+      </small>
+    </p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="{{ route('books.create') }}" class="btn btn-primary">
+      <i class="fas fa-plus-circle me-2"></i> Tambah Buku
+    </a>
+  </div>
+</div>
 
       <!-- Filter Section -->
       <div class="card shadow-sm mb-4">

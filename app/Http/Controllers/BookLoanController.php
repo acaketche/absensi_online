@@ -10,16 +10,32 @@ use App\Models\Classes;
 use Illuminate\Http\Request;
 use App\Models\AcademicYear;
 use App\Models\Semester;
+use App\Models\StudentSemester;
 use Carbon\Carbon;
+use App\Exports\BookLoansExport;
+use App\Exports\SingleClassBookLoanExport;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\BookLoansImport;
+use App\Imports\BookLoansMultiSheetImport;
 
 class BookLoanController extends Controller
 {
     public function index()
 {
-    // Ambil semua kelas beserta siswa dan jumlah buku yang sedang dipinjam
+    // Ambil tahun ajaran dan semester aktif
+    $activeAcademicYear = AcademicYear::where('is_active', true)->first();
+    $activeSemester = Semester::where('is_active', true)->first();
+
+    if (!$activeAcademicYear || !$activeSemester) {
+        return redirect()->back()->with('error', 'Tahun ajaran atau semester aktif tidak ditemukan.');
+    }
+
+    // Ambil kelas yang sesuai dengan tahun ajaran aktif saja
     $classes = Classes::with(['students' => function ($query) {
         $query->withCount(['borrowedBooks']);
-    }, 'academicYear', 'employee'])->get(); // tambah relasi yang dibutuhkan
+    }, 'academicYear', 'employee'])
+    ->where('academic_year_id', $activeAcademicYear->id)
+    ->get();
 
     // Hitung total pinjaman per kelas
     $classLoans = [];
@@ -28,9 +44,8 @@ class BookLoanController extends Controller
         $classLoans[$class->class_id] = $totalLoans;
     }
 
-    return view('books.booksloans', compact('classes', 'classLoans'));
+    return view('books.booksloans', compact('classes', 'classLoans', 'activeAcademicYear', 'activeSemester'));
 }
-
 
     public function create()
     {
@@ -152,40 +167,70 @@ class BookLoanController extends Controller
         return redirect()->back()->with('success', 'Status dikembalikan menjadi Dipinjam.');
     }
 
-    public function classStudents($classId)
-    {
-        $class = Classes::findOrFail($classId);
-        $students = Student::withCount(['borrowedBooks', 'returnedBooks'])
-            ->where('class_id', $classId)
-            ->get();
+  public function classStudents($classId)
+{
+    $class = Classes::findOrFail($classId);
 
-        $totalBookLoans = $students->sum('borrowed_books_count');
-        $totalBookReturns = $students->sum('returned_books_count');
+    // Ambil tahun ajaran dan semester aktif
+    $activeAcademicYear = AcademicYear::where('is_active', true)->first();
+    $activeSemester = Semester::where('is_active', true)->first();
 
-        return view('books.classtudent', compact('class', 'students', 'totalBookLoans', 'totalBookReturns'));
-    }
+    // Ambil data siswa dari tabel student_semester
+    $studentIds = StudentSemester::where('class_id', $classId)
+                    ->where('academic_year_id', optional($activeAcademicYear)->id)
+                    ->where('semester_id', optional($activeSemester)->id)
+                    ->pluck('student_id');
 
-    public function studentBooks($id)
-    {
-        $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
-        $activeSemester = Semester::where('is_active', 1)->first();
-        $student = Student::with('class')->findOrFail($id);
+    $students = Student::withCount(['borrowedBooks', 'returnedBooks'])
+                    ->whereIn('id_student', $studentIds)
+                    ->get();
 
-        $bookLoans = BookLoan::with('book','copy')
-            ->where('id_student', $student->id_student)
-            ->orderByDesc('loan_date')
-            ->get();
+    $totalBookLoans = $students->sum('borrowed_books_count');
+    $totalBookReturns = $students->sum('returned_books_count');
 
-        $books = Book::all();
-        $academicYears = AcademicYear::all();
-        $semesters = Semester::all();
+    return view('books.classtudent', compact(
+        'class',
+        'students',
+        'totalBookLoans',
+        'totalBookReturns',
+        'activeAcademicYear',
+        'activeSemester'
+    ));
+}
+public function studentBooks($id)
+{
+    $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
+    $activeSemester = Semester::where('is_active', 1)->first();
 
-        return view('books.studentbook', compact(
-            'student', 'bookLoans', 'books',
-            'academicYears', 'semesters',
-            'activeAcademicYear', 'activeSemester'
-        ));
-    }
+    $student = Student::with(['studentSemester.class'])->findOrFail($id);
+
+    $studentSemester = $student->studentSemesters()
+        ->where('academic_year_id', $activeAcademicYear->id)
+        ->where('semester_id', $activeSemester->id)
+        ->with('class')
+        ->first();
+
+    $class = $studentSemester?->class;
+
+    $bookLoans = BookLoan::with('book', 'copy')
+        ->where('id_student', $student->id_student)
+        ->orderByDesc('loan_date')
+        ->get();
+
+    // Ambil buku berdasarkan level kelas siswa
+    $books = Book::whereHas('class', function ($query) use ($class) {
+        $query->where('class_level', $class->class_level ?? null);
+    })->get();
+
+    $academicYears = AcademicYear::all();
+    $semesters = Semester::all();
+
+    return view('books.studentbook', compact(
+        'student', 'bookLoans', 'books',
+        'academicYears', 'semesters',
+        'activeAcademicYear', 'activeSemester', 'class'
+    ));
+}
 
     public function print($id_student)
     {
@@ -224,4 +269,23 @@ class BookLoanController extends Controller
             $copy->save();
         }
     }
+    public function exportTemplate()
+{
+    return Excel::download(new BookLoansExport, 'template_peminjaman_buku.xlsx');
+}
+public function exportByClass($classId)
+{
+   $class = Classes::findOrFail($classId);
+return Excel::download(new SingleClassBookLoanExport($classId, $class->class_level), 'peminjaman-' . $class->class_name . '.xlsx');
+}
+public function import(Request $request)
+{
+    $request->validate([
+        'file' => 'required|file|mimes:xlsx,xls',
+    ]);
+
+    Excel::import(new BookLoansMultiSheetImport, $request->file('file'));
+
+    return back()->with('success', 'Import berhasil dilakukan.');
+}
 }

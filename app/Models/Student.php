@@ -90,4 +90,15 @@ public function studentSemesters()
 {
     return $this->hasMany(StudentSemester::class, 'student_id', 'id_student');
 }
+public function studentSemester()
+{
+    return $this->hasOne(StudentSemester::class, 'student_id', 'id_student')
+        ->whereHas('academicYear', function ($query) {
+            $query->where('is_active', 1);
+        })
+        ->whereHas('semester', function ($query) {
+            $query->where('is_active', 1);
+        });
+}
+
 }

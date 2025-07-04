@@ -2,127 +2,257 @@
 
 namespace App\Imports;
 
-use App\Models\BookLoan;
-use App\Models\Book;
-use App\Models\Student;
-use App\Models\BookCopy;
-use App\Models\AcademicYear;
-use App\Models\Semester;
+use App\Models\{AcademicYear, Book, BookCopy, BookLoan, Classes, Student, Semester};
 use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\{ToCollection, WithHeadingRow};
 use Carbon\Carbon;
 
 class BookLoansImport implements ToCollection, WithHeadingRow
 {
-    protected $academicYearId;
-    protected $semesterId;
-    protected $classId;
-    protected $books = [];
-    protected $headerMapping = [];
+    protected $errors = [];
+    protected $successCount = 0;
+    protected $failCount = 0;
+    protected $processedBooks = [];
+    protected $activeYear;
+    protected $activeSemester;
+    protected $currentSheetLevel;
 
-    public function __construct($academicYearId, $semesterId, $classId = null)
+    public function __construct(string $sheetLevel = null)
     {
-        $this->academicYearId = $academicYearId;
-        $this->semesterId = $semesterId;
-        $this->classId = $classId;
-
-        $this->preloadBooks();
-    }
-
-    protected function preloadBooks()
-    {
-        $query = Book::query();
-
-        if ($this->classId) {
-            $query->where('class_id', $this->classId);
+        $allowedLevels = ['X', 'XI', 'XII'];
+        if ($sheetLevel && !in_array($sheetLevel, $allowedLevels)) {
+            throw new \InvalidArgumentException("Sheet level harus salah satu dari: " . implode(', ', $allowedLevels));
         }
 
-        $allBooks = $query->get();
-
-        foreach ($allBooks as $book) {
-            $this->books[$book->title] = $book;
-            $this->headerMapping[$book->title] = $book->id;
-        }
+        $this->currentSheetLevel = $sheetLevel;
+        $this->activeYear = AcademicYear::where('is_active', 1)->first();
+        $this->activeSemester = Semester::where('is_active', 1)->first();
     }
 
     public function collection(Collection $rows)
     {
-        $loanDate = Carbon::now()->format('Y-m-d');
-        $studentsProcessed = [];
+        if ($rows->isEmpty()) {
+            Log::info("Sheet {$this->currentSheetLevel} kosong, diabaikan");
+            return;
+        }
 
-        foreach ($rows as $row) {
-            $studentName = $row['nama_siswa'] ?? null;
+        if (!$this->activeYear || !$this->activeSemester) {
+            $this->addError('Tahun ajaran atau semester aktif tidak ditemukan.');
+            $this->flashResult();
+            return;
+        }
 
-            if (!$studentName) continue;
+        foreach ($rows as $index => $row) {
+            $rowNumber = $index + 2;
+            $this->processRow($row, $rowNumber);
+        }
 
-            // Cari siswa berdasarkan nama dan kelas (jika classId ada)
-            $studentQuery = Student::where('name', 'like', "%$studentName%");
+        $this->flashResult();
+    }
 
-            if ($this->classId) {
-                $studentQuery->where('class_id', $this->classId);
-            }
+    protected function processRow($row, $rowNumber)
+    {
+        $nipd = trim($row['nipd'] ?? $row['id_student'] ?? '');
+        $className = trim($row['kelas'] ?? '');
+        $studentClassLevel = $this->extractGradeLevel($className);
 
-            $student = $studentQuery->first();
+        if (!$nipd) return;
 
-            if (!$student) {
-                \Log::warning("Siswa dengan nama {$studentName} tidak ditemukan");
-                continue;
-            }
+        if (!$studentClassLevel && $this->currentSheetLevel) {
+            $studentClassLevel = $this->currentSheetLevel;
+        }
 
-            // Skip jika siswa sudah diproses (untuk menghindari duplikat)
-            if (in_array($student->id_student, $studentsProcessed)) continue;
+        if ($this->currentSheetLevel && $studentClassLevel !== $this->currentSheetLevel) {
+            Log::info("Baris $rowNumber: Kelas siswa $studentClassLevel tidak cocok dengan sheet {$this->currentSheetLevel}, tetap diproses.");
+            $studentClassLevel = $this->currentSheetLevel;
+        }
 
-            $studentsProcessed[] = $student->id_student;
+        $student = $this->findStudent($nipd, $studentClassLevel, $rowNumber);
+        if (!$student) return;
 
-            // Proses setiap kolom (buku)
-            foreach ($row as $header => $copyCode) {
-                // Skip kolom nama siswa dan kolom kosong
-                if ($header == 'nama_siswa' || empty($copyCode)) continue;
+        $this->processBookLoans($row, $rowNumber, $student, $studentClassLevel);
+    }
 
-                // Cari buku berdasarkan header
-                $bookId = $this->headerMapping[$header] ?? null;
+    protected function findStudent($nipd, $classLevel, $rowNumber)
+    {
+        $classIds = Classes::where('academic_year_id', $this->activeYear->id)
+            ->when($classLevel, fn($q) => $q->where('class_level', $classLevel))
+            ->pluck('class_id')
+            ->toArray();
 
-                if (!$bookId) {
-                    \Log::warning("Buku dengan judul {$header} tidak ditemukan");
-                    continue;
-                }
+        if (empty($classIds)) {
+            $this->addError("Baris $rowNumber: Tidak ditemukan kelas untuk level $classLevel");
+            return null;
+        }
 
-                // Cari salinan buku
-                $copy = BookCopy::where('book_id', $bookId)
-                    ->where('copy_code', $copyCode)
-                    ->first();
+        $student = Student::where('id_student', $nipd)
+            ->whereHas('studentSemesters', fn($q) => $q->whereIn('class_id', $classIds))
+            ->first();
 
-                if (!$copy) {
-                    \Log::warning("Salinan buku {$copyCode} untuk {$header} tidak ditemukan");
-                    continue;
-                }
+        if (!$student) {
+            $this->addError("Baris $rowNumber: Siswa dengan NIPD $nipd tidak terdaftar di Kelas $classLevel");
+            return null;
+        }
 
-                // Cek apakah sudah ada pinjaman aktif untuk salinan ini
-                $existingLoan = BookLoan::where('copy_id', $copy->id)
-                    ->where('status', 'Dipinjam')
-                    ->first();
+        return $student;
+    }
 
-                if ($existingLoan) {
-                    \Log::warning("Salinan buku {$copyCode} sudah dipinjam oleh siswa lain");
-                    continue;
-                }
+    protected function processBookLoans($row, $rowNumber, $student, $classLevel)
+{
+    $hasValidData = false;
+    $columns = array_keys($row->toArray());
 
-                // Buat record peminjaman
-                BookLoan::create([
-                    'id_student' => $student->id_student,
-                    'book_id' => $bookId,
-                    'copy_id' => $copy->id,
-                    'loan_date' => $loanDate,
-                    'return_date' => null,
-                    'status' => 'Dipinjam',
-                    'academic_year_id' => $this->academicYearId,
-                    'semester_id' => $this->semesterId,
-                ]);
+    for ($i = 4; $i < count($columns); $i += 2) {
+        $bookColumn = $columns[$i];
+        $statusColumn = $columns[$i + 1] ?? null;
 
-                // Update status salinan
-                $copy->update(['is_available' => 0]);
-            }
+        // Normalisasi kode buku dari header kolom
+        $bookCode = $this->normalizeBookCode($bookColumn);
+
+        if (!$bookCode) {
+            $this->addError("Baris $rowNumber: Header kolom '$bookColumn' tidak memiliki kode buku.");
+            continue;
+        }
+
+        $copyCode = trim($row[$bookColumn] ?? '');
+        $status = trim($row[$statusColumn] ?? 'Dipinjam');
+
+        if ($copyCode === '') continue;
+
+        $book = Book::whereRaw("REPLACE(UPPER(code), '-', '') = ?", [str_replace('-', '', strtoupper($bookCode))])
+            ->whereHas('class', fn($q) => $q->where('class_level', $classLevel))
+            ->first();
+
+        if (!$book) {
+            $this->addError("Baris $rowNumber: Buku dengan kode '$bookCode' tidak ditemukan untuk kelas $classLevel.");
+            continue;
+        }
+
+        $copy = BookCopy::where('copy_code', $copyCode)
+            ->where('book_id', $book->id)
+            ->first();
+
+        if (!$copy) {
+            $this->addError("Baris $rowNumber: Copy code '$copyCode' tidak ditemukan untuk buku '$bookCode'.");
+            continue;
+        }
+
+        if (!$this->isValidStatus($status)) {
+            $this->addError("Baris $rowNumber: Status tidak valid untuk buku '$bookCode'.");
+            continue;
+        }
+
+        $this->saveLoanData($student, $book, $copy, $status, $rowNumber);
+        $hasValidData = true;
+    }
+
+    if ($hasValidData) {
+        $this->successCount++;
+    }
+}
+
+    protected function saveLoanData($student, $book, $copy, $status, $rowNumber)
+    {
+        try {
+            $loanData = [
+                'id_student' => $student->id_student,
+                'book_id' => $book->id,
+                'copy_id' => $copy->id,
+                'loan_date' => Carbon::now(),
+                'return_date' => strtolower($status) === 'dikembalikan' ? Carbon::now() : null,
+                'status' => $status,
+                'academic_year_id' => $this->activeYear->id,
+                'semester_id' => $this->activeSemester->id,
+            ];
+
+            BookLoan::updateOrCreate([
+                'id_student' => $student->id_student,
+                'book_id' => $book->id,
+                'copy_id' => $copy->id,
+                'academic_year_id' => $this->activeYear->id,
+                'semester_id' => $this->activeSemester->id,
+            ], $loanData);
+
+            $copy->is_available = strtolower($status) === 'dikembalikan';
+            $copy->save();
+
+            $this->processedBooks[] = [
+                'book' => $book->title,
+                'copy' => $copy->copy_code,
+                'status' => $status
+            ];
+        } catch (\Exception $e) {
+            $this->addError("Baris $rowNumber: Gagal menyimpan data peminjaman - " . $e->getMessage());
         }
     }
+
+    protected function extractGradeLevel($className)
+    {
+        return preg_match('/^(X|XI|XII)/i', $className, $matches) ? strtoupper($matches[1]) : '';
+    }
+
+    protected function isValidStatus($status)
+    {
+        return in_array(strtolower($status), ['dipinjam', 'dikembalikan']);
+    }
+
+    protected function addError(string $message)
+    {
+        $this->errors[] = $message;
+        $this->failCount++;
+        Log::warning($message);
+    }
+
+    protected function flashResult()
+    {
+        $messages = [];
+
+        if ($this->successCount > 0) {
+            $messages['success'] = "Berhasil memproses {$this->successCount} data peminjaman.";
+
+            if (count($this->processedBooks) > 0) {
+                $uniqueBooks = collect($this->processedBooks)
+                    ->groupBy('book')
+                    ->map(function ($items, $book) {
+                        $copies = $items->pluck('copy')->unique()->implode(', ');
+                        $statuses = $items->pluck('status')->unique()->implode(', ');
+                        return "$book (Copy: $copies, Status: $statuses)";
+                    })
+                    ->implode('<br>');
+
+                $messages['info'] = "Buku yang diproses:<br>$uniqueBooks";
+            }
+        }
+
+        if (!empty($this->errors)) {
+            $messages['error'] = "Gagal memproses {$this->failCount} data.";
+            $shownErrors = array_slice($this->errors, 0, 5);
+            if (count($this->errors) > 5) {
+                $shownErrors[] = "Dan " . (count($this->errors) - 5) . " error lainnya...";
+            }
+            $messages['import_errors'] = $shownErrors;
+        }
+
+        foreach ($messages as $type => $message) {
+            Session::flash($type, $message);
+        }
+    }
+    protected function normalizeBookCode($columnHeader)
+{
+    // Ambil bagian sebelum ' - '
+    $codePart = strtoupper(trim(explode(' - ', $columnHeader)[0] ?? ''));
+
+    // Ubah dari underscore (_) ke dash (-)
+    $normalized = str_replace('_', '-', $codePart);
+
+    // Hanya ambil bagian yang sesuai format kode buku (misal: IND-2021-03)
+    if (preg_match('/^[A-Z]{2,4}-\d{4}-\d{2}/', $normalized, $match)) {
+        return $match[0];
+    }
+
+    return $normalized;
+}
+
 }

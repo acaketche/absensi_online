@@ -72,10 +72,25 @@
                 <i class="fas fa-money-bill-wave me-2"></i>
                 <span class="nav-text">Manajemen SPP</span>
             </a>
-               <a href="{{ route('books.index')}}" class="nav-item text-white d-block mb-2" data-page="peminjaman-buku">
-                <i class="fas fa-book-open me-2"></i>
-                <span class="nav-text">Manajemen Buku Paket</span>
-            </a>
+               {{-- Dropdown Manajemen Buku --}}
+<div class="dropdown-container">
+    <a href="#" class="nav-item text-white d-block mb-2 sidebar-dropdown-toggle" data-bs-toggle="dropdown-sidebar" data-target="buku-dropdown">
+        <i class="fas fa-book me-2"></i>
+        <span class="nav-text">Manajemen Buku</span>
+        <i class="fas fa-chevron-down dropdown-icon"></i>
+    </a>
+    <div class="dropdown-menu-sidebar" id="buku-dropdown">
+        <a href="{{ route('books.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="buku-paket">
+            <i class="fas fa-book-open me-2"></i>
+            <span class="nav-text">Buku Paket</span>
+        </a>
+        <a href="{{ route('book-loans.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="peminjaman-buku">
+            <i class="fas fa-exchange-alt me-2"></i>
+            <span class="nav-text">Peminjaman</span>
+        </a>
+    </div>
+</div>
+
             <a href="{{ route('rapor.classes')}}" class="nav-item text-white d-block mb-2" data-page="data-nilai">
                 <i class="fas fa-chart-bar me-2"></i>
                 <span class="nav-text">Data Nilai Siswa</span>
@@ -161,10 +176,25 @@
                 <i class="fas fa-home me-2"></i>
                 <span class="nav-text">Dashboard</span>
             </a>
-            <a href="{{ route('books.index')}}" class="nav-item text-white d-block mb-2" data-page="peminjaman-buku">
-                <i class="fas fa-book-open me-2"></i>
-                <span class="nav-text">Manajemen Buku Paket</span>
-            </a>
+           {{-- Dropdown Manajemen Buku --}}
+<div class="dropdown-container">
+    <a href="#" class="nav-item text-white d-block mb-2 sidebar-dropdown-toggle" data-bs-toggle="dropdown-sidebar" data-target="buku-dropdown">
+        <i class="fas fa-book me-2"></i>
+        <span class="nav-text">Manajemen Buku</span>
+        <i class="fas fa-chevron-down dropdown-icon"></i>
+    </a>
+    <div class="dropdown-menu-sidebar" id="buku-dropdown">
+        <a href="{{ route('books.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="buku-paket">
+            <i class="fas fa-book-open me-2"></i>
+            <span class="nav-text">Buku Paket</span>
+        </a>
+        <a href="{{ route('book-loans.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="peminjaman-buku">
+            <i class="fas fa-exchange-alt me-2"></i>
+            <span class="nav-text">Peminjaman</span>
+        </a>
+    </div>
+</div>
+
             <a href="{{ route('book-loans.index')}}" class="nav-item text-white d-block mb-2" data-page="peminjaman-buku">
                 <i class="fas fa-exchange-alt me-2"></i>
                 <span class="nav-text">Peminjaman Buku</span>

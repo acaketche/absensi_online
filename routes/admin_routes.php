@@ -99,6 +99,9 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
     Route::put('/book-loans/unreturn/{id}', [BookLoanController::class, 'markAsUnreturned'])->name('book.unreturn');
     Route::get('/book-loans/print/{id_student}', [BookLoanController::class, 'print'])->name('book-loans.print');
     Route::post('/book-loans', [BookLoanController::class, 'store'])->name('book-loans.store');
+    Route::get('/book-loans/export-template', [BookLoanController::class, 'exportTemplate'])->name('book-loans.export');
+    Route::get('/bookloans/export/class/{classId}', [BookLoanController::class, 'exportByClass'])->name('export.bookloan.class');
+    Route::post('/book-loans/import', [BookLoanController::class, 'import'])->name('book-loans.import');
 
     // Payment Management
     Route::get('/payment/listdata', [PaymentController::class, 'listData'])->name('payment.listdata');
