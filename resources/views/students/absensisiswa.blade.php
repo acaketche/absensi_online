@@ -174,28 +174,30 @@
             <label for="end_date" class="form-label">Tanggal Selesai</label>
             <input type="date" id="end_date" name="end_date" class="form-control" value="{{ request('end_date') }}">
         </div>
-        <div class="col-md-3">
-            <label for="class_id" class="form-label">Kelas</label>
-            <select name="class_id" id="class_id" class="form-select">
-                <option value="" {{ request('class_id') == '' ? 'selected' : '' }}>Semua Kelas</option>
-                @foreach ($classes as $class)
-                    <option value="{{ $class->class_id }}" {{ request('class_id') == $class->class_id ? 'selected' : '' }}>
-                        {{ $class->class_name }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-md-3">
-            <label for="status_id" class="form-label">Status</label>
-            <select name="status_id" id="status_id" class="form-select">
-                <option value="" {{ request('status_id') == '' ? 'selected' : '' }}>Semua Status</option>
-                @foreach($statuses as $status)
-                    <option value="{{ $status->status_id }}" {{ request('status_id') == $status->status_id ? 'selected' : '' }}>
-                        {{ $status->status_name }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+       <!-- FILTERING -->
+<div class="col-md-3">
+    <label for="filter_class_id" class="form-label">Kelas</label>
+    <select name="class_id" id="filter_class_id" class="form-select">
+        <option value="" {{ request('class_id') == '' ? 'selected' : '' }}>Semua Kelas</option>
+        @foreach ($classes as $class)
+            <option value="{{ $class->class_id }}" {{ request('class_id') == $class->class_id ? 'selected' : '' }}>
+                {{ $class->class_name }}
+            </option>
+        @endforeach
+    </select>
+</div>
+
+<div class="col-md-3">
+    <label for="filter_status_id" class="form-label">Status</label>
+    <select name="status_id" id="filter_status_id" class="form-select">
+        <option value="" {{ request('status_id') == '' ? 'selected' : '' }}>Semua Status</option>
+        @foreach($statuses as $status)
+            <option value="{{ $status->status_id }}" {{ request('status_id') == $status->status_id ? 'selected' : '' }}>
+                {{ $status->status_name }}
+            </option>
+        @endforeach
+    </select>
+</div>
 
         <div class="col-12 mt-3">
             <button type="submit" class="btn btn-primary">
@@ -435,8 +437,8 @@
                         <div class="mb-4">
                             <div class="d-flex gap-2 mb-3">
                                 <div class="flex-grow-1">
-                                    <label for="nisSearch" class="form-label">NIS Siswa</label>
-                                    <input type="text" class="form-control" id="nisSearch" placeholder="Masukkan NIS" autocomplete="off">
+                                <label for="idStudentSearch" class="form-label">ID Siswa</label>
+                                <input type="text" id="idStudentSearch" class="form-control" placeholder="Masukkan ID Siswa">
                                 </div>
                                 <div class="align-self-end">
                                     <button type="button" class="btn btn-primary" id="searchStudentBtn">
@@ -444,88 +446,58 @@
                                     </button>
                                 </div>
                             </div>
-
-                            <div id="studentInfo" class="bg-light p-3 rounded mb-3 d-none">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h6 class="fw-bold mb-0">Data Siswa:</h6>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="hideStudentInfo()">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                                <div class="row g-2 mt-2">
-                                    <div class="col-md-4">
-                                        <span class="text-muted small">NIS:</span>
-                                        <p id="studentNIS" class="mb-0 fw-semibold">-</p>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <span class="text-muted small">Nama:</span>
-                                        <p id="studentName" class="mb-0 fw-semibold">-</p>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <span class="text-muted small">Kelas:</span>
-                                        <p id="studentClass" class="mb-0 fw-semibold">-</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <form id="attendanceForm" action="{{ route('student-attendance.store') }}" method="POST" enctype="multipart/form-data" class="d-none">
-                            @csrf
-                            <input type="hidden" id="id_student" name="id_student">
-                            <input type="hidden" name="academic_year_id" value="{{ $activeAcademicYear->id ?? '' }}">
-                            <input type="hidden" name="semester_id" value="{{ $activeSemester->id ?? '' }}">
-
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="class_id" class="form-label">Kelas</label>
-                                    <select class="form-select" id="class_id" name="class_id" required>
-                                        <option value="">-- Pilih Kelas --</option>
-                                        @foreach($classes as $class)
-                                            <option value="{{ $class->id }}">{{ $class->class_name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label for="status_id" class="form-label">Status Kehadiran</label>
-                                    <select class="form-select" id="status_id" name="status_id" required>
-                                        <option value="">-- Pilih Status --</option>
-                                        @foreach($statuses as $status)
-                                            <option value="{{ $status->id }}">{{ $status->status_name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label for="attendance_date" class="form-label">Tanggal Absensi</label>
-                                    <input type="date" class="form-control" id="attendance_date" name="attendance_date" required value="{{ date('Y-m-d') }}">
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label for="check_in_time" class="form-label">Waktu Masuk</label>
-                                    <input type="time" class="form-control" id="check_in_time" name="check_in_time">
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label for="document" class="form-label">Dokumen (opsional)</label>
-                                    <input type="file" class="form-control" id="document" name="document">
-                                    <small class="text-muted">Format: JPG, JPEG, PNG, PDF. Maks: 2MB</small>
-                                </div>
-
-                                <div class="col-12 mt-3">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save me-1"></i> Simpan
-                                    </button>
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                        <i class="fas fa-times me-1"></i> Batal
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+<div id="studentInfo" class="bg-light p-3 rounded mb-3 d-none">
+    <div class="d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0">Data Siswa:</h6>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="hideStudentInfo()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="row g-2 mt-2">
+        <div class="col-md-4">
+            <span class="text-muted small">NIPD:</span>
+            <p id="studentNIPD" class="mb-0 fw-semibold">-</p>
         </div>
+        <div class="col-md-4">
+            <span class="text-muted small">Nama:</span>
+            <p id="studentName" class="mb-0 fw-semibold">-</p>
+        </div>
+        <div class="col-md-4">
+            <span class="text-muted small">Kelas:</span>
+            <p id="studentClass" class="mb-0 fw-semibold">-</p>
+        </div>
+    </div>
+</div>
+                     <form id="attendanceForm" action="{{ route('student-attendance.store') }}" method="POST" enctype="multipart/form-data" class="d-none">
+    @csrf
+    <input type="hidden" id="id_student" name="id_student">
+    <input type="hidden" name="academic_year_id" value="{{ $activeAcademicYear->id ?? '' }}">
+    <input type="hidden" name="semester_id" value="{{ $activeSemester->id ?? '' }}">
+    <input type="hidden" name="class_id" id="class_id">
+    {{-- TIDAK PERLU INPUT status_id, akan ditentukan otomatis di controller --}}
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label for="attendance_date" class="form-label">Tanggal Absensi</label>
+            <input type="date" class="form-control" id="attendance_date" name="attendance_date" required value="{{ date('Y-m-d') }}">
+        </div>
+
+        <div class="col-md-6">
+            <label for="document" class="form-label">Dokumen (opsional)</label>
+            <input type="file" class="form-control" id="document" name="document" accept=".jpg,.jpeg,.png,.pdf">
+            <small class="text-muted">Format: JPG, JPEG, PNG, PDF. Maks: 2MB</small>
+        </div>
+
+        <div class="col-12 mt-3">
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-check me-1"></i> Absen Sekarang
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="hideStudentInfo()">
+                <i class="fas fa-times me-1"></i> Batal
+            </button>
+        </div>
+    </div>
+</form>
 
         <!-- Edit Attendance Modal -->
         <div class="modal fade" id="editAttendanceModal" tabindex="-1" aria-labelledby="editAttendanceModalLabel" aria-hidden="true">
@@ -604,128 +576,130 @@
             </div>
         </div>
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Search student by NIS
-                document.getElementById('searchStudentBtn').addEventListener('click', function() {
-                    const nis = document.getElementById('nisSearch').value.trim();
+      <script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 🔍 Pencarian siswa berdasarkan NIPD
+    const searchBtn = document.getElementById('searchStudentBtn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', function () {
+            const id_student = document.getElementById('idStudentSearch').value.trim();
 
-                    if (!nis) {
-                        alert('Masukkan NIS siswa terlebih dahulu!');
-                        return;
-                    }
+            if (!id_student) {
+                alert('Masukkan ID siswa terlebih dahulu!');
+                return;
+            }
 
-                    // Tampilkan loading state
-                    const searchBtn = this;
-                    searchBtn.disabled = true;
-                    searchBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Mencari...';
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Mencari...';
 
-                    fetch(`/student/search?id_student=${encodeURIComponent(nis)}`)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            if (data.success && data.student) {
-                                // Tampilkan informasi siswa
-                                const studentInfo = document.getElementById('studentInfo');
-                                studentInfo.classList.remove('d-none');
-
-                                // Isi data siswa
-                                document.getElementById('studentNIS').textContent = data.student.id_student;
-                                document.getElementById('studentName').textContent = data.student.fullname;
-                                document.getElementById('studentClass').textContent = data.student.class_name;
-
-                                // Set nilai untuk form
-                                document.getElementById('id_student').value = data.student.id_student;
-                                document.getElementById('class_id').value = data.student.class_id;
-                                document.getElementById('attendanceForm').classList.remove('d-none');
-                            } else {
-                                alert(data.message || 'Siswa tidak ditemukan');
-                                hideStudentInfo();
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('Terjadi kesalahan saat mencari data siswa');
-                            hideStudentInfo();
-                        })
-                        .finally(() => {
-                            searchBtn.disabled = false;
-                            searchBtn.innerHTML = '<i class="fas fa-search me-1"></i> Cari';
+            fetch(`/student/search?id_student=${encodeURIComponent(id_student)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        console.log('Failed response:', response.status, response.statusText);
+                        return response.text().then(text => {
+                            console.log('Response body:', text);
+                            throw new Error(text);
                         });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success && data.student) {
+                        const student = data.student;
+                        document.getElementById('studentInfo').classList.remove('d-none');
+                        document.getElementById('studentNIPD').textContent = student.nipd ?? '-';
+                        document.getElementById('studentName').textContent = student.fullname;
+                        document.getElementById('studentClass').textContent = student.class_name ?? '-';
+
+                        // Isi form input tersembunyi
+                        document.querySelector('#attendanceForm #id_student').value = student.id_student;
+                        document.querySelector('#attendanceForm #class_id').value = student.class_id ?? '';
+                        document.getElementById('attendanceForm').classList.remove('d-none');
+
+                    } else {
+                        alert(data.message || 'Siswa tidak ditemukan');
+                        hideStudentInfo();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat mencari data siswa');
+                    hideStudentInfo();
+                })
+                .finally(() => {
+                    searchBtn.disabled = false;
+                    searchBtn.innerHTML = '<i class="fas fa-search me-1"></i> Cari';
                 });
+        });
+    }
 
-                // Fungsi untuk menyembunyikan info siswa
-                function hideStudentInfo() {
-                    document.getElementById('studentInfo').classList.add('d-none');
-                    document.getElementById('attendanceForm').classList.add('d-none');
-                }
+    // Fungsi untuk menyembunyikan info siswa dan form
+    function hideStudentInfo() {
+        document.getElementById('studentInfo')?.classList.add('d-none');
+        document.getElementById('attendanceForm')?.classList.add('d-none');
+    }
 
-                // Search functionality for tables
-                document.getElementById('searchInput').addEventListener('input', function() {
-                    const searchTerm = this.value.toLowerCase();
-                    const tables = document.querySelectorAll('.tab-pane.active table tbody tr');
-
-                    tables.forEach(row => {
-                        const text = row.textContent.toLowerCase();
-                        row.style.display = text.includes(searchTerm) ? '' : 'none';
-                    });
-                });
-
-                // Edit Attendance Modal
-                document.querySelectorAll('.edit-attendance').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const attendanceId = this.getAttribute('data-id');
-
-                        fetch(`/api/attendances/${attendanceId}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    const attendance = data.data;
-
-                                    // Set form action
-                                    document.getElementById('editAttendanceForm').action = `/student-attendance/${attendanceId}`;
-
-                                    // Fill student info
-                                    document.getElementById('editStudentNIS').textContent = attendance.student?.id_student || '-';
-                                    document.getElementById('editStudentName').textContent = attendance.student?.fullname || '-';
-                                    document.getElementById('editStudentClass').textContent = attendance.class_name || '-';
-
-                                    // Fill form fields
-                                    document.getElementById('edit_attendance_date').value = attendance.attendance_date;
-                                    document.getElementById('edit_status_id').value = attendance.status_id;
-                                    document.getElementById('edit_check_in_time').value = attendance.check_in_time || '';
-                                    document.getElementById('edit_check_out_time').value = attendance.check_out_time || '';
-
-                                    // Show current document if exists
-                                    const currentDocDiv = document.getElementById('currentDocument');
-                                    if (attendance.document) {
-                                        currentDocDiv.innerHTML = `
-                                            <div class="d-flex align-items-center">
-                                                <span class="me-2">Dokumen saat ini:</span>
-                                                <a href="/storage/${attendance.document}" target="_blank" class="btn btn-sm btn-info">
-                                                    <i class="fas fa-file-alt"></i> Lihat
-                                                </a>
-                                            </div>
-                                        `;
-                                    } else {
-                                        currentDocDiv.innerHTML = '<span class="text-muted">Tidak ada dokumen</span>';
-                                    }
-                                } else {
-                                    alert('Gagal memuat data absensi');
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                                alert('Terjadi kesalahan saat memuat data');
-                            });
-                    });
-                });
+    // 🔎 Live search untuk filter tabel siswa
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.tab-pane.active table tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
             });
-        </script>
+        });
+    }
+
+    // ✏️ Edit data absensi
+    document.querySelectorAll('.edit-attendance').forEach(button => {
+        button.addEventListener('click', function () {
+            const attendanceId = this.getAttribute('data-id');
+            if (!attendanceId) return;
+
+            fetch(`/api/attendances/${attendanceId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data) {
+                        const attendance = data.data;
+
+                        document.getElementById('editAttendanceForm').action = `/student-attendance/${attendanceId}`;
+                        document.getElementById('editStudentNIPD').textContent = attendance.student?.nipd || '-';
+                        document.getElementById('editStudentName').textContent = attendance.student?.fullname || '-';
+                        document.getElementById('editStudentClass').textContent = attendance.class?.name || '-';
+
+                        document.getElementById('edit_attendance_date').value = attendance.attendance_date;
+                        document.getElementById('edit_status_id').value = attendance.status_id;
+                        document.getElementById('edit_check_in_time').value = attendance.check_in_time ?? '';
+                        document.getElementById('edit_check_out_time').value = attendance.check_out_time ?? '';
+
+                        const currentDocDiv = document.getElementById('currentDocument');
+                        if (attendance.document) {
+                            currentDocDiv.innerHTML = `
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">Dokumen saat ini:</span>
+                                    <a href="/storage/${attendance.document}" target="_blank" class="btn btn-sm btn-info">
+                                        <i class="fas fa-file-alt"></i> Lihat
+                                    </a>
+                                </div>
+                            `;
+                        } else {
+                            currentDocDiv.innerHTML = '<span class="text-muted">Tidak ada dokumen</span>';
+                        }
+                    } else {
+                        alert('Data absensi tidak ditemukan');
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert('Gagal memuat data absensi');
+                });
+        });
+    });
+});
+</script>
+
     </main>
 </div>
 </body>

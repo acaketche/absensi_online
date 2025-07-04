@@ -27,7 +27,6 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
 
     // Student Management
     Route::resource('students', StudentController::class);
-    Route::get('/student/search', [StudentAttendanceController::class, 'searchStudent']);
     Route::post('/students/import', [StudentController::class, 'import'])->name('students.import');
     Route::get('/students/import/template', [StudentController::class, 'showTemplate'])->name('students.template.page');
     Route::get('/template-siswa-kosong', [StudentController::class, 'downloadTemplateEmpty'])->name('students.template.empty');
@@ -63,7 +62,7 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
 
     // Student Attendance
     Route::resource('student-attendance', StudentAttendanceController::class);
-    Route::get('/students/search', [StudentAttendanceController::class, 'searchById']);
+    Route::get('/student/search', [StudentAttendanceController::class, 'search']);
     Route::get('/student-attendance/export/pdf', [StudentAttendanceController::class, 'exportPdf'])
      ->name('student-attendance.export.pdf');
 

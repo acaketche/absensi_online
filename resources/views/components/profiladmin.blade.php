@@ -54,16 +54,17 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-4 text-center">
-                            <div class="mb-3 position-relative mx-auto" style="width: 150px;">
-                                <img id="profileImagePreview"
-                                     src="{{ Auth::guard('employee')->user()->photo ? asset('storage/'.Auth::guard('employee')->user()->photo) : asset('images/default-avatar.png') }}"
-                                     class="rounded-circle img-thumbnail w-100" style="height: 150px;" alt="Profile Photo">
-                                <label for="photo" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle" style="cursor: pointer;">
-                                    <i class="fas fa-camera"></i>
-                                    <input type="file" id="photo" name="photo" class="d-none" accept="image/*">
-                                </label>
-                            </div>
-                            <small class="text-muted">Klik ikon kamera untuk mengubah foto</small>
+                           <div class="mb-3 position-relative mx-auto" style="width: 150px;">
+                            <img id="profileImagePreview"
+                                src="{{ Auth::guard('employee')->user()->photo ? asset('storage/'.Auth::guard('employee')->user()->photo) : asset('images/default-avatar.png') }}"
+                                class="rounded-circle img-thumbnail w-100" style="height: 150px;" alt="Profile Photo">
+
+                            <label for="photo-profile" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle" style="cursor: pointer;">
+                                <i class="fas fa-camera"></i>
+                                <input type="file" id="photo-profile" name="photo" class="d-none" accept="image/*">
+                            </label>
+                        </div>
+                        <small class="text-muted">Klik ikon kamera untuk mengubah foto</small>
                         </div>
                         <div class="col-md-8">
                             <div class="row mb-3">
@@ -202,6 +203,7 @@
         </div>
     </div>
 </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @if(session('success'))
 <script>
@@ -226,35 +228,46 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     // Preview image before upload
-    const photoInput = document.getElementById('photo');
+     // Preview image before upload
+    const photoInput = document.getElementById('photo-profile');
     const profileImagePreview = document.getElementById('profileImagePreview');
 
     if (photoInput && profileImagePreview) {
-        photoInput.addEventListener('change', function() {
+        photoInput.addEventListener('change', function () {
             const file = this.files[0];
             if (file) {
+                // Cek ukuran file maksimal 2MB
                 if (file.size > 2 * 1024 * 1024) {
-                    alert('Ukuran file maksimal 2MB');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Ukuran file terlalu besar',
+                        text: 'Maksimal ukuran file adalah 2MB'
+                    });
                     this.value = '';
                     return;
                 }
 
+                // Cek format file
                 const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
                 if (!validTypes.includes(file.type)) {
-                    alert('Format file harus JPG, PNG, atau GIF');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Format tidak valid',
+                        text: 'Format file harus JPG, PNG, atau GIF'
+                    });
                     this.value = '';
                     return;
                 }
 
+                // Tampilkan preview
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     profileImagePreview.src = e.target.result;
-                }
+                };
                 reader.readAsDataURL(file);
             }
         });
     }
-
     // Toggle password visibility
     document.querySelectorAll('.toggle-password').forEach(button => {
         button.addEventListener('click', function () {

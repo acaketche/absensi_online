@@ -22,7 +22,6 @@ Route::middleware(['web', 'auth:employee', 'role:Admin Tata Usaha'])->group(func
 
     // Mengelola siswa
    Route::resource('students', StudentController::class);
-    Route::get('/student/search', [StudentAttendanceController::class, 'searchStudent']);
     Route::post('/students/import', [StudentController::class, 'import'])->name('students.import');
     Route::get('/students/import/template', [StudentController::class, 'showTemplate'])->name('students.template.page');
     Route::get('/students/import/template/download', [StudentController::class, 'downloadTemplate'])->name('students.template.download');

@@ -15,5 +15,4 @@ Route::middleware(['web', 'auth:employee', 'role:Admin Pegawai Piket'])->group(f
 
     // Student Attendance
     Route::resource('student-attendance', StudentAttendanceController::class);
-    Route::get('/students/search', [StudentAttendanceController::class, 'searchById']);
 });
