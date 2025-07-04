@@ -598,6 +598,7 @@
             <form action="{{ route('rapor.upload-massal', ['classId' => $class->class_id]) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="class_id" value="{{ $class->class_id }}">
+
                 <div class="modal-body px-4 py-3">
                     <div class="alert alert-warning small mb-4">
                         <strong><i class="fas fa-info-circle me-1"></i> Petunjuk:</strong>
@@ -616,7 +617,7 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold">File ZIP</label>
-                        <input type="file" name="rapor_zip" class="form-control" accept=".zip" required>
+                        <input type="file" id="massReportFile" name="rapor_zip" class="form-control" accept=".zip" required>
                     </div>
 
                     <div class="mb-3">
@@ -624,6 +625,7 @@
                         <textarea class="form-control" name="description" rows="3" placeholder="Contoh: Rapor semester genap tahun 2025..."></textarea>
                     </div>
                 </div>
+
                 <div class="modal-footer bg-light border-top">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="fas fa-times me-1"></i> Batal
@@ -748,35 +750,41 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // File upload validation
-    const fileInputs = document.querySelectorAll('input[type="file"]');
-    fileInputs.forEach(input => {
-        input.addEventListener('change', function() {
-            const file = this.files[0];
-            const maxSize = this.id === 'massReportFile' ? 50 * 1024 * 1024 : 5 * 1024 * 1024; // 50MB for mass upload, 5MB for single
+   const fileInputs = document.querySelectorAll('input[type="file"]');
 
-            if (file && file.size > maxSize) {
-                Swal.fire({
-                    title: 'File Terlalu Besar',
-                    text: `Ukuran file maksimal adalah ${maxSize/(1024*1024)}MB`,
-                    icon: 'error'
-                });
-                this.value = '';
-                return;
-            }
+        fileInputs.forEach(input => {
+            input.addEventListener('change', function () {
+                const file = this.files[0];
 
-            const validExtensions = this.id === 'massReportFile' ? ['zip'] : ['pdf', 'jpg', 'jpeg', 'png'];
-            const fileExt = file.name.split('.').pop().toLowerCase();
+                // Gunakan ID untuk membedakan antara upload massal dan upload biasa
+                const isMassUpload = this.id === 'massReportFile';
+                const maxSize = isMassUpload ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
 
-            if (file && !validExtensions.includes(fileExt)) {
-                Swal.fire({
-                    title: 'Format File Tidak Valid',
-                    text: this.id === 'massReportFile' ? 'Hanya file ZIP yang diperbolehkan untuk upload massal' : 'Hanya file PDF, JPG, JPEG, dan PNG yang diperbolehkan',
-                    icon: 'error'
-                });
-                this.value = '';
-            }
+                if (file && file.size > maxSize) {
+                    Swal.fire({
+                        title: 'File Terlalu Besar',
+                        text: `Ukuran file maksimal adalah ${maxSize / (1024 * 1024)}MB`,
+                        icon: 'error'
+                    });
+                    this.value = '';
+                    return;
+                }
+
+                const validExtensions = isMassUpload ? ['zip'] : ['pdf', 'jpg', 'jpeg', 'png'];
+                const fileExt = file.name.split('.').pop().toLowerCase();
+
+                if (file && !validExtensions.includes(fileExt)) {
+                    Swal.fire({
+                        title: 'Format File Tidak Valid',
+                        text: isMassUpload
+                            ? 'Hanya file ZIP yang diperbolehkan untuk upload massal'
+                            : 'Hanya file PDF, JPG, JPEG, dan PNG yang diperbolehkan',
+                        icon: 'error'
+                    });
+                    this.value = '';
+                }
+            });
         });
-    });
 
     // Set default date to today in mass upload modal
     document.getElementById('massUploadBtn').addEventListener('click', function() {
