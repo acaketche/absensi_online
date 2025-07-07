@@ -15,6 +15,7 @@ require __DIR__.'/admin_routes.php';
 require __DIR__.'/tu_routes.php';
 require __DIR__.'/piket_routes.php';
 require __DIR__.'/perpus_routes.php';
+require __DIR__.'/walas_routes.php';
 
 Route::get('/test', function () {
     return 'Route berhasil!';

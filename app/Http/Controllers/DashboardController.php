@@ -380,5 +380,83 @@ $returnedCount = $bookLoans->where('status', 'Dikembalikan')->count();
     'returnedCount'
     ));
 }
+
+public function walas(Request $request)
+{
+    $today = Carbon::today()->toDateString();
+
+    // Total siswa & pegawai
+    $totalSiswa = Student::count();
+    $totalPegawai = Employee::count();
+
+    // Jumlah hadir hari ini
+    $pegawaiHadir = Employee::whereHas('attendances', function ($query) use ($today) {
+        $query->where('attendance_date', $today)
+              ->where('status_id', 1); // 1 = Hadir
+    })->count();
+
+    $siswaHadir = Student::whereHas('attendances', function ($query) use ($today) {
+        $query->where('attendance_date', $today)
+              ->where('status_id', 1); // 1 = Hadir
+    })->count();
+
+    // Ambil data presensi hari ini
+    $todayEmployeeAttendances = EmployeeAttendance::with('status')
+        ->where('attendance_date', $today)
+        ->get();
+
+    $todayStudentAttendances = StudentAttendance::with('status')
+        ->where('attendance_date', $today)
+        ->get();
+
+    // Hitung jumlah status
+    $employeeStatusCounts = $todayEmployeeAttendances->groupBy('status_id')
+        ->map->count();
+
+    $studentStatusCounts = $todayStudentAttendances->groupBy('status_id')
+        ->map->count();
+
+    // Ambil semua status kehadiran
+    $statuses = AttendanceStatus::all();
+
+    // Format data untuk chart
+    $employeeChartData = [];
+    $studentChartData = [];
+
+    foreach ($statuses as $status) {
+        $employeeChartData[$status->name] = $employeeStatusCounts[$status->id] ?? 0;
+        $studentChartData[$status->name] = $studentStatusCounts[$status->id] ?? 0;
+    }
+
+    // Ambil bulan & tahun dari request atau default ke sekarang
+    $month = $request->input('month', Carbon::now()->month);
+    $year = $request->input('year', Carbon::now()->year);
+
+    // Ambil tanggal libur untuk bulan & tahun tertentu
+    $holidays = Holiday::with('academicYear')
+        ->whereYear('holiday_date', $year)
+        ->whereMonth('holiday_date', $month)
+        ->get();
+
+    $redDates = $holidays->filter(function ($holiday) {
+        return $holiday->academic_year_id !== null;
+    })->pluck('holiday_date')->toArray();
+
+    // Kirim data ke view
+    return view('auth.dashboard_piket', compact(
+        'totalSiswa',
+        'totalPegawai',
+        'pegawaiHadir',
+        'siswaHadir',
+        'employeeChartData',
+        'studentChartData',
+        'statuses',
+        'redDates',
+        'holidays',
+         'month',
+            'year'
+    ));
+}
+
 }
 

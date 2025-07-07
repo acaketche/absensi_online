@@ -74,10 +74,11 @@
         }
 
         .table-responsive table {
-            min-width: 120%; /* Pastikan tabel lebih lebar dari kontainer */
+            min-width: 150%; /* Pastikan tabel lebih lebar dari kontainer */
             border-collapse: collapse;
             table-layout: auto; /* Ukuran kolom disesuaikan otomatis */
         }
+
     </style>
 </head>
 @if(Auth::guard('employee')->check())

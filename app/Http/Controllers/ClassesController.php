@@ -48,11 +48,11 @@ class ClassesController extends Controller
         $classes = $query->get();
 
         // Cache homeroom teachers for 1 hour
-        $waliKelas = Cache::remember('homeroom_teachers', 3600, function () {
-            return Employee::where('position_id', 7)
-                ->orderBy('fullname')
-                ->get();
-        });
+      $waliKelas = Classes::with('employee')
+    ->whereNotNull('id_employee')
+    ->get()
+    ->pluck('employee')
+    ->unique('id_employee');
 
         return view('classes.classes', compact(
             'classes',
@@ -136,37 +136,37 @@ return view('classes.classesshow', compact(
 ));
 }
 
-    public function update(Request $request, $id)
-    {
-        $class = Classes::where('class_id', $id)->firstOrFail();
+   public function update(Request $request, $id)
+{
+    $class = Classes::where('class_id', $id)->firstOrFail();
 
-        $request->validate([
-            'class_name' => [
-                'required',
-                'string',
-                'max:50',
-                'regex:/^(X|XI|XII)\s.+$/i',
-                Rule::unique('classes')
-                    ->ignore($class->id)
-                    ->where(function ($query) use ($class) {
-                        return $query->where('academic_year_id', $class->academic_year_id);
-                    })
-            ],
-            'id_employee' => 'required|exists:employees,id_employee'
-        ], [
-            'class_name.regex' => 'Format nama kelas harus diawali dengan X, XI, atau XII diikuti spasi dan nama kelas',
-            'class_name.unique' => 'Kelas dengan nama ini sudah ada di tahun ajaran ini'
-        ]);
+    $request->validate([
+        'class_name' => [
+            'required',
+            'string',
+            'max:50',
+            'regex:/^(X|XI|XII)\s.+$/i',
+            Rule::unique('classes', 'class_name')
+                ->ignore($class->class_id, 'class_id')
+                ->where(function ($query) use ($class) {
+                    return $query->where('academic_year_id', $class->academic_year_id);
+                })
+        ],
+        'id_employee' => 'required|exists:employees,id_employee'
+    ], [
+        'class_name.regex' => 'Format nama kelas harus diawali dengan X, XI, atau XII diikuti spasi dan nama kelas',
+        'class_name.unique' => 'Kelas dengan nama ini sudah ada di tahun ajaran ini'
+    ]);
 
-        $class->update([
-            'class_name' => $request->class_name,
-            'class_level' => strtoupper(strtok($request->class_name, ' ')),
-            'id_employee' => $request->id_employee,
-        ]);
+    $class->update([
+        'class_name' => $request->class_name,
+        'class_level' => strtoupper(strtok($request->class_name, ' ')),
+        'id_employee' => $request->id_employee,
+    ]);
 
-        return redirect()->route('classes.index')
-            ->with('success', 'Data kelas berhasil diperbarui.');
-    }
+    return redirect()->route('classes.index')
+        ->with('success', 'Data kelas berhasil diperbarui.');
+}
 
     public function destroy($id)
     {

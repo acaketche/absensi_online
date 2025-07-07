@@ -5,53 +5,24 @@ use App\Http\Controllers\{
     DashboardController,
     StudentController,
     ClassesController,
-    AcademicYearController,
     SemesterController,
-    StatusController,
-    HolidaysController,
-    AttendanceStatusController,
-    EmployeesController,
-    EmployeeAttendanceController,
-    StudentAttendanceController,
-    RaporController,
     PaymentController
 };
 
 Route::middleware(['web', 'auth:employee', 'role:Admin Tata Usaha'])->group(function () {
     Route::get('/tu/dashboard', [DashboardController::class, 'TataUsaha'])->name('dashboard.TU');
 
-    // Mengelola siswa
-   Route::resource('students', StudentController::class);
+  // Student Management
+    Route::resource('students', StudentController::class);
     Route::post('/students/import', [StudentController::class, 'import'])->name('students.import');
     Route::get('/students/import/template', [StudentController::class, 'showTemplate'])->name('students.template.page');
-    Route::get('/students/import/template/download', [StudentController::class, 'downloadTemplate'])->name('students.template.download');
+    Route::get('/template-siswa-kosong', [StudentController::class, 'downloadTemplateEmpty'])->name('students.template.empty');
+    Route::get('/template-siswa-isi', [StudentController::class, 'downloadTemplateFilled'])->name('students.template.filled');
+    Route::post('/students/upload-media', [StudentController::class, 'uploadMediaZip'])->name('students.uploadMediaZip');
+    Route::get('/get-semesters/{academicYearId}', [SemesterController::class, 'getSemesters'])->name('ajax.semesters');
+    Route::get('/get-classes/{academicYearId}', [ClassesController::class, 'getClasses'])->name('ajax.classes');
 
-    // Mengelola kelas
-    Route::resource('classes', ClassesController::class);
-    Route::get('/classes/json/{id}', [ClassesController::class, 'getClassData'])->name('classes.json');
-
-    // Tahun Ajaran & Semester
-    Route::resource('academicyear', AcademicYearController::class);
-    Route::resource('semesters', SemesterController::class);
-    Route::post('/academic-year/toggle-status/{id}', [StatusController::class, 'toggleAcademicYearStatus']);
-    Route::post('/semester/toggle-status/{id}', [StatusController::class, 'toggleSemesterStatus']);
-    Route::post('/academic-years/{id}/set-active', [AcademicYearController::class, 'setActive'])->name('academic_years.setActive');
-    Route::post('/academic-year/activate/{id}', [AcademicYearController::class, 'activate'])->name('academic-year.activate');
-    Route::post('/semester/activate/{id}', [SemesterController::class, 'activate'])->name('semester.activate');
-
-    // Hari Libur, dan Status Absensi
-    Route::resource('holidays', HolidaysController::class);
-
-    // Rapor
-    Route::get('/rapor/classes', [RaporController::class, 'classes'])->name('rapor.classes');
-    Route::get('/rapor/classes/{classId}/students', [RaporController::class, 'students'])->name('rapor.students');
-    Route::get('/rapor/create/{student_id}', [RaporController::class, 'create'])->name('rapor.create');
-    Route::post('/rapor', [RaporController::class, 'store'])->name('rapor.store');
-    Route::get('/rapor/{id}/edit', [RaporController::class, 'edit'])->name('rapor.edit');
-    Route::put('/rapor/{id}', [RaporController::class, 'update'])->name('rapor.update');
-    Route::delete('/rapor/{id}', [RaporController::class, 'destroy'])->name('rapor.destroy');
-
-    // Manajemen Pembayaran
+    // Payment Management
     Route::get('/payment/listdata', [PaymentController::class, 'listData'])->name('payment.listdata');
     Route::get('/payment/create', [PaymentController::class, 'create'])->name('payment.create');
     Route::post('/payment/create', [PaymentController::class, 'create'])->name('payment.store');

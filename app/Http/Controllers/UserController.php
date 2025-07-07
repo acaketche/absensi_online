@@ -13,7 +13,7 @@ class UserController extends Controller
     public function index()
     {
         $users = Employee::select('id_employee', 'email', 'fullname', 'role_id')
-            ->whereIn('role_id', [2, 3, 4, 5])
+            ->whereIn('role_id', [1, 2, 3, 4, 5])
             ->get();
 
         return view('auth.user', compact('users'));

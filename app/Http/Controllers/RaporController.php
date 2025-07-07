@@ -11,6 +11,7 @@ use App\Models\Semester;
 use App\Models\StudentSemester;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class RaporController extends Controller
 {
@@ -42,28 +43,33 @@ class RaporController extends Controller
         return view('rapor.rapor', compact('classes', 'academicYears', 'classLevels', 'activeAcademicYear'));
     }
 
-    public function students($classId)
-    {
-        $class = Classes::with(['employee', 'academicYear'])->findOrFail($classId);
-        $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
+   public function students($classId)
+{
+    $employee = Auth::guard('employee')->user();
+    $class = Classes::with(['employee', 'academicYear'])->findOrFail($classId);
+    $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
 
-        $students = Student::whereHas('studentSemesters', function ($query) use ($classId, $activeAcademicYear) {
-            $query->where('class_id', $classId)
-                  ->where('academic_year_id', optional($activeAcademicYear)->id);
-        })->with([
-            'rapor',
-            'studentSemesters' => function ($query) use ($classId, $activeAcademicYear) {
-                $query->where('class_id', $classId)
-                      ->where('academic_year_id', optional($activeAcademicYear)->id)
-                      ->with('semester');
-            }
-        ])->get();
-
-        $rapors = Rapor::whereIn('id_student', $students->pluck('id_student'))->get()->keyBy('id_student');
-
-        return view('rapor.raporstudent', compact('class', 'students', 'rapors'));
+    // 🔐 Batasi akses hanya untuk wali kelas yang sesuai
+    if ($employee->role->role_name === 'Wali Kelas' && $class->id_employee !== $employee->id_employee) {
+        abort(403, 'Anda tidak memiliki akses ke kelas ini.');
     }
 
+    $students = Student::whereHas('studentSemesters', function ($query) use ($classId, $activeAcademicYear) {
+        $query->where('class_id', $classId)
+              ->where('academic_year_id', optional($activeAcademicYear)->id);
+    })->with([
+        'rapor',
+        'studentSemesters' => function ($query) use ($classId, $activeAcademicYear) {
+            $query->where('class_id', $classId)
+                  ->where('academic_year_id', optional($activeAcademicYear)->id)
+                  ->with('semester');
+        }
+    ])->get();
+
+    $rapors = Rapor::whereIn('id_student', $students->pluck('id_student'))->get()->keyBy('id_student');
+
+    return view('rapor.raporstudent', compact('class', 'students', 'rapors'));
+}
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [

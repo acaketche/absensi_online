@@ -261,13 +261,11 @@
                         <label for="edit_id_employee" class="form-label">Wali Kelas</label>
                         <select class="form-select" id="edit_id_employee" name="id_employee" required>
                             <option value="">-- Pilih Wali Kelas --</option>
-                           @foreach ($classes as $class)
-                            @foreach ($waliKelas as $wali)
-                                <option value="{{ $wali->id_employee }}" {{ $class->employee && $class->employee->id_employee == $wali->id_employee ? 'selected' : '' }}>
-                                    {{ $wali->fullname }} (NIP: {{ $wali->id_employee }})
-                                </option>
-                            @endforeach
-                        @endforeach
+                           @foreach ($waliKelas->unique('id_employee') as $wali)
+                        <option value="{{ $wali->id_employee }}">
+                            {{ $wali->fullname }} (NIP: {{ $wali->id_employee }})
+                        </option>
+                    @endforeach
                         </select>
                     </div>
                      <div class="d-grid">
@@ -300,7 +298,6 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   });
 
-  // Fungsi untuk modal edit kelas
  // Fungsi untuk modal edit kelas
 const editClassModal = document.getElementById('editClassModal');
 if (editClassModal) {
@@ -336,15 +333,15 @@ if (editClassModal) {
         }
 
         // Isi wali kelas
-        const selectElement = document.getElementById('edit_id_employee');
-        const options = selectElement.options;
+const selectElement = document.getElementById('edit_id_employee');
+const options = selectElement.options;
 
-        for (let i = 0; i < options.length; i++) {
-          if (options[i].value === data.employee_nip) {
-            selectElement.selectedIndex = i;
-            break;
-          }
-        }
+for (let i = 0; i < options.length; i++) {
+  if (options[i].value === data.employee_nip) {
+    selectElement.selectedIndex = i;
+    break;
+  }
+}
       })
       .catch(error => {
         console.error('Error fetching class data for edit:', error);

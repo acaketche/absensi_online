@@ -55,7 +55,8 @@ class EmployeeLoginController extends Controller
         return redirect()->route('dashboard.piket');
     } elseif ($roleName === 'Admin Perpustakaan') {
         return redirect()->route('dashboard.perpus');
-    }
+    }elseif ($roleName === 'Wali Kelas') {
+        return redirect()->route('dashboard.walas');
 
     return redirect()->route('dashboard.default')->with('warning', 'Role tidak dikenali.');
 }
@@ -63,6 +64,7 @@ class EmployeeLoginController extends Controller
 return back()->withErrors([
     'id_employee' => 'NIP atau password salah.'
 ])->withInput();
+}
 }
 
  public function logout(Request $request)
