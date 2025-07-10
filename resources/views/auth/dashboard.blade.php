@@ -3,478 +3,629 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-School - Dashboard</title>
-
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
+    <meta name="description" content="Dashboard E-School - Sistem Manajemen Sekolah">
+    <title>Dashboard - E-School</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- FullCalendar -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css">
-    <!-- Custom CSS -->
-    <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+      <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <style>
+        :root {
+            --primary-blue: #4266B9;
+            --primary-cyan: #4facfe;
+            --primary-green: #43e97b;
+            --primary-red: #fa709a;
+            --primary-purple: #a855f7;
+            --primary-orange: #ff9a56;
+            --text-dark: #1a202c;
+            --text-gray: #718096;
+            --bg-light: #f7fafc;
+            --bg-gradient: linear-gradient(135deg, #4266B9 0%, #764ba2 100%);
+            --border-light: #e2e8f0;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        body {
+            background: #f8fafc;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
         .main-content {
-            flex: 1;
-            padding: 30px;
-            background: #f5f5f5;
+            padding: 2rem;
+            background: transparent;
         }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .search-bar {
+        /* Enhanced Header */
+        .dashboard-header {
+            background: linear-gradient(135deg, #4266B9 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-xl);
+            color: white;
             position: relative;
-            display: flex;
-            align-items: center;
+            overflow: hidden;
         }
 
-        .search-bar input {
-            padding: 10px 35px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            width: 300px;
-        }
-
-        .search-bar i {
+        .dashboard-header::before {
+            content: '';
             position: absolute;
-            left: 10px;
-            color: #666;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
         }
 
-        /* Metric Cards */
-        .metrics {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
+        .dashboard-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
         }
 
+        .dashboard-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-weight: 400;
+            max-width: 800px;
+        }
+
+        /* Improved Metric Cards */
         .metric-card {
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: var(--shadow-sm);
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border-left: 4px solid;
         }
 
-        .metric-card-content {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        .metric-card.students {
+            border-left-color: #4266B9;
+        }
+
+        .metric-card.teachers {
+            border-left-color: #4facfe;
+        }
+
+        .metric-card.present-staff {
+            border-left-color: #43e97b;
+        }
+
+        .metric-card.present-students {
+            border-left-color: #fa709a;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
         }
 
         .metric-icon {
-            width: 45px;
-            height: 45px;
-            background: rgba(66, 102, 185, 0.1);
-            border-radius: 8px;
+            font-size: 1.5rem;
+            width: 50px;
+            height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .metric-icon.students { background-color: #4266B9; }
+        .metric-icon.teachers { background-color: #4facfe; }
+        .metric-icon.present-staff { background-color: #43e97b; }
+        .metric-icon.present-students { background-color: #fa709a; }
+
+        .metric-title {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0;
+            color: var(--text-dark);
+        }
+
+        /* Improved Chart Containers */
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.5rem;
+            height: 100%;
+            border-top: 3px solid #4266B9;
+        }
+
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+        }
+
+        .chart-title i {
+            margin-right: 0.5rem;
             color: #4266B9;
         }
+.chart-container canvas {
+    max-height: 300px;
+}
 
-        .metric-info h3 {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-
-        .metric-info p {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        /* Graph Section */
-        .graph-section {
+        /* Improved Activity Table */
+        .activity-container {
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .graph-title {
-            margin-bottom: 20px;
-        }
-
-        /* Bottom Grid */
-        .bottom-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-        }
-
-        .calendar-section, .activity-section {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .month-selector {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: #666;
-            font-size: 14px;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            height: 100%;
+            border-top: 3px solid #4266B9;
         }
 
         .activity-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
         }
 
-        .activity-table th {
-            text-align: left;
-            color: #666;
-            font-weight: normal;
-            padding: 10px 0;
+        .activity-table thead th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: var(--text-dark);
+            padding: 0.75rem 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
         }
 
-        .activity-table td {
-            padding: 10px 0;
-            border-top: 1px solid #eee;
+        .activity-table tbody td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
         }
 
-        .dropdown-menu {
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border: 1px solid #eee;
+        .activity-table tbody tr:last-child td {
+            border-bottom: none;
         }
 
-        .dropdown-item {
-            padding: 8px 16px;
-            font-size: 14px;
+        .activity-table tbody tr:hover {
+            background-color: #f8fafc;
         }
 
-        .dropdown-item i {
-            margin-right: 8px;
-            width: 16px;
-            text-align: center;
+        /* Improved Calendar */
+          .calendar-container {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 1.5rem;
         }
 
-        .btn-primary, .bg-primary {
-            background-color: #4266B9 !important;
-            border-color: #4266B9 !important;
-        }
-
-        .btn-primary:hover {
-            background-color: #365796 !important;
-            border-color: #365796 !important;
-        }
-
-        .text-primary {
-            color: #4266B9 !important;
-        }
-
-        /* Calendar adjustments */
-        #calendar {
-            font-size: 0.9em;
-        }
-
-        .fc .fc-toolbar-title {
-            font-size: 1.2em;
-        }
-
-        .fc .fc-col-header-cell-cushion {
-            font-size: 0.8em;
-            padding: 2px 4px;
-        }
-
-        .fc .fc-daygrid-day-frame {
-            min-height: 2em;
-        }
-
-        .fc .fc-daygrid-day-number {
-            font-size: 0.8em;
-            padding: 2px;
-        }
-
-        .holiday-list {
-            margin-top: 15px;
-            font-size: 0.9em;
-        }
-
-        .holiday-item {
+        .calendar-controls {
             display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid #eee;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
         }
 
-        .holiday-date {
-            font-weight: bold;
-            color: #4266B9;
+        .calendar-controls select {
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            font-weight: 500;
+            font-size: 0.85rem;
         }
 
-        @media (max-width: 1024px) {
-            .metrics {
-                grid-template-columns: repeat(2, 1fr);
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-badge i {
+            margin-right: 0.25rem;
+            font-size: 0.65rem;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 992px) {
+            .main-content {
+                padding: 1.5rem;
             }
 
-            .bottom-grid {
-                grid-template-columns: 1fr;
+            .dashboard-title {
+                font-size: 1.75rem;
             }
         }
 
         @media (max-width: 768px) {
-            .sidebar {
-                width: 70px;
-                padding: 20px 10px;
-            }
-
-            .logo-text, .nav-text {
-                display: none;
-            }
-
             .main-content {
-                padding: 20px;
+                padding: 1rem;
             }
+
+            .dashboard-header {
+                padding: 1.5rem;
+                text-align: center;
+            }
+
+            .metric-value {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .dashboard-title {
+                font-size: 1.5rem;
+            }
+
+            .dashboard-subtitle {
+                font-size: 0.9rem;
+            }
+
+            .calendar-controls {
+                flex-direction: column;
+            }
+        }
+
+        /* FullCalendar Customization */
+        .fc-event {
+            font-size: 0.75rem;
+            padding: 2px 4px;
+            margin: 1px 2px;
+            border-radius: 4px;
+        }
+
+        .fc-daygrid-event {
+            white-space: normal;
+        }
+
+        .fc-toolbar-title {
+            font-size: 1.1rem;
+        }
+
+        .fc-button {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8rem;
         }
     </style>
 </head>
+
 @if(Auth::guard('employee')->check())
-<body class="bg-light">
-    <div class="d-flex">
-        @include('components.sidebar')
+<body>
+<div class="container-fluid">
+    <div class="row">
+        {{-- Sidebar --}}
+        <div class="col-md-2 sidebar p-0">
+            @include('components.sidebar')
+        </div>
 
-        <div class="main-content">
-            <div class="header">
-                <h1>Dashboard</h1>
-                <div class="dropdown">
-                    @include('components.profiladmin')
+        {{-- Main Content --}}
+        <div class="col-md-10 p-0">
+            <div class="main-content">
+                <!-- Dashboard Header -->
+                <header class="dashboard-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="dashboard-title">Selamat Datang Kembali!</h1>
+                            <p class="dashboard-subtitle">
+                                Ringkasan aktivitas dan statistik sekolah hari ini.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="text-white">
+                                <div id="current-date" class="fw-bold"></div>
+                                <div id="current-time" class="small"></div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Metric Cards -->
+                <section class="row g-4 mb-4">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="metric-card students">
+                            <div class="metric-icon students">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                            <p class="metric-title">Total Siswa</p>
+                            <p class="metric-value">{{ number_format($totalSiswa) }}</p>
+                            <div class="mt-2">
+                                <span class="status-badge bg-opacity-10 text-success">
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="metric-card teachers">
+                            <div class="metric-icon teachers">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
+                            <p class="metric-title">Total Pegawai</p>
+                            <p class="metric-value">{{ number_format($totalPegawai) }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="metric-card present-staff">
+                            <div class="metric-icon present-staff">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <p class="metric-title">Pegawai Hadir</p>
+                            <p class="metric-value">{{ number_format($pegawaiHadir) }}</p>
+                            <div class="mt-2">
+                                <span class="status-badge bg-opacity-10 text-primary">
+                                    {{ round(($pegawaiHadir/$totalPegawai)*100) }}% Kehadiran
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="metric-card present-students">
+                            <div class="metric-icon present-students">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <p class="metric-title">Siswa Hadir</p>
+                            <p class="metric-value">{{ number_format($siswaHadir) }}</p>
+                            <div class="mt-2">
+                                <span class="status-badge bg-success bg-opacity-10 text-success">
+                                    {{ round(($siswaHadir/$totalSiswa)*100) }}% Kehadiran
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Charts Section -->
+                <section class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <h5 class="chart-title">
+                                <i class="fas fa-chart-pie"></i> Presensi Pegawai Hari Ini
+                            </h5>
+                            <canvas id="employeeChart" height="100"></canvas>
+                            <div class="mt-3">
+                                @foreach(array_keys($employeeChartData ?? []) as $i => $status)
+                                <span class="status-badge me-2 mb-2"
+                                      style="background-color: {{ ['#4caf50', '#2196f3', '#ff9800', '#f44336'][$i % 4] }}20;
+                                             color: {{ ['#4caf50', '#2196f3', '#ff9800', '#f44336'][$i % 4] }};">
+                                    <i class="fas fa-circle" style="font-size: 8px;"></i>
+                                    {{ $status }}: {{ $employeeChartData[$status] ?? 0 }}
+                                </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <h5 class="chart-title">
+                                <i class="fas fa-chart-pie"></i> Presensi Siswa Hari Ini
+                            </h5>
+                            <canvas id="studentChart" height="100"></canvas>
+                            <div class="mt-3">
+                                @foreach(array_keys($studentChartData ?? []) as $i => $status)
+                                <span class="status-badge me-2 mb-2"
+                                      style="background-color: {{ ['#4caf50', '#2196f3', '#ff9800', '#f44336'][$i % 4] }}20;
+                                             color: {{ ['#4caf50', '#2196f3', '#ff9800', '#f44336'][$i % 4] }};">
+                                    <i class="fas fa-circle" style="font-size: 8px;"></i>
+                                    {{ $status }}: {{ $studentChartData[$status] ?? 0 }}
+                                </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Bottom Section -->
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="activity-container">
+                            <h5 class="chart-title">
+                                <i class="fas fa-list-ul"></i> Aktivitas Terkini
+                            </h5>
+                            <div class="table-responsive">
+                                <table class="table activity-table">
+                                    <thead>
+                                        <tr>
+                                            <th width="25%">Program</th>
+                                            <th width="50%">Aktivitas</th>
+                                            <th width="25%">Waktu</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($activities as $activity)
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-primary">{{ $activity['program'] ?? 'Sistem' }}</span>
+                                            </td>
+                                            <td>{{ $activity['aktivitas'] ?? 'Aktivitas tidak diketahui' }}</td>
+                                            <td class="text-nowrap">
+                                                @if(isset($activity['waktu']))
+                                                    {{ \Carbon\Carbon::parse($activity['waktu'])->diffForHumans() }}
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        @empty
+                                        <tr>
+                                            <td colspan="3" class="text-center py-4 text-muted">
+                                                Tidak ada aktivitas terbaru.
+                                            </td>
+                                        </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="calendar-container">
+                            <h5 class="chart-title">
+                                <i class="fas fa-calendar-alt"></i> Kalender Akademik
+                            </h5>
+                            <div class="calendar-controls">
+                                <select id="monthSelect" class="form-select" onchange="updateCalendar()">
+                                    @for($i = 1; $i <= 12; $i++)
+                                    <option value="{{ $i }}" {{ $i == $month ? 'selected' : '' }}>
+                                        {{ \Carbon\Carbon::createFromFormat('!m', $i)->translatedFormat('F') }}
+                                    </option>
+                                    @endfor
+                                </select>
+                                <select id="yearSelect" class="form-select" onchange="updateCalendar()">
+                                    @for($i = date('Y') - 1; $i <= date('Y') + 1; $i++)
+                                    <option value="{{ $i }}" {{ $i == $year ? 'selected' : '' }}>{{ $i }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div id="calendar"></div>
+                            <div class="mt-3 d-flex flex-wrap gap-3">
+                                <span class="status-badge" style="background-color: #FF6B6B20; color: #FF6B6B;">
+                                    <i class="fas fa-square"></i> Libur Sekolah
+                                </span>
+                                <span class="status-badge" style="background-color: #FFA72620; color: #FFA726;">
+                                    <i class="fas fa-square"></i> Libur Nasional
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
 
-            <!-- Metrics -->
-            <div class="metrics">
-                <div class="metric-card">
-                    <div class="metric-card-content">
-                        <div class="metric-icon"><i class="fas fa-user-graduate"></i></div>
-                        <div class="metric-info">
-                            <h3>Siswa</h3><p>{{ $totalSiswa }}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-card-content">
-                        <div class="metric-icon"><i class="fas fa-chalkboard-teacher"></i></div>
-                        <div class="metric-info">
-                            <h3>Pegawai</h3><p>{{ $totalPegawai }}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-card-content">
-                        <div class="metric-icon"><i class="fas fa-user-check"></i></div>
-                        <div class="metric-info">
-                            <h3>Pegawai hadir hari ini</h3><p>{{ $pegawaiHadir }}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-card-content">
-                        <div class="metric-icon"><i class="fas fa-user-check"></i></div>
-                        <div class="metric-info">
-                            <h3>Siswa hadir hari ini</h3><p>{{ $siswaHadir }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<!-- JavaScript Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
 
-            <!-- Chart -->
-            <div class="graph-section">
-                <h2 class="graph-title">Grafik Presensi Hari ini</h2>
-                <div>
-                    <canvas id="attendanceChart" height="100"></canvas>
-                </div>
-            </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update current date and time
+    function updateDateTime() {
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('current-date').textContent = now.toLocaleDateString('id-ID', options);
+        document.getElementById('current-time').textContent = now.toLocaleTimeString('id-ID');
+    }
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
 
-            <!-- Bottom Section -->
-            <div class="bottom-grid">
-                <!-- Aktivitas -->
-                <div class="activity-section">
-                    <h2>Aktivitas Terakhir</h2>
-                    <table class="activity-table table table-bordered">
-                        <thead>
-                            <tr><th>Program</th><th>Aktivitas Terakhir</th><th>Waktu</th></tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($activities as $activity)
-                            <tr>
-                                <td>{{ $activity['program'] ?? '-' }}</td>
-                                <td>{{ $activity['aktivitas'] ?? '-' }}</td>
-                                <td>{{ isset($activity['waktu']) ? \Carbon\Carbon::parse($activity['waktu'])->diffForHumans() : '-' }}</td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="3" class="text-center">Tidak ada aktivitas terbaru.</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+    // Initialize Calendar
+    const calendarEl = document.getElementById('calendar');
+    const events = {!! json_encode($calendarEvents) !!}.map(event => ({
+        title: event.title,
+        start: event.start,
+        allDay: true,
+        backgroundColor: event.color,
+        borderColor: event.color,
+        textColor: '#fff'
+    }));
 
-                <!-- Calendar and Holidays -->
-                <div class="calendar-section">
-                    <div id="calendar"></div>
-                    <div class="holiday-list">
-                        <h5>Libur Bulan Ini</h5>
-                        <div id="holidays-container">
-                            <!-- Holiday items will be added here by JavaScript -->
-                        </div>
-                    </div>
-                </div>
-            </div>
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'id',
+        events: events,
+        headerToolbar: false,
+        initialDate: new Date({{ $year }}, {{ $month }} - 1, 1),
+        eventDisplay: 'block',
+        height: 'auto'
+    });
+    calendar.render();
 
-            <!-- Change Password Modal -->
-            <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="changePasswordModalLabel">Ubah Password</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form action="#" method="POST">
-                                @csrf
-                                @method('PUT')
-                                <div class="mb-3">
-                                    <label for="current_password" class="form-label">Password Saat Ini</label>
-                                    <input type="password" class="form-control" id="current_password" name="current_password" required>
-                                    @error('current_password')
-                                        <div class="text-danger">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                                <div class="mb-3">
-                                    <label for="new_password" class="form-label">Password Baru</label>
-                                    <input type="password" class="form-control" id="new_password" name="new_password" required>
-                                    @error('new_password')
-                                        <div class="text-danger">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                                <div class="mb-3">
-                                    <label for="new_password_confirmation" class="form-label">Konfirmasi Password Baru</label>
-                                    <input type="password" class="form-control" id="new_password_confirmation" name="new_password_confirmation" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary">Ubah Password</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    // ======= Chart Setup =======
+const employeeChartData = {!! json_encode(array_values($employeeChartData)) !!};
+const studentChartData = {!! json_encode(array_values($studentChartData)) !!};
+const labels = {!! json_encode(array_keys($employeeChartData)) !!};
 
-        </div> <!-- End main-content -->
-    </div> <!-- End d-flex -->
+const backgroundColors = [
+    '#4caf50', '#03a9f4', '#ffc107', '#f44336', '#9c27b0',
+    '#ff9800', '#00bcd4', '#e91e63', '#8bc34a', '#607d8b'
+];
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-
-    <script>
-        // Grafik Presensi
-        const ctx = document.getElementById('attendanceChart').getContext('2d');
-        const attendanceChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Siswa', 'Pegawai'],
-                datasets: [{
-                    label: 'Jumlah Hadir',
-                    data: [{{ $siswaHadir }}, {{ $pegawaiHadir }}],
-                    backgroundColor: ['#4266B9', '#58A6FF']
-                }]
+const options = {
+    plugins: {
+        legend: {
+            display: false // Tidak tampilkan legend bawaan Chart.js
+        },
+        tooltip: {
+            callbacks: {
+                label: function (context) {
+                    return `${context.label}: ${context.parsed}`;
+                }
             },
-            options: {
-                scales: {
-                    y: { beginAtZero: true }
-                }
+            bodyFont: {
+                weight: 'bold' // Tooltip bold
             }
-        });
+        }
+    }
+};
 
-        // Kalender dan Hari Libur
-        document.addEventListener('DOMContentLoaded', function () {
-            const calendarEl = document.getElementById('calendar');
-            const holidaysContainer = document.getElementById('holidays-container');
+// Render Employee Chart
+new Chart(document.getElementById('employeeChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Presensi Pegawai',
+            data: employeeChartData,
+            backgroundColor: backgroundColors.slice(0, labels.length),
+            borderWidth: 1
+        }]
+    },
+    options: options
+});
 
-            // Sample holiday data - replace with your actual data
-            const holidays = {
-                '2023-11-01': 'Libur Nasional - Hari Libur Contoh 1',
-                '2023-11-10': 'Hari Pahlawan',
-                '2023-11-25': 'Libur Akhir Semester'
-            };
+// Render Student Chart
+new Chart(document.getElementById('studentChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Presensi Siswa',
+            data: studentChartData,
+            backgroundColor: backgroundColors.slice(0, labels.length),
+            borderWidth: 1
+        }]
+    },
+    options: options
+});
 
-            const calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                events: {!! $calendarEvents ?? '[]' !!},
-                locale: 'id',
-                headerToolbar: {
-                    left: 'title',
-                    center: '',
-                    right: 'prev,next'
-                },
-                height: 'auto',
-                dayCellContent: function(arg) {
-                    return { html: '<div class="fc-daygrid-day-number">' + arg.dayNumberText + '</div>' };
-                },
-                datesSet: function(info) {
-                    // Update holidays display when month changes
-                    updateHolidaysDisplay(info.start, info.end);
-                }
-            });
+});
 
-            calendar.render();
-
-            // Function to update holidays display
-            function updateHolidaysDisplay(start, end) {
-                holidaysContainer.innerHTML = '';
-
-                // Filter holidays for the current month view
-                const currentMonthHolidays = Object.entries(holidays).filter(([dateStr]) => {
-                    const date = new Date(dateStr);
-                    return date >= start && date <= end;
-                });
-
-                if (currentMonthHolidays.length === 0) {
-                    holidaysContainer.innerHTML = '<p>Tidak ada hari libur bulan ini.</p>';
-                    return;
-                }
-
-                currentMonthHolidays.forEach(([dateStr, description]) => {
-                    const date = new Date(dateStr);
-                    const holidayItem = document.createElement('div');
-                    holidayItem.className = 'holiday-item';
-
-                    const dateElement = document.createElement('span');
-                    dateElement.className = 'holiday-date';
-                    dateElement.textContent = date.getDate() + ' ' + date.toLocaleString('id-ID', { month: 'long' });
-
-                    const descElement = document.createElement('span');
-                    descElement.textContent = description;
-
-                    holidayItem.appendChild(dateElement);
-                    holidayItem.appendChild(descElement);
-                    holidaysContainer.appendChild(holidayItem);
-                });
-            }
-
-            // Initial holidays display
-            const currentView = calendar.view;
-            updateHolidaysDisplay(currentView.activeStart, currentView.activeEnd);
-        });
-    </script>
+function updateCalendar() {
+    const month = document.getElementById('monthSelect').value;
+    const year = document.getElementById('yearSelect').value;
+    window.location.href = window.location.pathname + '?month=' + month + '&year=' + year;
+}
+</script>
 </body>
-@endif
 </html>
+@endif
