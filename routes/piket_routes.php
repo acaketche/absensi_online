@@ -3,8 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{
     DashboardController,
-    EmployeeAttendanceController,
-    StudentAttendanceController
+    EmployeesController,
+    StudentAttendanceController,
+    AttendanceStatusController
 };
 
 Route::middleware(['web', 'auth:employee', 'role:Admin Pegawai Piket'])->group(function () {
@@ -16,8 +17,6 @@ Route::middleware(['web', 'auth:employee', 'role:Admin Pegawai Piket'])->group(f
     // Employee Management
     Route::post('/profile/update', [EmployeesController::class, 'updateProfile'])->name('employees.profile.update');
     Route::post('/profile/update-password', [EmployeesController::class, 'updatePassword'])->name('employees.profile.update-password');
-    Route::resource('attendance', EmployeeAttendanceController::class);
-    Route::get('/attendance/export/pdf', [EmployeeAttendanceController::class, 'exportPdf'])->name('attendance.export.pdf');
 
     // Student Attendance
     Route::resource('student-attendance', StudentAttendanceController::class);

@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-      <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
+     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <style>
         :root {
             --primary-blue: #4266B9;
@@ -34,10 +34,11 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: var(--text-dark);
             line-height: 1.6;
+            overflow-x: hidden;
         }
 
         .main-content {
-            padding: 2rem;
+            padding: 1.5rem;
             background: transparent;
         }
 
@@ -45,8 +46,8 @@
         .dashboard-header {
             background: linear-gradient(135deg, #4266B9 0%, #764ba2 100%);
             border-radius: 16px;
-            padding: 2rem;
-            margin-bottom: 2rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
             box-shadow: var(--shadow-xl);
             color: white;
             position: relative;
@@ -65,14 +66,13 @@
         }
 
         .dashboard-title {
-            font-size: 2rem;
+            font-size: clamp(1.5rem, 4vw, 2rem);
             font-weight: 700;
             margin-bottom: 0.5rem;
-            position: relative;
         }
 
         .dashboard-subtitle {
-            font-size: 1rem;
+            font-size: clamp(0.9rem, 2vw, 1rem);
             opacity: 0.9;
             font-weight: 400;
             max-width: 800px;
@@ -82,7 +82,7 @@
         .metric-card {
             background: white;
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: 1.25rem;
             transition: all 0.3s ease;
             border: none;
             box-shadow: var(--shadow-sm);
@@ -92,6 +92,7 @@
             display: flex;
             flex-direction: column;
             border-left: 4px solid;
+            margin-bottom: 1rem;
         }
 
         .metric-card.students {
@@ -117,8 +118,8 @@
 
         .metric-icon {
             font-size: 1.5rem;
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -142,7 +143,7 @@
         }
 
         .metric-value {
-            font-size: 1.8rem;
+            font-size: clamp(1.5rem, 4vw, 1.8rem);
             font-weight: 700;
             margin-bottom: 0;
             color: var(--text-dark);
@@ -152,7 +153,7 @@
         .chart-container {
             background: white;
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: 1.25rem;
             box-shadow: var(--shadow-sm);
             margin-bottom: 1.5rem;
             height: 100%;
@@ -172,15 +173,41 @@
             margin-right: 0.5rem;
             color: #4266B9;
         }
-.chart-container canvas {
-    max-height: 300px;
-}
+
+        .chart-container canvas {
+            width: 100% !important;
+            height: auto !important;
+            max-height: 300px;
+        }
+
+        /* Chart Legend */
+        .chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .status-badge i {
+            margin-right: 0.25rem;
+            font-size: 0.65rem;
+        }
 
         /* Improved Activity Table */
         .activity-container {
             background: white;
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: 1.25rem;
             box-shadow: var(--shadow-sm);
             height: 100%;
             border-top: 3px solid #4266B9;
@@ -188,6 +215,7 @@
 
         .activity-table {
             width: 100%;
+            min-width: 600px;
             border-collapse: separate;
             border-spacing: 0;
         }
@@ -218,18 +246,20 @@
         }
 
         /* Improved Calendar */
-          .calendar-container {
+        .calendar-container {
             background: white;
-            border-radius: 20px;
-            padding: 1.5rem;
-            box-shadow: var(--shadow-md);
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow-sm);
             margin-bottom: 1.5rem;
+            border-top: 3px solid #4266B9;
         }
 
         .calendar-controls {
             display: flex;
             gap: 0.75rem;
             margin-bottom: 1rem;
+            flex-wrap: wrap;
         }
 
         .calendar-controls select {
@@ -239,69 +269,22 @@
             background: white;
             font-weight: 500;
             font-size: 0.85rem;
-        }
-
-        /* Status Badges */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.35rem 0.75rem;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        .status-badge i {
-            margin-right: 0.25rem;
-            font-size: 0.65rem;
-        }
-
-        /* Responsive Adjustments */
-        @media (max-width: 992px) {
-            .main-content {
-                padding: 1.5rem;
-            }
-
-            .dashboard-title {
-                font-size: 1.75rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                padding: 1rem;
-            }
-
-            .dashboard-header {
-                padding: 1.5rem;
-                text-align: center;
-            }
-
-            .metric-value {
-                font-size: 1.5rem;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .dashboard-title {
-                font-size: 1.5rem;
-            }
-
-            .dashboard-subtitle {
-                font-size: 0.9rem;
-            }
-
-            .calendar-controls {
-                flex-direction: column;
-            }
+            flex: 1;
+            min-width: 120px;
         }
 
         /* FullCalendar Customization */
+        .fc {
+            font-size: 0.9rem;
+        }
+
         .fc-event {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             padding: 2px 4px;
             margin: 1px 2px;
             border-radius: 4px;
+            white-space: normal;
+            line-height: 1.2;
         }
 
         .fc-daygrid-event {
@@ -316,6 +299,109 @@
             padding: 0.3rem 0.6rem;
             font-size: 0.8rem;
         }
+
+        /* Responsive Adjustments */
+        @media (max-width: 1199.98px) {
+            .dashboard-header {
+                padding: 1.25rem;
+            }
+
+            .metric-card {
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content {
+                padding: 1.25rem;
+            }
+
+            .chart-container canvas {
+                max-height: 250px;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .dashboard-header {
+                text-align: center;
+                padding: 1.5rem 1rem;
+            }
+
+            .dashboard-header .col-md-8,
+            .dashboard-header .col-md-4 {
+                width: 100%;
+                text-align: center !important;
+            }
+
+            .status-badge {
+                font-size: 0.7rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            .fc-toolbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .fc-toolbar .fc-left,
+            .fc-toolbar .fc-center,
+            .fc-toolbar .fc-right {
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .main-content {
+                padding: 1rem;
+            }
+
+            .dashboard-title {
+                font-size: 1.5rem;
+            }
+
+            .dashboard-subtitle {
+                font-size: 0.9rem;
+            }
+
+            .calendar-controls {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .calendar-controls select {
+                width: 100%;
+            }
+
+            .chart-legend {
+                justify-content: center;
+            }
+
+            .fc-toolbar-title {
+                font-size: 1rem;
+            }
+
+            .fc-button {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Animation Effects */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .metric-card {
+            animation: fadeIn 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        .metric-card:nth-child(1) { animation-delay: 0.1s; }
+        .metric-card:nth-child(2) { animation-delay: 0.2s; }
+        .metric-card:nth-child(3) { animation-delay: 0.3s; }
+        .metric-card:nth-child(4) { animation-delay: 0.4s; }
     </style>
 </head>
 
@@ -331,6 +417,8 @@
         {{-- Main Content --}}
         <div class="col-md-10 p-0">
             <div class="main-content">
+                  @include('components.profiladmin')
+
                 <!-- Dashboard Header -->
                 <header class="dashboard-header">
                     <div class="row align-items-center">
@@ -350,8 +438,8 @@
                 </header>
 
                 <!-- Metric Cards -->
-                <section class="row g-4 mb-4">
-                    <div class="col-md-6 col-lg-3">
+                <section class="row g-3 mb-4">
+                    <div class="col-12 col-sm-6 col-lg-3">
                         <div class="metric-card students">
                             <div class="metric-icon students">
                                 <i class="fas fa-user-graduate"></i>
@@ -359,12 +447,10 @@
                             <p class="metric-title">Total Siswa</p>
                             <p class="metric-value">{{ number_format($totalSiswa) }}</p>
                             <div class="mt-2">
-                                <span class="status-badge bg-opacity-10 text-success">
-                                </span>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-3">
+                    <div class="col-12 col-sm-6 col-lg-3">
                         <div class="metric-card teachers">
                             <div class="metric-icon teachers">
                                 <i class="fas fa-chalkboard-teacher"></i>
@@ -373,7 +459,7 @@
                             <p class="metric-value">{{ number_format($totalPegawai) }}</p>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-3">
+                    <div class="col-12 col-sm-6 col-lg-3">
                         <div class="metric-card present-staff">
                             <div class="metric-icon present-staff">
                                 <i class="fas fa-user-check"></i>
@@ -381,13 +467,13 @@
                             <p class="metric-title">Pegawai Hadir</p>
                             <p class="metric-value">{{ number_format($pegawaiHadir) }}</p>
                             <div class="mt-2">
-                                <span class="status-badge bg-opacity-10 text-primary">
+                                <span class="status-badge bg-success bg-opacity-10 text-primary">
                                     {{ round(($pegawaiHadir/$totalPegawai)*100) }}% Kehadiran
                                 </span>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-3">
+                    <div class="col-12 col-sm-6 col-lg-3">
                         <div class="metric-card present-students">
                             <div class="metric-icon present-students">
                                 <i class="fas fa-users"></i>
@@ -404,16 +490,16 @@
                 </section>
 
                 <!-- Charts Section -->
-                <section class="row g-4 mb-4">
-                    <div class="col-md-6">
+                <section class="row g-3 mb-4">
+                    <div class="col-12 col-lg-6">
                         <div class="chart-container">
                             <h5 class="chart-title">
                                 <i class="fas fa-chart-pie"></i> Presensi Pegawai Hari Ini
                             </h5>
-                            <canvas id="employeeChart" height="100"></canvas>
-                            <div class="mt-3">
+                            <canvas id="employeeChart"></canvas>
+                            <div class="chart-legend mt-3">
                                 @foreach(array_keys($employeeChartData ?? []) as $i => $status)
-                                <span class="status-badge me-2 mb-2"
+                                <span class="status-badge"
                                       style="background-color: {{ ['#4caf50', '#2196f3', '#ff9800', '#f44336'][$i % 4] }}20;
                                              color: {{ ['#4caf50', '#2196f3', '#ff9800', '#f44336'][$i % 4] }};">
                                     <i class="fas fa-circle" style="font-size: 8px;"></i>
@@ -423,15 +509,15 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-12 col-lg-6">
                         <div class="chart-container">
                             <h5 class="chart-title">
                                 <i class="fas fa-chart-pie"></i> Presensi Siswa Hari Ini
                             </h5>
-                            <canvas id="studentChart" height="100"></canvas>
-                            <div class="mt-3">
+                            <canvas id="studentChart"></canvas>
+                            <div class="chart-legend mt-3">
                                 @foreach(array_keys($studentChartData ?? []) as $i => $status)
-                                <span class="status-badge me-2 mb-2"
+                                <span class="status-badge"
                                       style="background-color: {{ ['#4caf50', '#2196f3', '#ff9800', '#f44336'][$i % 4] }}20;
                                              color: {{ ['#4caf50', '#2196f3', '#ff9800', '#f44336'][$i % 4] }};">
                                     <i class="fas fa-circle" style="font-size: 8px;"></i>
@@ -444,8 +530,8 @@
                 </section>
 
                 <!-- Bottom Section -->
-                <div class="row g-4">
-                    <div class="col-lg-6">
+                <div class="row g-3">
+                    <div class="col-12 col-lg-6">
                         <div class="activity-container">
                             <h5 class="chart-title">
                                 <i class="fas fa-list-ul"></i> Aktivitas Terkini
@@ -453,40 +539,43 @@
                             <div class="table-responsive">
                                 <table class="table activity-table">
                                     <thead>
-                                        <tr>
-                                            <th width="25%">Program</th>
-                                            <th width="50%">Aktivitas</th>
-                                            <th width="25%">Waktu</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse($activities as $activity)
-                                        <tr>
-                                            <td>
-                                                <span class="badge bg-primary">{{ $activity['program'] ?? 'Sistem' }}</span>
-                                            </td>
-                                            <td>{{ $activity['aktivitas'] ?? 'Aktivitas tidak diketahui' }}</td>
-                                            <td class="text-nowrap">
-                                                @if(isset($activity['waktu']))
-                                                    {{ \Carbon\Carbon::parse($activity['waktu'])->diffForHumans() }}
-                                                @else
-                                                    -
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        @empty
-                                        <tr>
-                                            <td colspan="3" class="text-center py-4 text-muted">
-                                                Tidak ada aktivitas terbaru.
-                                            </td>
-                                        </tr>
-                                        @endforelse
-                                    </tbody>
+    <tr>
+        <th width="20%">Program</th>
+        <th width="30%">Aktivitas</th>
+        <th width="30%">Oleh</th>
+        <th width="20%">Waktu</th>
+    </tr>
+</thead>
+<tbody>
+    @forelse($activities as $activity)
+    <tr>
+        <td>{{ $activity['program'] ?? 'Sistem' }}</td>
+        <td>{{ $activity['aktivitas'] ?? 'Aktivitas tidak diketahui' }}</td>
+        <td>
+             <span class="badge bg-primary">{{ $activity['role'] ?? 'Tidak diketahui' }}</span>
+        </td>
+        <td class="text-nowrap">
+            @if(isset($activity['waktu']))
+                {{ \Carbon\Carbon::parse($activity['waktu'])->locale('id')->diffForHumans() }}
+            @else
+                -
+            @endif
+        </td>
+    </tr>
+    @empty
+    <tr>
+        <td colspan="4" class="text-center py-4 text-muted">
+            Tidak ada aktivitas terbaru.
+        </td>
+    </tr>
+    @endforelse
+</tbody>
+
                                 </table>
                             </div>
                         </div>
                     </div>
-                    <div class="col-lg-6">
+                    <div class="col-12 col-lg-6">
                         <div class="calendar-container">
                             <h5 class="chart-title">
                                 <i class="fas fa-calendar-alt"></i> Kalender Akademik
@@ -506,7 +595,7 @@
                                 </select>
                             </div>
                             <div id="calendar"></div>
-                            <div class="mt-3 d-flex flex-wrap gap-3">
+                            <div class="d-flex flex-wrap gap-3 mt-3">
                                 <span class="status-badge" style="background-color: #FF6B6B20; color: #FF6B6B;">
                                     <i class="fas fa-square"></i> Libur Sekolah
                                 </span>
@@ -523,10 +612,14 @@
 </div>
 
 <!-- JavaScript Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
 
 <script>
+// Global variables to store chart instances
+let employeeChart, studentChart;
+
 document.addEventListener('DOMContentLoaded', function() {
     // Update current date and time
     function updateDateTime() {
@@ -553,71 +646,77 @@ document.addEventListener('DOMContentLoaded', function() {
         initialView: 'dayGridMonth',
         locale: 'id',
         events: events,
-        headerToolbar: false,
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
         initialDate: new Date({{ $year }}, {{ $month }} - 1, 1),
         eventDisplay: 'block',
-        height: 'auto'
+        height: 'auto',
+        eventTimeFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        }
     });
     calendar.render();
 
-    // ======= Chart Setup =======
-const employeeChartData = {!! json_encode(array_values($employeeChartData)) !!};
-const studentChartData = {!! json_encode(array_values($studentChartData)) !!};
-const labels = {!! json_encode(array_keys($employeeChartData)) !!};
+    // Initialize Charts with responsive configuration
+    const employeeCtx = document.getElementById('employeeChart').getContext('2d');
+    const studentCtx = document.getElementById('studentChart').getContext('2d');
 
-const backgroundColors = [
-    '#4caf50', '#03a9f4', '#ffc107', '#f44336', '#9c27b0',
-    '#ff9800', '#00bcd4', '#e91e63', '#8bc34a', '#607d8b'
-];
-
-const options = {
-    plugins: {
-        legend: {
-            display: false // Tidak tampilkan legend bawaan Chart.js
-        },
-        tooltip: {
-            callbacks: {
-                label: function (context) {
-                    return `${context.label}: ${context.parsed}`;
-                }
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
             },
-            bodyFont: {
-                weight: 'bold' // Tooltip bold
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return `${context.label}: ${context.raw}`;
+                    }
+                },
+                bodyFont: {
+                    weight: 'bold'
+                }
             }
         }
-    }
-};
+    };
 
-// Render Employee Chart
-new Chart(document.getElementById('employeeChart').getContext('2d'), {
-    type: 'doughnut',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: 'Presensi Pegawai',
-            data: employeeChartData,
-            backgroundColor: backgroundColors.slice(0, labels.length),
-            borderWidth: 1
-        }]
-    },
-    options: options
-});
+    employeeChart = new Chart(employeeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {!! json_encode(array_keys($employeeChartData)) !!},
+            datasets: [{
+                data: {!! json_encode(array_values($employeeChartData)) !!},
+                backgroundColor: ['#4caf50', '#2196f3', '#ff9800', '#f44336'],
+                borderWidth: 0
+            }]
+        },
+        options: chartOptions
+    });
 
-// Render Student Chart
-new Chart(document.getElementById('studentChart').getContext('2d'), {
-    type: 'doughnut',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: 'Presensi Siswa',
-            data: studentChartData,
-            backgroundColor: backgroundColors.slice(0, labels.length),
-            borderWidth: 1
-        }]
-    },
-    options: options
-});
+    studentChart = new Chart(studentCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {!! json_encode(array_keys($studentChartData)) !!},
+            datasets: [{
+                data: {!! json_encode(array_values($studentChartData)) !!},
+                backgroundColor: ['#4caf50', '#2196f3', '#ff9800', '#f44336'],
+                borderWidth: 0
+            }]
+        },
+        options: chartOptions
+    });
 
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        if (employeeChart) employeeChart.resize();
+        if (studentChart) studentChart.resize();
+    });
 });
 
 function updateCalendar() {

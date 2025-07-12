@@ -17,6 +17,9 @@ use App\Exports\SingleClassBookLoanExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\BookLoansImport;
 use App\Imports\BookLoansMultiSheetImport;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class BookLoanController extends Controller
 {
@@ -59,26 +62,71 @@ class BookLoanController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'id_student' => 'required|string',
-            'book_id' => 'required|integer',
-            'copy_id' => 'required|integer', // ✅ Tambah validasi copy_id
-            'loan_date' => 'required|date',
-            'return_date' => 'nullable|date',
-            'status' => 'required|string|in:Dipinjam,Dikembalikan',
-            'academic_year_id' => 'required|integer',
-            'semester_id' => 'required|integer',
-        ]);
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name ?? 'Tidak diketahui';
 
-        $loan = BookLoan::create($validated);
+        DB::beginTransaction();
+        try {
+            $validated = $request->validate([
+                'id_student' => 'required|string',
+                'book_id' => 'required|integer',
+                'copy_id' => 'required|integer',
+                'loan_date' => 'required|date',
+                'return_date' => 'nullable|date',
+                'status' => 'required|string|in:Dipinjam,Dikembalikan',
+                'academic_year_id' => 'required|integer',
+                'semester_id' => 'required|integer',
+            ]);
 
-        $this->syncBookCopyAvailability($validated['copy_id']); // ✅ Sync berdasarkan copy_id
+            $loan = BookLoan::create($validated);
+            $this->syncBookCopyAvailability($validated['copy_id']);
 
-        if ($request->ajax()) {
-            return response()->json(['message' => 'Berhasil disimpan']);
+            DB::commit();
+
+            Log::info('Membuat peminjaman buku baru', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Membuat peminjaman',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'data' => [
+                    'id_peminjaman' => $loan->id,
+                    'id_siswa' => $loan->id_student,
+                    'id_buku' => $loan->book_id,
+                    'id_salinan' => $loan->copy_id,
+                    'status' => $loan->status
+                ]
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json(['message' => 'Berhasil disimpan']);
+            }
+
+            return redirect()->back()->with('success', 'Berhasil disimpan');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Gagal membuat peminjaman buku', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Membuat peminjaman',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'error' => $e->getMessage(),
+                'input' => $request->all()
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json(['error' => 'Gagal menyimpan: ' . $e->getMessage()], 500);
+            }
+
+            return redirect()->back()
+                ->with('error', 'Gagal menyimpan: ' . $e->getMessage())
+                ->withInput();
         }
-
-        return redirect()->back()->with('success', 'Berhasil disimpan');
     }
 
     public function edit($id)
@@ -92,79 +140,271 @@ class BookLoanController extends Controller
         return view('book_loans.edit', compact('loan', 'books', 'students', 'academicYears', 'semesters'));
     }
 
-    public function update(Request $request, $id)
+   public function update(Request $request, $id)
     {
-        $validated = $request->validate([
-            'id_student' => 'required|string',
-            'book_id' => 'required|integer',
-            'copy_id' => 'required|integer', // ✅ Pastikan copy_id tetap dipakai
-            'loan_date' => 'required|date',
-            'return_date' => 'required|date',
-            'status' => 'required|string|in:Dipinjam,Dikembalikan',
-            'academic_year_id' => 'required|integer',
-            'semester_id' => 'required|integer',
-        ]);
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name ?? 'Tidak diketahui';
 
-        $loan = BookLoan::findOrFail($id);
-        $loan->update($validated);
+        DB::beginTransaction();
+        try {
+            $validated = $request->validate([
+                'id_student' => 'required|string',
+                'book_id' => 'required|integer',
+                'copy_id' => 'required|integer',
+                'loan_date' => 'required|date',
+                'return_date' => 'required|date',
+                'status' => 'required|string|in:Dipinjam,Dikembalikan',
+                'academic_year_id' => 'required|integer',
+                'semester_id' => 'required|integer',
+            ]);
 
-        $this->syncBookCopyAvailability($validated['copy_id']);
+            $loan = BookLoan::findOrFail($id);
+            $oldData = $loan->toArray();
+            $loan->update($validated);
+            $this->syncBookCopyAvailability($validated['copy_id']);
 
-        return redirect()->route('book-loans.index')->with('success', 'Data peminjaman berhasil diperbarui.');
+            DB::commit();
+
+            Log::info('Memperbarui data peminjaman', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Memperbarui peminjaman',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'id_peminjaman' => $id,
+                'perubahan' => [
+                    'id_siswa' => ['dari' => $oldData['id_student'], 'menjadi' => $loan->id_student],
+                    'id_buku' => ['dari' => $oldData['book_id'], 'menjadi' => $loan->book_id],
+                    'id_salinan' => ['dari' => $oldData['copy_id'], 'menjadi' => $loan->copy_id],
+                    'status' => ['dari' => $oldData['status'], 'menjadi' => $loan->status]
+                ]
+            ]);
+
+            return redirect()->route('book-loans.index')->with('success', 'Data peminjaman berhasil diperbarui.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Gagal memperbarui peminjaman', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Memperbarui peminjaman',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'id_peminjaman' => $id,
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Gagal memperbarui data peminjaman: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
-    public function destroy($id)
+    public function destroy($id, Request $request)
     {
-        $loan = BookLoan::findOrFail($id);
-        $copyId = $loan->copy_id;
-        $loan->delete();
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name ?? 'Tidak diketahui';
 
-        $this->syncBookCopyAvailability($copyId);
+        DB::beginTransaction();
+        try {
+            $loan = BookLoan::findOrFail($id);
+            $copyId = $loan->copy_id;
+            $loanData = $loan->toArray();
+            $loan->delete();
 
-        return redirect()->route('book-loans.index')->with('success', 'Data peminjaman berhasil dihapus.');
+            $this->syncBookCopyAvailability($copyId);
+
+            DB::commit();
+
+            Log::info('Menghapus data peminjaman', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Menghapus peminjaman',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'data_peminjaman' => $loanData
+            ]);
+
+            return redirect()->route('book-loans.index')->with('success', 'Data peminjaman berhasil dihapus.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Gagal menghapus peminjaman', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Menghapus peminjaman',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'id_peminjaman' => $id,
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Gagal menghapus data peminjaman: ' . $e->getMessage());
+        }
     }
 
-    public function returnBook($id)
+    public function returnBook($id, Request $request)
     {
-        $loan = BookLoan::findOrFail($id);
-        $loan->update([
-            'status' => 'Dikembalikan',
-            'return_date' => now(),
-        ]);
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name ?? 'Tidak diketahui';
 
-        $this->syncBookCopyAvailability($loan->copy_id);
+        DB::beginTransaction();
+        try {
+            $loan = BookLoan::findOrFail($id);
+            $oldStatus = $loan->status;
 
-        return redirect()->route('book-loans.index')->with('success', 'Buku berhasil dikembalikan.');
-    }
-
-    public function markAsReturned($id)
-    {
-        $loan = BookLoan::findOrFail($id);
-
-        if ($loan->status === 'Dipinjam') {
-            $loan->status = 'Dikembalikan';
-            $loan->return_date = Carbon::now();
-            $loan->save();
+            $loan->update([
+                'status' => 'Dikembalikan',
+                'return_date' => now(),
+            ]);
 
             $this->syncBookCopyAvailability($loan->copy_id);
-        }
 
-        return redirect()->back()->with('success', 'Buku berhasil ditandai sebagai dikembalikan.');
+            DB::commit();
+
+            Log::info('Mengembalikan buku', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Mengembalikan buku',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'id_peminjaman' => $id,
+                'perubahan_status' => ['dari' => $oldStatus, 'menjadi' => 'Dikembalikan']
+            ]);
+
+            return redirect()->route('book-loans.index')->with('success', 'Buku berhasil dikembalikan.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Gagal mengembalikan buku', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Mengembalikan buku',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'id_peminjaman' => $id,
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Gagal mengembalikan buku: ' . $e->getMessage());
+        }
     }
 
-    public function markAsUnreturned($id)
+    public function markAsReturned($id, Request $request)
     {
-        $loan = BookLoan::findOrFail($id);
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name ?? 'Tidak diketahui';
 
-        if ($loan->status === 'Dikembalikan') {
-            $loan->status = 'Dipinjam';
-            $loan->return_date = null;
-            $loan->save();
+        DB::beginTransaction();
+        try {
+            $loan = BookLoan::findOrFail($id);
 
-            $this->syncBookCopyAvailability($loan->copy_id);
+            if ($loan->status === 'Dipinjam') {
+                $loan->status = 'Dikembalikan';
+                $loan->return_date = Carbon::now();
+                $loan->save();
+
+                $this->syncBookCopyAvailability($loan->copy_id);
+
+                DB::commit();
+
+                Log::info('Menandai buku sebagai dikembalikan', [
+                    'program' => 'Perpustakaan',
+                    'aktivitas' => 'Menandai dikembalikan',
+                    'waktu' => now()->toDateTimeString(),
+                    'id_employee' => $employee->id_employee,
+                    'role' => $roleName,
+                    'ip' => $request->ip(),
+                    'id_peminjaman' => $id
+                ]);
+
+                return redirect()->back()->with('success', 'Buku berhasil ditandai sebagai dikembalikan.');
+            }
+
+            DB::rollBack();
+            return redirect()->back()->with('info', 'Status buku sudah dikembalikan.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Gagal menandai buku sebagai dikembalikan', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Menandai dikembalikan',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'id_peminjaman' => $id,
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Gagal menandai buku sebagai dikembalikan: ' . $e->getMessage());
         }
+    }
 
-        return redirect()->back()->with('success', 'Status dikembalikan menjadi Dipinjam.');
+    public function markAsUnreturned($id, Request $request)
+    {
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name ?? 'Tidak diketahui';
+
+        DB::beginTransaction();
+        try {
+            $loan = BookLoan::findOrFail($id);
+
+            if ($loan->status === 'Dikembalikan') {
+                $loan->status = 'Dipinjam';
+                $loan->return_date = null;
+                $loan->save();
+
+                $this->syncBookCopyAvailability($loan->copy_id);
+
+                DB::commit();
+
+                Log::info('Mengubah status menjadi dipinjam', [
+                    'program' => 'Perpustakaan',
+                    'aktivitas' => 'Mengubah status ke dipinjam',
+                    'waktu' => now()->toDateTimeString(),
+                    'id_employee' => $employee->id_employee,
+                    'role' => $roleName,
+                    'ip' => $request->ip(),
+                    'id_peminjaman' => $id
+                ]);
+
+                return redirect()->back()->with('success', 'Status dikembalikan menjadi Dipinjam.');
+            }
+
+            DB::rollBack();
+            return redirect()->back()->with('info', 'Status buku sudah dipinjam.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Gagal mengubah status menjadi dipinjam', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Mengubah status ke dipinjam',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'id_peminjaman' => $id,
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Gagal mengubah status: ' . $e->getMessage());
+        }
     }
 
   public function classStudents($classId)
@@ -232,8 +472,11 @@ public function studentBooks($id)
     ));
 }
 
-    public function print($id_student)
+   public function print($id_student, Request $request)
     {
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name ?? 'Tidak diketahui';
+
         $student = Student::where('id_student', $id_student)->firstOrFail();
         $bookLoans = BookLoan::with(['book', 'student'])
             ->where('id_student', $id_student)
@@ -241,6 +484,18 @@ public function studentBooks($id)
             ->get();
 
         $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
+
+        Log::info('Mencetak laporan peminjaman', [
+            'program' => 'Perpustakaan',
+            'aktivitas' => 'Mencetak laporan',
+            'waktu' => now()->toDateTimeString(),
+            'id_employee' => $employee->id_employee,
+            'role' => $roleName,
+            'ip' => $request->ip(),
+            'id_siswa' => $student->id_student,
+            'nama_siswa' => $student->fullname,
+            'jumlah_peminjaman' => $bookLoans->count()
+        ]);
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('books.printbookloans', [
             'student' => $student,
@@ -279,13 +534,48 @@ public function exportByClass($classId)
 return Excel::download(new SingleClassBookLoanExport($classId, $class->class_level), 'peminjaman-' . $class->class_name . '.xlsx');
 }
 public function import(Request $request)
-{
-    $request->validate([
-        'file' => 'required|file|mimes:xlsx,xls',
-    ]);
+    {
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name ?? 'Tidak diketahui';
 
-    Excel::import(new BookLoansMultiSheetImport, $request->file('file'));
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls',
+        ]);
 
-    return back()->with('success', 'Import berhasil dilakukan.');
-}
+        DB::beginTransaction();
+        try {
+            $import = new BookLoansMultiSheetImport;
+            Excel::import($import, $request->file('file'));
+
+            DB::commit();
+
+            Log::info('Import data peminjaman berhasil', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Import data',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'file' => $request->file('file')->getClientOriginalName(),
+                'total_data' => $import->getRowCount()
+            ]);
+
+            return back()->with('success', 'Import berhasil dilakukan. Total data: ' . $import->getRowCount());
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Gagal import data peminjaman', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Import data',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'error' => $e->getMessage()
+            ]);
+
+            return back()->with('error', 'Gagal mengimport data: ' . $e->getMessage());
+        }
+    }
 }

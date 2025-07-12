@@ -37,14 +37,13 @@ class EmployeeLoginController extends Controller
 
     // Tambahkan log login di sini
   Log::info('Aktivitas login berhasil', [
-    'program' => $roleName ?? 'Tidak diketahui',
+    'program' => 'Login',
     'aktivitas' => 'Login ke aplikasi',
     'waktu' => now()->toDateTimeString(),
-    'id_employee' => $employee->id_employee,
-    'nama' => $employee->fullname ?? '-',
+    'id_employee' => auth('employee')->id(),
+    'role' => $roleName,
     'ip' => $request->ip(),
 ]);
-
 
     // Redirect berdasarkan role
     if ($roleName === 'Super Admin') {

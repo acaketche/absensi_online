@@ -17,6 +17,7 @@ use App\Models\Book;
 use App\Models\BookLoan;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use App\Models\StudentSemester;
 
 class DashboardController extends Controller
 {
@@ -117,28 +118,25 @@ class DashboardController extends Controller
     ];
 })->toArray();
 
-        // =====================
-        // AMBIL AKTIVITAS LOG TERAKHIR
-        // =====================
-        $logFile = storage_path('logs/laravel.log');
-        $activities = [];
+      $logFile = storage_path('logs/laravel.log');
+$activities = [];
 
-        if (File::exists($logFile)) {
-            $lines = array_reverse(file($logFile));
-            foreach ($lines as $line) {
-                if (str_contains($line, 'Aktivitas')) {
-                    preg_match('/\{.*\}/', $line, $matches);
-                    if ($matches) {
-                        $json = json_decode($matches[0], true);
-                        if ($json) {
-                            $activities[] = $json;
-                        }
-                    }
+if (File::exists($logFile)) {
+    $lines = array_reverse(file($logFile)); // dari bawah ke atas
+    foreach ($lines as $line) {
+        if (str_contains($line, '{') && str_contains($line, 'program')) {
+            preg_match('/\{.*\}/', $line, $matches);
+            if ($matches) {
+                $json = json_decode($matches[0], true);
+                if ($json && isset($json['program']) && isset($json['aktivitas'])) {
+                    $activities[] = $json;
                 }
-                if (count($activities) >= 10) break;
             }
         }
 
+        if (count($activities) >= 10) break;
+    }
+}
         return view('auth.dashboard', compact(
             'totalSiswa',
             'totalPegawai',
@@ -156,115 +154,53 @@ class DashboardController extends Controller
         ));
     }
 
-    public function TataUsaha(Request $request)
-    {
-         // Total siswa
+  public function TataUsaha(Request $request)
+{
+    $today = Carbon::today();
+    $currentMonth = $today->format('m');
+    $currentYear = $today->format('Y');
+
+    // 1. Rekap jumlah siswa per angkatan
+    $siswaPerAngkatan = StudentSemester::selectRaw('academic_year_id, COUNT(*) as total')
+    ->groupBy('academic_year_id')
+    ->orderByDesc('academic_year_id')
+    ->with('academicYear') // relasi ke nama tahun ajaran
+    ->get();
+
+     // 2. Status pembayaran per siswa (lunas/belum lunas)
         $totalSiswa = Student::count();
-
-        // Total pegawai
-        $totalPegawai = Employee::count();
-
-        // Tanggal hari ini
-        $today = Carbon::today()->toDateString();
-
-        // Pegawai hadir hari ini
-        $pegawaiHadir = Employee::whereHas('attendances', function ($query) use ($today) {
-            $query->where('attendance_date', $today)
-                  ->where('status_id', 1); // 1 = hadir
+        $siswaLunas = Student::whereHas('payments', function($q) {
+            $q->where('status', 'lunas');
         })->count();
+        $siswaBelumLunas = $totalSiswa - $siswaLunas;
 
-        // Siswa hadir hari ini
-        $siswaHadir = Student::whereHas('attendances', function ($q) use ($today) {
-            $q->where('attendance_date', $today)
-              ->whereHas('status', function($query) {
-                  $query->where('status_id', 1);
-              });
-        })->count();
+    // 3. Rekap absensi pegawai (harian & bulanan)
+    $absensiHarian = EmployeeAttendance::whereDate('attendance_date', now())->count();
+    $absensiBulanan = EmployeeAttendance::whereMonth('attendance_date', $currentMonth)
+                                    ->whereYear('attendance_date', $currentYear)
+                                    ->count();
 
-        // Data untuk grafik presensi hari ini
-        $todayEmployeeAttendances = EmployeeAttendance::with('status')
-            ->where('attendance_date', $today)
-            ->get();
+    // 4. Jumlah pegawai
+   $totalPegawai = Employee::count();
 
-        $todayStudentAttendances = StudentAttendance::with('status')
-            ->where('attendance_date', $today)
-            ->get();
+    // 5. Notifikasi siswa baru
+    $siswaBaru = Student::whereDate('created_at', $today)->latest()->get();
 
-        // Hitung per status untuk pegawai
-        $employeeStatusCounts = $todayEmployeeAttendances->groupBy('status_id')
-            ->map(function ($group) {
-                return $group->count();
-            });
+    // 6. Tahun ajaran aktif
+    $tahunAjaranAktif = AcademicYear::where('is_active', 1)->first();
 
-        // Hitung per status untuk siswa
-        $studentStatusCounts = $todayStudentAttendances->groupBy('status_id')
-            ->map(function ($group) {
-                return $group->count();
-            });
-
-        // Ambil semua status untuk label
-        $statuses = AttendanceStatus::all();
-
-       $employeeChartData = [];
-$studentChartData = [];
-foreach ($statuses as $status) {
-    $employeeChartData[$status->name] = $employeeStatusCounts[$status->id] ?? 0;
-    $studentChartData[$status->name] = $studentStatusCounts[$status->id] ?? 0;
-}
-
-        // Ambil bulan dan tahun dari request atau default ke sekarang
-        $month = $request->input('month', date('m'));
-        $year = $request->input('year', date('Y'));
-
-        // Ambil libur
-        $holidays = Holiday::with('academicYear')
-            ->whereYear('holiday_date', $year)
-            ->whereMonth('holiday_date', $month)
-            ->get();
-
-        $redDates = $holidays->filter(function ($holiday) {
-            return $holiday->academic_year_id !== null;
-        })->pluck('holiday_date')->toArray();
-
-        // Ambil aktivitas login/logout terakhir dari log
-        $logFile = storage_path('logs/laravel.log');
-        $activities = [];
-
-        if (File::exists($logFile)) {
-            $lines = array_reverse(file($logFile)); // baca dari belakang
-            foreach ($lines as $line) {
-                if (str_contains($line, 'Aktivitas')) {
-                    preg_match('/\{.*\}/', $line, $matches);
-                    if ($matches) {
-                        $json = json_decode($matches[0], true);
-                        if ($json) {
-                            $activities[] = $json;
-                        }
-                    }
-                }
-                if (count($activities) >= 10) break; // ambil maksimal 10 aktivitas terakhir
-            }
-
-
-        return view('auth.dashboard', compact(
-            'redDates',
-            'holidays',
-            'month',
-            'year',
-            'totalSiswa',
-            'totalPegawai',
-            'pegawaiHadir',
-            'siswaHadir',
-            'activities',
-            'employeeChartData',
-            'studentChartData',
-            'statuses'
-        ));
-
+    return view('auth.dashboard_tu', compact(
+        'siswaPerAngkatan',
+        'absensiHarian',
+        'absensiBulanan',
+        'totalPegawai',
+        'siswaBaru',
+        'totalSiswa',
+        'siswaLunas',
+        'siswaBelumLunas',
+        'tahunAjaranAktif'
+    ));
     }
-    }
-
-
 public function piket(Request $request)
 {
     $today = Carbon::today()->toDateString();

@@ -7,12 +7,13 @@ use App\Models\Classes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Exports\BooksExport;
 use App\Imports\BooksImport;
 use App\Models\AcademicYear;
 use App\Models\Semester;
 use Maatwebsite\Excel\Facades\Excel;
-
 class BookController extends Controller
 {
     public function index(Request $request)
@@ -61,27 +62,67 @@ class BookController extends Controller
     return view('books.bookscreate', compact('classLevels'));
 }
 
-    public function store(Request $request)
+   public function store(Request $request)
     {
-        $validated = $request->validate([
-            'code' => 'required|string|max:20|unique:books,code',
-            'title' => 'required|string|max:255',
-            'author' => 'required|string|max:100',
-            'publisher' => 'required|string|max:100',
-            'year_published' => 'required|digits:4|integer|min:1900|max:' . (date('Y') + 1),
-            'cover' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'class_id' => 'nullable|exists:classes,class_id',
-        ]);
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name ?? 'Tidak diketahui';
 
-        if ($request->hasFile('cover')) {
-            $validated['cover'] = $request->file('cover')->store('covers', 'public');
+        DB::beginTransaction();
+        try {
+            $validated = $request->validate([
+                'code' => 'required|string|max:20|unique:books,code',
+                'title' => 'required|string|max:255',
+                'author' => 'required|string|max:100',
+                'publisher' => 'required|string|max:100',
+                'year_published' => 'required|digits:4|integer|min:1900|max:' . (date('Y') + 1),
+                'cover' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+                'class_id' => 'nullable|exists:classes,class_id',
+            ]);
+
+            if ($request->hasFile('cover')) {
+                $validated['cover'] = $request->file('cover')->store('covers', 'public');
+            }
+
+            $validated['stock'] = 0;
+            $book = Book::create($validated);
+
+            DB::commit();
+
+            Log::info('Menambahkan buku baru', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Menambahkan buku',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'data' => [
+                    'id_buku' => $book->id,
+                    'kode_buku' => $book->code,
+                    'judul' => $book->title
+                ]
+            ]);
+
+            return redirect()->route('books.index')
+                ->with('success', 'Buku berhasil ditambahkan');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Gagal menambahkan buku', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Menambahkan buku',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'error' => $e->getMessage(),
+                'input' => $request->except('cover')
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Gagal menambahkan buku: ' . $e->getMessage())
+                ->withInput();
         }
-
-        $validated['stock'] = 0;
-        Book::create($validated);
-
-        return redirect()->route('books.index')
-            ->with('success', 'Buku berhasil ditambahkan');
     }
 
     public function edit(Book $book)
@@ -92,66 +133,210 @@ class BookController extends Controller
 
     public function update(Request $request, Book $book)
     {
-        $validated = $request->validate([
-            'code' => 'required|string|max:20|unique:books,code,' . $book->id,
-            'title' => 'required|string|max:255',
-            'author' => 'required|string|max:100',
-            'publisher' => 'required|string|max:100',
-            'year_published' => 'required|digits:4|integer|min:1900|max:' . (date('Y') + 1),
-            'cover' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'class_id' => 'nullable|exists:classes,class_id',
-        ]);
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name ?? 'Tidak diketahui';
 
-        if ($request->hasFile('cover')) {
-            if ($book->cover && Storage::disk('public')->exists($book->cover)) {
-                Storage::disk('public')->delete($book->cover);
+        DB::beginTransaction();
+        try {
+            $validated = $request->validate([
+                'code' => 'required|string|max:20|unique:books,code,' . $book->id,
+                'title' => 'required|string|max:255',
+                'author' => 'required|string|max:100',
+                'publisher' => 'required|string|max:100',
+                'year_published' => 'required|digits:4|integer|min:1900|max:' . (date('Y') + 1),
+                'cover' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+                'class_id' => 'nullable|exists:classes,class_id',
+            ]);
+
+            if ($request->hasFile('cover')) {
+                if ($book->cover && Storage::disk('public')->exists($book->cover)) {
+                    Storage::disk('public')->delete($book->cover);
+                }
+
+                $validated['cover'] = $request->file('cover')->store('covers', 'public');
             }
 
-            $validated['cover'] = $request->file('cover')->store('covers', 'public');
+            $book->update($validated);
+
+            DB::commit();
+
+            Log::info('Memperbarui data buku', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Memperbarui buku',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'id_buku' => $book->id,
+                'perubahan' => $validated
+            ]);
+
+            return redirect()->route('books.index')
+                ->with('success', 'Buku berhasil diperbarui');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Gagal memperbarui buku', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Memperbarui buku',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'id_buku' => $book->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Gagal memperbarui buku: ' . $e->getMessage())
+                ->withInput();
         }
-
-        $book->update($validated);
-
-        return redirect()->route('books.index')
-            ->with('success', 'Buku berhasil diperbarui');
     }
 
-    public function destroy(Book $book)
+    public function destroy(Book $book, Request $request)
     {
-        DB::transaction(function () use ($book) {
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name ?? 'Tidak diketahui';
+
+        DB::beginTransaction();
+        try {
+            $bookData = [
+                'id' => $book->id,
+                'code' => $book->code,
+                'title' => $book->title,
+                'total_copies' => $book->copies()->count()
+            ];
+
             if ($book->cover && Storage::disk('public')->exists($book->cover)) {
                 Storage::disk('public')->delete($book->cover);
             }
 
             $book->copies()->delete();
             $book->delete();
-        });
 
-        return redirect()->route('books.index')
-            ->with('success', 'Buku berhasil dihapus');
+            DB::commit();
+
+            Log::info('Menghapus buku', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Menghapus buku',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'data_buku' => $bookData
+            ]);
+
+            return redirect()->route('books.index')
+                ->with('success', 'Buku dan semua salinannya berhasil dihapus');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Gagal menghapus buku', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Menghapus buku',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'id_buku' => $book->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Gagal menghapus buku: ' . $e->getMessage());
+        }
     }
 
-    public function export()
+    public function export(Request $request)
     {
-        return Excel::download(new BooksExport, 'books-and-copies-' . date('Y-m-d') . '.xlsx');
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name ?? 'Tidak diketahui';
+
+        $fileName = 'books-and-copies-' . date('Y-m-d') . '.xlsx';
+
+        Log::info('Export data buku', [
+            'program' => 'Perpustakaan',
+            'aktivitas' => 'Export data buku',
+            'waktu' => now()->toDateTimeString(),
+            'id_employee' => $employee->id_employee,
+            'role' => $roleName,
+            'ip' => $request->ip(),
+            'file' => $fileName
+        ]);
+
+        return Excel::download(new BooksExport, $fileName);
     }
 
     public function import(Request $request)
     {
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name ?? 'Tidak diketahui';
+
         $request->validate([
             'file' => 'required|mimes:xlsx,xls,csv'
         ]);
 
-        DB::transaction(function () use ($request) {
-            Excel::import(new BooksImport, $request->file('file'));
-        });
+        DB::beginTransaction();
+        try {
+            $import = new BooksImport;
+            Excel::import($import, $request->file('file'));
 
-        return redirect()->route('books.index')
-            ->with('success', 'Data buku dan salinan berhasil diimport');
+            DB::commit();
+
+            Log::info('Import data buku', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Import data buku',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'hasil' => [
+                    'buku_baru' => $import->getNewBooksCount(),
+                    'salinan_baru' => $import->getNewCopiesCount()
+                ]
+            ]);
+
+            return redirect()->route('books.index')
+                ->with('success', 'Data buku dan salinan berhasil diimport.
+                    Buku baru: ' . $import->getNewBooksCount() . ',
+                    Salinan baru: ' . $import->getNewCopiesCount());
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Gagal import data buku', [
+                'program' => 'Perpustakaan',
+                'aktivitas' => 'Import data buku',
+                'waktu' => now()->toDateTimeString(),
+                'id_employee' => $employee->id_employee,
+                'role' => $roleName,
+                'ip' => $request->ip(),
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Gagal mengimport data: ' . $e->getMessage());
+        }
     }
 
-    public function downloadTemplate()
+    public function downloadTemplate(Request $request)
     {
-        return Excel::download(new BooksExport, 'template-import-buku-dan-salinan.xlsx');
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name ?? 'Tidak diketahui';
+
+        $fileName = 'template-import-buku-dan-salinan.xlsx';
+
+        Log::info('Download template import buku', [
+            'program' => 'Perpustakaan',
+            'aktivitas' => 'Download template import',
+            'waktu' => now()->toDateTimeString(),
+            'id_employee' => $employee->id_employee,
+            'role' => $roleName,
+            'ip' => $request->ip()
+        ]);
+
+        return Excel::download(new BooksExport, $fileName);
     }
 }

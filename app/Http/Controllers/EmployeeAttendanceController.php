@@ -10,6 +10,8 @@ use App\Models\EmployeeAttendance;
 use App\Models\AttendanceStatus;
 use PDF;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class EmployeeAttendanceController extends Controller
 {
@@ -58,37 +60,88 @@ public function index(Request $request)
         return view('attendance.create', compact('employees', 'statuses'));
     }
 
-   public function store(Request $request)
+public function store(Request $request)
 {
     try {
-            $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
-            $activeSemester = Semester::where('is_active', 1)->first();
+        $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
+        $activeSemester = Semester::where('is_active', 1)->first();
 
-            if (!$activeAcademicYear || !$activeSemester) {
-                return redirect()->back()->with('error', 'Tahun Ajaran atau Semester aktif tidak ditemukan.');
+        if (!$activeAcademicYear || !$activeSemester) {
+            return redirect()->back()->with('error', 'Tahun Ajaran atau Semester aktif tidak ditemukan.');
+        }
+
+        $request->validate([
+            'employee_id' => 'required|exists:employees,id_employee',
+            'attendance_date' => 'required|date',
+            'check_in' => 'nullable|date_format:H:i',
+            'check_out' => 'nullable|date_format:H:i|after:check_in',
+            'status_id' => 'nullable|exists:attendance_status,status_id',
+        ]);
+
+        $statusId = $request->status_id;
+
+        if (!$statusId) {
+            // Cek apakah ada izin atau sakit
+            if ($request->izin) {
+                $statusId = 2; // Izin
+            } elseif ($request->sakit) {
+                $statusId = 3; // Sakit
+            } elseif ($request->check_in) {
+                $checkIn = \Carbon\Carbon::createFromFormat('H:i', $request->check_in);
+
+                $startHadir = \Carbon\Carbon::createFromFormat('H:i', '06:30');
+                $endHadir   = \Carbon\Carbon::createFromFormat('H:i', '07:30');
+                $endTerlambat = \Carbon\Carbon::createFromFormat('H:i', '08:00');
+
+                if ($checkIn >= $startHadir && $checkIn <= $endHadir) {
+                    $statusId = 1; // Hadir (antara 06:30 dan 07:30)
+                } elseif ($checkIn > $endHadir && $checkIn <= $endTerlambat) {
+                    $statusId = 5; // Terlambat (antara 07:31 dan 08:00)
+                } else {
+                    $statusId = 4; // Alpha (di luar 06:30–08:00)
+                }
+            } else {
+                $statusId = 4; // Alpha karena tidak absen
             }
-    $request->validate([
-        'employee_id' => 'required|exists:employees,id_employee',
-        'status_id' => 'required|exists:attendance_status,status_id',
-        'attendance_date' => 'required|date',
-        'check_in' => 'nullable|date_format:H:i',
-        'check_out' => 'nullable|date_format:H:i|after:check_in',
-    ]);
+        }
 
-    EmployeeAttendance::create([
-        'id_employee' => $request->employee_id, // sesuaikan kolom tabel
-        'status_id' => $request->status_id,
-        'attendance_date' => $request->attendance_date,
-        'check_in' => $request->check_in,
-        'check_out' => $request->check_out,
-        'academic_year_id' => $activeAcademicYear->id,
-        'semester_id' => $activeSemester->id,
-    ]);
-return redirect()->route('attendance.index')->with('success', 'Absensi berhasil ditambahkan.');
-} catch (\Exception $e) {
-    return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
+        $attendance = EmployeeAttendance::create([
+            'id_employee' => $request->employee_id,
+            'status_id' => $statusId,
+            'attendance_date' => $request->attendance_date,
+            'check_in' => $request->check_in,
+            'check_out' => $request->check_out,
+            'academic_year_id' => $activeAcademicYear->id,
+            'semester_id' => $activeSemester->id,
+        ]);
+
+        // Logging aktivitas
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name ?? 'Tidak diketahui';
+
+        Log::info('Mencatat absensi pegawai', [
+            'program' => 'Absensi Pegawai dan guru',
+            'aktivitas' => 'Menambahkan data absensi pegawai dan guru',
+            'waktu' => now()->toDateTimeString(),
+            'id_employee' => $employee->id_employee,
+            'role' => $roleName,
+            'ip' => $request->ip(),
+            'data' => [
+                'id_pegawai' => $attendance->id_employee,
+                'nama_pegawai' => $attendance->employee->fullname,
+                'tanggal' => $attendance->attendance_date,
+                'status' => $attendance->status->status_name ?? 'Tidak diketahui'
+            ]
+        ]);
+
+        return redirect()->route('attendance.index')->with('success', 'Absensi berhasil ditambahkan.');
+
+    } catch (\Exception $e) {
+        \Log::error('Gagal mencatat absensi pegawai: ' . $e->getMessage());
+        return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
+    }
 }
-}
+
     // Menampilkan detail absensi berdasarkan ID
     public function show($id)
     {
@@ -104,37 +157,105 @@ return redirect()->route('attendance.index')->with('success', 'Absensi berhasil 
         $statuses = AttendanceStatus::all();
         return view('attendance.edit', compact('attendance', 'employees', 'statuses'));
     }
-
-    // Memperbarui data absensi
-   public function update(Request $request, $id)
+public function update(Request $request, $id)
 {
-
     $request->validate([
-    'employee_id' => 'required|exists:employees,id_employee',
-    'status_id' => 'required|exists:attendance_status,status_id',
-    'attendance_date' => 'required|date',
-    'check_in' => 'nullable|date_format:H:i',
-    'check_out' => 'nullable|date_format:H:i|after:check_in', // Pastikan ini dijalankan jika ada check_out
-]);
+        'employee_id' => 'required|exists:employees,id_employee',
+        'attendance_date' => 'required|date',
+        'check_in' => 'nullable|date_format:H:i',
+        'check_out' => [
+            'nullable',
+            'date_format:H:i',
+            function ($attribute, $value, $fail) use ($request) {
+                if ($request->check_in && $value) {
+                    try {
+                        $checkIn = \Carbon\Carbon::createFromFormat('H:i', trim($request->check_in));
+                        $checkOut = \Carbon\Carbon::createFromFormat('H:i', trim($value));
+                        if ($checkOut <= $checkIn) {
+                            $fail('Waktu keluar harus setelah waktu masuk.');
+                        }
+                    } catch (\Exception $e) {
+                        $fail('Format waktu tidak valid.');
+                    }
+                }
+            },
+        ],
+    ]);
 
-$attendance = EmployeeAttendance::findOrFail($id);
+    $attendance = EmployeeAttendance::findOrFail($id);
+    $oldData = $attendance->toArray();
 
-$attendance->update([
-    'id_employee' => $request->employee_id,
-    'status_id' => $request->status_id,
-    'attendance_date' => $request->attendance_date,
-    'check_in' => $request->check_in,
-    'check_out' => $request->check_out ?? $attendance->check_out,
-]);
+    // Logika status otomatis
+    $statusId = 4; // Default Alpha
+    if ($request->check_in) {
+        try {
+            $checkIn = \Carbon\Carbon::createFromFormat('H:i', trim($request->check_in));
+            $startHadir   = \Carbon\Carbon::createFromTime(6, 30);
+            $endHadir     = \Carbon\Carbon::createFromTime(7, 30);
+            $endTerlambat = \Carbon\Carbon::createFromTime(8, 0);
+
+            if ($checkIn >= $startHadir && $checkIn <= $endHadir) {
+                $statusId = 1; // Hadir
+            } elseif ($checkIn > $endHadir && $checkIn <= $endTerlambat) {
+                $statusId = 5; // Terlambat
+            } else {
+                $statusId = 4; // Alpha
+            }
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Format jam masuk tidak valid.');
+        }
+    }
+
+    $updateData = [
+        'id_employee' => $request->employee_id,
+        'status_id' => $statusId,
+        'attendance_date' => $request->attendance_date,
+        'check_in' => $request->check_in ? trim($request->check_in) : null,
+    ];
+
+    if ($request->has('check_out')) {
+        $updateData['check_out'] = $request->check_out ? trim($request->check_out) : null;
+    }
+
+    $attendance->update($updateData);
+
+    // Logging
+    $employee = Auth::guard('employee')->user();
+    $roleName = $employee->role->role_name ?? 'Tidak diketahui';
+
+    \Log::info('Memperbarui absensi pegawai', [
+        'program' => 'Absensi Pegawai dan guru',
+        'aktivitas' => 'Memperbarui data absensi pegawai dan guru',
+        'waktu' => now()->toDateTimeString(),
+        'id_employee' => $employee->id_employee,
+        'role' => $roleName,
+        'ip' => $request->ip(),
+        'data_lama' => $oldData,
+        'data_baru' => $attendance->fresh()->toArray()
+    ]);
 
     return redirect()->route('attendance.index')->with('success', 'Absensi berhasil diperbarui.');
 }
 
-    // Menghapus data absensi
-    public function destroy($id)
+ public function destroy(Request $request, $id)
     {
         $attendance = EmployeeAttendance::findOrFail($id);
+        $attendanceData = $attendance->toArray();
         $attendance->delete();
+
+        // Logging aktivitas
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name ?? 'Tidak diketahui';
+
+        Log::warning('Menghapus absensi pegawai', [
+            'program' => 'Absensi Pegawai dan guru',
+            'aktivitas' => 'Menghapus data absensi pegawai dan guru',
+            'waktu' => now()->toDateTimeString(),
+            'id_employee' => $employee->id_employee,
+            'role' => $roleName,
+            'ip' => $request->ip(),
+            'data_terhapus' => $attendanceData
+        ]);
 
         return redirect()->route('attendance.index')->with('success', 'Absensi berhasil dihapus.');
     }

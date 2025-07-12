@@ -51,7 +51,7 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
 
     // Holidays & Attendance Status
     Route::resource('holidays', HolidaysController::class);
-    Route::resource('attendance_status', AttendanceStatusController::class);
+    Route::resource('attendance-status', AttendanceStatusController::class);
 
     // Employee Management
     Route::resource('employees', EmployeesController::class);
@@ -63,8 +63,8 @@ Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function 
     // Student Attendance
     Route::resource('student-attendance', StudentAttendanceController::class);
     Route::get('/student/search', [StudentAttendanceController::class, 'search']);
-    Route::get('/student-attendance/export/pdf', [StudentAttendanceController::class, 'exportPdf'])
-     ->name('student-attendance.export.pdf');
+    Route::get('/student-attendance/export/pdf', [StudentAttendanceController::class, 'exportPdf'])->name('student-attendance.export.pdf');
+    Route::put('/student-attendance/{id}/check-out', [StudentAttendanceController::class, 'updateCheckoutTime'])->name('student-attendance.check-out');
 
     // Report Cards
     Route::get('/rapor/classes', [RaporController::class, 'classes'])->name('rapor.classes');

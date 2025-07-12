@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{
     DashboardController,
     BookController,
-    AttendanceStatusController,
     BookLoanController,
     BookCopyController
 };

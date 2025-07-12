@@ -6,12 +6,14 @@ use App\Http\Controllers\{
     StudentController,
     ClassesController,
     SemesterController,
-    PaymentController
+    PaymentController,
+    EmployeesController
 };
 
 Route::middleware(['web', 'auth:employee', 'role:Admin Tata Usaha'])->group(function () {
     Route::get('/tu/dashboard', [DashboardController::class, 'TataUsaha'])->name('dashboard.TU');
-
+    Route::post('/profile/update', [EmployeesController::class, 'updateProfile'])->name('employees.profile.update');
+    Route::post('/profile/update-password', [EmployeesController::class, 'updatePassword'])->name('employees.profile.update-password');
   // Student Management
     Route::resource('students', StudentController::class);
     Route::post('/students/import', [StudentController::class, 'import'])->name('students.import');

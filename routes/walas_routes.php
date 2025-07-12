@@ -3,13 +3,15 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{
    DashboardController,
-   RaporController
+   RaporController,
+   EmployeesController
 
 };
 
 Route::middleware(['web', 'auth:employee', 'role:Wali Kelas'])->group(function () {
-     Route::get('/walas/dashboard', [DashboardController::class, 'Superadmin'])->name('dashboard.walas');
-
+    Route::get('/walas/dashboard', [DashboardController::class, 'Superadmin'])->name('dashboard.walas');
+    Route::post('/profile/update', [EmployeesController::class, 'updateProfile'])->name('employees.profile.update');
+    Route::post('/profile/update-password', [EmployeesController::class, 'updatePassword'])->name('employees.profile.update-password');
 // Report Cards
     Route::get('/rapor/classes', [RaporController::class, 'classes'])->name('rapor.classes');
     Route::get('/rapor/classes/{classId}/students', [RaporController::class, 'students'])->name('rapor.students');
