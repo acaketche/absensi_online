@@ -22,7 +22,6 @@
 
         body {
             background-color: #f5f7fb;
-            font-family: 'Poppins', sans-serif;
         }
 
         .card {
@@ -287,9 +286,13 @@
                 </div>
             </div>
 
-            <a href="{{ route('rapor.classes') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left me-2"></i> Kembali
-            </a>
+          @auth
+    @if(Auth::user()->role && Auth::user()->role->role_name == 'Super Admin')
+    <a href="{{ route('rapor.classes') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Kembali
+    </a>
+@endif
+@endauth
         </div>
 
       <!-- Class Info -->

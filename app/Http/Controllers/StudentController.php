@@ -8,8 +8,11 @@ use Illuminate\Support\Facades\{Auth, Hash, Storage, Session, Log};
 use Illuminate\Support\MessageBag;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\StudentImport;
+use App\Models\Spp;
+use App\Models\Payment;
 use App\Exports\StudentTemplateExport;
 use ZipArchive;
+use Carbon\Carbon;
 
 class StudentController extends Controller
 {
@@ -572,5 +575,128 @@ $classes = Classes::where('academic_year_id', $activeAcademicYear?->id)
         }
     }
     return null;
+}
+public function showPortal($id)
+{
+    $student = Student::with([
+        'studentSemesters.class',
+        'studentSemesters.academicYear',
+        'studentSemesters.semester',
+        'bookLoans.book',
+        'attendances.status',
+        'payments',
+        'rapor.academicYear',
+        'rapor.semester',
+        'rapor.class'
+    ])->findOrFail($id);
+$months = collect(range(1, 6))->map(function ($m) {
+    return [
+        'number' => $m,
+        'name' => \Carbon\Carbon::create()->month($m)->translatedFormat('F'),
+        'year' => now()->year
+    ];
+});
+$currentMonth = now()->month;
+$currentMonthName = Carbon::create()->month($currentMonth)->translatedFormat('F');
+$currentYear = now()->year;
+$today = now()->day;
+$daysInMonth = Carbon::create($currentYear, $currentMonth)->daysInMonth;
+
+$calendarDays = [];
+
+for ($i = 1; $i <= $daysInMonth; $i++) {
+    $date = Carbon::create($currentYear, $currentMonth, $i);
+    $calendarDays[] = [
+        'day' => $i,
+        'empty' => false,
+        'weekend' => $date->isWeekend(),
+        'today' => $i === $today,
+        'status' => null // bisa Anda isi "Hadir", "Izin", dll jika tersedia
+    ];
+}
+
+    $activeAcademicYear = AcademicYear::where('is_active', true)->first();
+    $activeSemester = Semester::where('is_active', true)->first();
+
+    $currentClass = $student->studentSemesters
+        ->where('academic_year_id', $activeAcademicYear->id)
+        ->where('semester_id', $activeSemester->id)
+        ->first();
+
+    $student->currentClass = $currentClass?->class;
+    $student->academicYear = $currentClass?->academicYear;
+    $student->semester = $currentClass?->semester;
+
+    $attendances = $student->attendances
+        ->where('academic_year_id', $activeAcademicYear->id)
+        ->where('semester_id', $activeSemester->id);
+
+    $attendanceStats = [
+        'present' => $attendances->where('status_id', 1)->count(),
+        'sick' => $attendances->where('status_id', 2)->count(),
+        'permit' => $attendances->where('status_id', 3)->count(),
+        'absent' => $attendances->where('status_id', 4)->count(),
+    ];
+
+    $attendanceStats['total'] = array_sum($attendanceStats);
+    $attendanceStats['present_percentage'] = $attendanceStats['total'] > 0
+        ? round(($attendanceStats['present'] / $attendanceStats['total']) * 100)
+        : 0;
+    $recentAttendances = $student->attendances
+    ->where('academic_year_id', $activeAcademicYear->id)
+    ->where('semester_id', $activeSemester->id)
+    ->sortByDesc('attendance_date')
+    ->take(5);
+
+
+    $payments = $student->payments
+        ->where('academic_year_id', $activeAcademicYear->id)
+        ->where('semester_id', $activeSemester->id);
+        $payments = $payments->map(function ($p) {
+    $p['month_name'] = \Carbon\Carbon::create()->month($p->month)->translatedFormat('F');
+    return $p;
+});
+
+    $spp = Spp::where('class_id', $currentClass->class_id ?? null)
+        ->where('academic_year_id', $activeAcademicYear->id)
+        ->where('semester_id', $activeSemester->id)
+        ->first();
+
+    $paymentStats = [
+        'monthly_amount' => $spp?->amount ?? 0,
+        'total_amount' => $spp ? $spp->amount * count($months) : 0,
+        'total_paid' => $payments->sum('amount'),
+        'current_month_paid' => $payments->where('month', date('n'))->sum('amount'),
+        'months_paid' => $payments->pluck('month')->unique()->count(),
+        'payment_history' => $payments->sortByDesc('last_update')
+    ];
+$bookStats = [
+    'total' => $student->bookLoans->count(), // jumlah total buku
+    'returned' => $student->bookLoans->where('status', 'returned')->count(),
+    'borrowed' => $student->bookLoans->where('status', 'borrowed')->count(),
+];
+
+    $bookLoans = $student->bookLoans
+        ->where('academic_year_id', $activeAcademicYear->id)
+        ->where('semester_id', $activeSemester->id);
+
+    $bookLoanStats = [
+        'total_loans' => $bookLoans->count(),
+        'active_loans' => $bookLoans->whereNull('return_date')->count(),
+        'overdue_loans' => $bookLoans->whereNull('return_date')->filter(fn($loan) => $loan->due_date < now())->count(),
+        'loan_history' => $bookLoans->sortByDesc('loan_date')
+    ];
+
+   $rapor = $student->rapor()
+    ->where('academic_year_id', $activeAcademicYear->id)
+    ->where('semester_id', $activeSemester->id)
+    ->first();
+
+   return view('students.portalsiswa', compact(
+    'student', 'attendanceStats', 'paymentStats', 'bookStats',
+    'bookLoanStats', 'rapor', 'activeAcademicYear', 'activeSemester',
+    'months', 'currentMonth', 'currentMonthName', 'currentYear',
+    'calendarDays', 'recentAttendances', 'payments', 'bookLoans'
+));
 }
 }

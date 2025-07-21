@@ -21,24 +21,103 @@ use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(function ($request, $next) {
-            $employee = Auth::guard('employee')->user();
-            $roleName = $employee->role->role_name ?? 'Tidak diketahui';
+    public function listData(Request $request)
+{
+    // Ambil tahun akademik dan semester aktif dulu
+    $activeAcademicYear = AcademicYear::where('is_active', true)->first();
+    $activeSemester = Semester::where('is_active', true)->first();
 
-            Log::info('Akses Payment Controller', [
-                'program' => 'Payment',
-                'aktivitas' => 'Mengakses modul pembayaran',
-                'waktu' => now()->toDateTimeString(),
-                'id_employee' => auth('employee')->id(),
-                'role' => $roleName,
-                'ip' => $request->ip(),
-            ]);
-
-            return $next($request);
-        });
+    if (!$activeAcademicYear || !$activeSemester) {
+        return redirect()->back()->with('error', 'Tidak ada tahun akademik atau semester aktif');
     }
+
+    // Pastikan tanggal awal dan akhir semester valid
+    try {
+        $startDate = \Carbon\Carbon::parse($activeSemester->start_date);
+        $endDate = \Carbon\Carbon::parse($activeSemester->end_date);
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Format tanggal semester tidak valid');
+    }
+
+    // Ambil daftar bulan yang termasuk dalam range semester aktif
+    $validMonths = [];
+    $currentDate = $startDate->copy();
+
+    while ($currentDate <= $endDate) {
+        $monthNumber = (int) $currentDate->format('n');
+        $year = $currentDate->format('Y');
+
+        // Jika bulan belum ada di array, tambahkan
+        if (!isset($validMonths[$monthNumber])) {
+            $validMonths[$monthNumber] = [
+                'number' => $monthNumber,
+                'name' => $this->getMonthName($monthNumber),
+                'year' => $year
+            ];
+        }
+
+        $currentDate->addMonth();
+    }
+
+    // Ambil bulan dari query string, default ke bulan sekarang
+    $month = (int) ($request->get('month') ?? now()->format('n'));
+
+    // Jika bulan tidak ada di validMonths, set ke bulan pertama yang ada
+    if (!array_key_exists($month, $validMonths)) {
+        $month = array_key_first($validMonths);
+    }
+$query = Spp::with(['academicYear', 'semester', 'classes'])
+    ->join('classes', 'spp.class_id', '=', 'classes.class_id') // ✅ kolom benar
+    ->select('spp.*')
+    ->where('spp.academic_year_id', $activeAcademicYear->id)
+    ->where('spp.semester_id', $activeSemester->id)
+    ->orderByRaw("
+        FIELD(SUBSTRING_INDEX(classes.class_name, ' ', 1), 'X', 'XI', 'XII'),
+        CAST(SUBSTRING_INDEX(classes.class_name, ' ', -1) AS UNSIGNED)
+    ");
+
+
+    // Tambahkan filter kelas jika ada
+    $classId = $request->get('class_id');
+    if ($classId) {
+        $query->where('class_id', $classId);
+    }
+
+    $sppData = $query->get();
+
+    // Hitung total nominal tagihan
+    $totalAmount = $sppData->sum('amount');
+
+    // Hitung jumlah pembayaran pada bulan yang dipilih
+    $paidAmount = Payment::whereIn('id_spp', $sppData->pluck('id'))
+        ->where('month', $month)
+        ->where('academic_year_id', $activeAcademicYear->id)
+        ->where('semester_id', $activeSemester->id)
+        ->sum('amount');
+
+    // Hitung jumlah siswa belum bayar dan persentase pembayaran
+    $paymentPercentage = $totalAmount > 0 ? round(($paidAmount / $totalAmount) * 100, 2) : 0;
+
+    // Ambil semua kelas untuk filter dropdown
+    $classes = Classes::orderBy('class_name')->get();
+
+    return view('spp.list', [
+        'sppData' => $sppData,
+        'spp' => $sppData->first(),
+        'classes' => $classes,
+        'totalAmount' => $totalAmount,
+        'paidAmount' => $paidAmount,
+        'paymentPercentage' => $paymentPercentage,
+        'months' => $validMonths,
+        'currentMonth' => $month,
+        'activeAcademicYear' => $activeAcademicYear,
+        'activeSemester' => $activeSemester,
+        'semesterRange' => [
+            'start' => $startDate->format('d F Y'),
+            'end' => $endDate->format('d F Y')
+        ]
+    ]);
+}
 
     public function bayar(Request $request)
     {
@@ -249,7 +328,6 @@ class PaymentController extends Controller
         }
     }
 
-    // ... [rest of your existing methods with similar logging added] ...
 
     public function create(Request $request)
     {
@@ -325,7 +403,6 @@ class PaymentController extends Controller
         ]);
     }
 
-    // ... [other methods with similar logging implementation] ...
 
     public function destroy($id)
     {
@@ -377,4 +454,96 @@ class PaymentController extends Controller
                 ->with('error', 'Gagal menghapus data SPP: '.$e->getMessage());
         }
     }
+    private function getMonthName($monthNumber)
+{
+    $months = [
+        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+        5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+        9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+    ];
+
+    return $months[$monthNumber] ?? '';
+}
+ public function kelola($id, Request $request)
+{
+    // Ambil data SPP lengkap
+    $spp = Spp::with(['academicYear', 'semester', 'classes'])->findOrFail($id);
+
+    // Gunakan tahun ajaran & semester dari SPP, bukan yang aktif
+    $academicYear = $spp->academicYear;
+    $semester = $spp->semester;
+
+    if (!$academicYear || !$semester) {
+        return redirect()->back()->with('error', 'Tahun akademik atau semester tidak ditemukan pada data SPP.');
+    }
+
+    // Validasi tanggal semester
+    try {
+        $startDate = \Carbon\Carbon::parse($semester->start_date);
+        $endDate = \Carbon\Carbon::parse($semester->end_date);
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Format tanggal semester tidak valid');
+    }
+
+    // Dapatkan daftar bulan dari range semester
+    $validMonths = [];
+    $currentDate = $startDate->copy();
+    while ($currentDate <= $endDate) {
+        $monthNumber = (int) $currentDate->format('n');
+        $year = $currentDate->format('Y');
+        $validMonths[$monthNumber] = [
+            'number' => $monthNumber,
+            'name' => $this->getMonthName($monthNumber),
+            'year' => $year
+        ];
+        $currentDate->addMonth();
+    }
+
+    // Ambil bulan dari query string
+    $month = (int) ($request->get('month') ?? now()->format('n'));
+    if (!array_key_exists($month, $validMonths)) {
+        $month = array_key_first($validMonths);
+    }
+
+    // Ambil siswa dari student_semester sesuai tahun ajaran & semester dari SPP
+    $students = Student::whereIn('id_student', function ($query) use ($spp) {
+        $query->select('student_id')
+            ->from('student_semester')
+            ->where('class_id', $spp->class_id)
+            ->where('academic_year_id', $spp->academic_year_id)
+            ->where('semester_id', $spp->semester_id);
+    })->orderBy('fullname')->get();
+
+    // Ambil pembayaran berdasarkan SPP, bulan, tahun ajaran & semester dari SPP
+    $payments = Payment::where('id_spp', $spp->id)
+        ->where('month', $month)
+        ->where('academic_year_id', $spp->academic_year_id)
+        ->where('semester_id', $spp->semester_id)
+        ->get()
+        ->keyBy('id_student');
+
+    // Hitung ringkasan
+    $totalStudents = $students->count();
+    $paidStudents = $payments->count();
+    $unpaidStudents = $totalStudents - $paidStudents;
+    $totalAmount = $payments->sum('amount');
+
+    return view('spp.detailspp', [
+        'spp' => $spp,
+        'students' => $students,
+        'payments' => $payments,
+        'totalStudents' => $totalStudents,
+        'paidStudents' => $paidStudents,
+        'unpaidStudents' => $unpaidStudents,
+        'totalAmount' => $totalAmount,
+        'months' => $validMonths,
+        'currentMonth' => $month,
+        'activeAcademicYear' => $academicYear, // untuk ditampilkan
+        'activeSemester' => $semester,
+        'semesterRange' => [
+            'start' => $startDate->format('d F Y'),
+            'end' => $endDate->format('d F Y')
+        ]
+    ]);
+}
 }

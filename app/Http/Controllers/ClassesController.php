@@ -46,13 +46,12 @@ class ClassesController extends Controller
 
         // Get filtered classes
         $classes = $query->get();
+$waliKelas = Employee::whereHas('role', function ($q) {
+    $q->where('role_name', 'Wali Kelas');
+})->with('position') // agar data posisi ikut dimuat
+  ->orderBy('fullname')
+  ->get();
 
-        // Cache homeroom teachers for 1 hour
-      $waliKelas = Classes::with('employee')
-    ->whereNotNull('id_employee')
-    ->get()
-    ->pluck('employee')
-    ->unique('id_employee');
 
         return view('classes.classes', compact(
             'classes',

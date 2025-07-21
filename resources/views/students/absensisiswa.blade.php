@@ -87,16 +87,18 @@
         <!-- Header dengan Profil Admin -->
         @include('components.profiladmin')
 
-        <header class="d-flex justify-content-between align-items-center mb-4">
+       <header class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fs-4 fw-bold">Data Kehadiran Siswa</h2>
             <div class="d-flex align-items-center">
                 <div class="input-group me-3" style="width: 200px;">
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
                     <input type="text" placeholder="Cari siswa..." class="form-control" id="searchInput">
                 </div>
+                @if(auth('employee')->user()->role->role_name !== 'Admin Tata Usaha')
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAttendanceModal">
                     <i class="fas fa-plus me-1"></i> Input Kehadiran
                 </button>
+                @endif
             </div>
         </header>
 
@@ -251,6 +253,7 @@
                                                 <span class="text-muted">-</span>
                                             @endif
                                         </td>
+                                       @if(auth('employee')->user()->role->role_name !== 'Admin Tata Usaha')
                                         <td>
                                             <div class="d-flex gap-1">
                                                 @if(!$attendance->check_out_time)
@@ -270,10 +273,11 @@
                                                 </button>
                                             </div>
                                         </td>
+                                        @endif
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="9" class="text-center py-4">Tidak ada data absensi pagi</td>
+                                        <td colspan="{{ auth('employee')->user()->role->role_name !== 'TU' ? '9' : '8' }}" class="text-center py-4">Tidak ada data absensi pagi</td>
                                     </tr>
                                     @endforelse
                                 </tbody>
@@ -338,6 +342,7 @@
                                                 <span class="text-muted">-</span>
                                             @endif
                                         </td>
+                                        @if(auth('employee')->user()->role->role_name !== 'Admin Tata Usaha')
                                         <td>
                                             <button class="btn btn-danger btn-sm delete-btn"
                                                     data-attendance-id="{{ $attendance->id }}"
@@ -345,10 +350,11 @@
                                                 <i class="fas fa-trash"></i> Hapus
                                             </button>
                                         </td>
+                                        @endif
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="9" class="text-center py-4">Tidak ada data absensi sore</td>
+                                        <td colspan="{{ auth('employee')->user()->role->role_name !== 'Admin Tata Usaha' ? '9' : '8' }}" class="text-center py-4">Tidak ada data absensi sore</td>
                                     </tr>
                                     @endforelse
                                 </tbody>
@@ -360,6 +366,7 @@
         </div>
 
         <!-- Add Attendance Modal -->
+         @if(auth('employee')->user()->role->role_name !== 'Admin Tata Usaha')
         <div class="modal fade" id="addAttendanceModal" tabindex="-1" aria-labelledby="addAttendanceModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -453,8 +460,9 @@
                 </div>
             </div>
         </div>
-
+@endif
         <!-- Check Out Modal -->
+        @if(auth('employee')->user()->role->role_name !== 'Admin Tata Usaha')
         <div class="modal fade" id="checkOutModal" tabindex="-1" aria-labelledby="checkOutModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -509,7 +517,7 @@
         </div>
     </main>
 </div>
-
+@endif
 <script>
 // Fungsi untuk menyembunyikan info siswa dan form
 function hideStudentInfo() {
@@ -619,6 +627,7 @@ function initDeleteButtons() {
 
 document.addEventListener('DOMContentLoaded', function() {
     // Pencarian siswa berdasarkan NIPD
+     @if(auth('employee')->user()->role->role_name !== 'Admin tata Usaha')
     document.getElementById('searchStudentBtn').addEventListener('click', function() {
         const idStudent = document.getElementById('idStudentSearch').value.trim();
         if (!idStudent) {
@@ -661,6 +670,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 searchBtn.innerHTML = '<i class="fas fa-search me-1"></i> Cari';
             });
     });
+     @endif
 
     // Live search filter tabel
     document.getElementById('searchInput').addEventListener('input', function() {

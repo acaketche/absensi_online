@@ -69,4 +69,9 @@ class Classes extends Model
     {
         return $this->hasMany(StudentSemester::class, 'class_id', 'class_id');
     }
+    public function waliKelas()
+{
+    return $this->belongsTo(Employee::class, 'id_employee', 'id_employee');
+}
+
 }

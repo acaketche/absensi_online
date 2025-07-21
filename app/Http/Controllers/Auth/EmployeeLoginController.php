@@ -11,7 +11,10 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Facades\Password;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Facades\Validator;
+use App\Mail\welcomemail;
 
 class EmployeeLoginController extends Controller
 {
@@ -27,7 +30,7 @@ class EmployeeLoginController extends Controller
         'password' => 'required|string',
     ]);
 
-    if (Auth::guard('employee')->attempt([
+  if (Auth::guard('employee')->attempt([
     'id_employee' => $request->id_employee,
     'password' => $request->password
 ], $request->has('remember'))) {
@@ -35,17 +38,15 @@ class EmployeeLoginController extends Controller
     $employee = Auth::guard('employee')->user();
     $roleName = $employee->role->role_name ?? 'Tidak diketahui';
 
-    // Tambahkan log login di sini
-  Log::info('Aktivitas login berhasil', [
-    'program' => 'Login',
-    'aktivitas' => 'Login ke aplikasi',
-    'waktu' => now()->toDateTimeString(),
-    'id_employee' => auth('employee')->id(),
-    'role' => $roleName,
-    'ip' => $request->ip(),
-]);
+    Log::info('Aktivitas login berhasil', [
+        'program' => 'Login',
+        'aktivitas' => 'Login ke aplikasi',
+        'waktu' => now()->toDateTimeString(),
+        'id_employee' => auth('employee')->id(),
+        'role' => $roleName,
+        'ip' => $request->ip(),
+    ]);
 
-    // Redirect berdasarkan role
     if ($roleName === 'Super Admin') {
         return redirect()->route('dashboard.admin');
     } elseif ($roleName === 'Admin Tata Usaha') {
@@ -54,16 +55,22 @@ class EmployeeLoginController extends Controller
         return redirect()->route('dashboard.piket');
     } elseif ($roleName === 'Admin Perpustakaan') {
         return redirect()->route('dashboard.perpus');
-    }elseif ($roleName === 'Wali Kelas') {
+    } elseif ($roleName === 'Wali Kelas') {
         return redirect()->route('dashboard.walas');
-
-    return redirect()->route('dashboard.default')->with('warning', 'Role tidak dikenali.');
+    } else {
+        return redirect()->route('dashboard.default')->with('warning', 'Role tidak dikenali.');
+    }
 }
+
+Log::warning('Login gagal', [
+    'id_employee' => $request->id_employee,
+    'ip' => $request->ip(),
+    'waktu' => now()->toDateTimeString(),
+]);
 
 return back()->withErrors([
     'id_employee' => 'NIP atau password salah.'
 ])->withInput();
-}
 }
 
  public function logout(Request $request)
@@ -73,5 +80,70 @@ return back()->withErrors([
         $request->session()->regenerateToken();
         return redirect('/login/employee');
     }
+// Tampilkan form untuk lupa password
+public function showForgotPasswordForm()
+{
+    return view('auth.forgot-password');
+}
+
+public function sendResetLinkEmail(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email|exists:employees,email',
+    ], [
+        'email.exists' => 'Email tidak ditemukan di sistem kami.',
+    ]);
+
+    $user = Employee::where('email', $request->email)->first();
+
+    $token = Str::random(60);
+
+    DB::table('password_reset_tokens')->updateOrInsert(
+        ['email' => $user->email],
+        [
+            'email' => $user->email,
+            'token' => bcrypt($token),
+            'created_at' => now()
+        ]
+    );
+
+    Mail::to($user->email)->send(new welcomemail($token, $user->email));
+
+    return back()->with('status', 'Link reset password telah dikirim ke email Anda.');
+}
+
+// Tampilkan form reset password (dari email)
+public function showResetForm(Request $request, $token = null)
+{
+    return view('auth.reset_password')->with([
+        'token' => $token,
+        'email' => $request->email,
+    ]);
+}
+
+// Simpan password baru ke database
+public function resetPassword(Request $request)
+{
+    $request->validate([
+        'token' => 'required',
+        'email' => 'required|email|exists:employees,email',
+        'password' => 'required|string|min:8|confirmed',
+    ]);
+
+    $status = Password::broker('employees')->reset(
+        $request->only('email', 'password', 'password_confirmation', 'token'),
+        function ($employee, $password) {
+            $employee->password = Hash::make($password);
+            $employee->setRememberToken(Str::random(60));
+            $employee->save();
+
+            event(new PasswordReset($employee));
+        }
+    );
+
+    return $status === Password::PASSWORD_RESET
+        ? redirect()->route('login.employee')->with('status', __($status))
+        : back()->withErrors(['email' => [__($status)]]);
+}
 
 }

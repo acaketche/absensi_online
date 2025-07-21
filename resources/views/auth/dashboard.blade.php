@@ -2,14 +2,19 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Dashboard E-School - Sistem Manajemen Sekolah">
     <title>Dashboard - E-School</title>
+  <!-- Bootstrap (harus duluan) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<!-- FullCalendar -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
+
+<!-- Custom Style HARUS TERAKHIR supaya bisa override yang di atas -->
+    <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
+
     <style>
         :root {
             --primary-blue: #4266B9;
@@ -33,7 +38,6 @@
             background: #f8fafc;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: var(--text-dark);
-            line-height: 1.6;
             overflow-x: hidden;
         }
 
@@ -158,6 +162,7 @@
             margin-bottom: 1.5rem;
             height: 100%;
             border-top: 3px solid #4266B9;
+            min-height: 350px;
         }
 
         .chart-title {
@@ -178,6 +183,35 @@
             width: 100% !important;
             height: auto !important;
             max-height: 300px;
+        }
+
+        /* Chart Tabs */
+        .chart-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 1rem;
+        }
+
+        .chart-tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-gray);
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .chart-tab.active {
+            color: var(--primary-blue);
+            border-bottom-color: var(--primary-blue);
+        }
+
+        .chart-tab-content {
+            display: none;
+        }
+
+        .chart-tab-content.active {
+            display: block;
         }
 
         /* Chart Legend */
@@ -402,22 +436,19 @@
         .metric-card:nth-child(2) { animation-delay: 0.2s; }
         .metric-card:nth-child(3) { animation-delay: 0.3s; }
         .metric-card:nth-child(4) { animation-delay: 0.4s; }
+
     </style>
 </head>
-
+<body class="bg-light">
 @if(Auth::guard('employee')->check())
-<body>
-<div class="container-fluid">
-    <div class="row">
+   <div class="d-flex">
         {{-- Sidebar --}}
-        <div class="col-md-2 sidebar p-0">
             @include('components.sidebar')
-        </div>
 
         {{-- Main Content --}}
-        <div class="col-md-10 p-0">
-            <div class="main-content">
-                  @include('components.profiladmin')
+            <div class="main-content-wrapper flex-grow-1">
+        <main class="p-3">
+                @include('components.profiladmin')
 
                 <!-- Dashboard Header -->
                 <header class="dashboard-header">
@@ -446,8 +477,9 @@
                             </div>
                             <p class="metric-title">Total Siswa</p>
                             <p class="metric-value">{{ number_format($totalSiswa) }}</p>
-                            <div class="mt-2">
-                            </div>
+                            <div class="stat-desc">
+                        <i class="fas fa-users me-1"></i> Siswa aktif saat ini
+                    </div>
                         </div>
                     </div>
                     <div class="col-12 col-sm-6 col-lg-3">
@@ -455,8 +487,11 @@
                             <div class="metric-icon teachers">
                                 <i class="fas fa-chalkboard-teacher"></i>
                             </div>
-                            <p class="metric-title">Total Pegawai</p>
+                            <p class="metric-title">Total Pegawai dan Guru</p>
                             <p class="metric-value">{{ number_format($totalPegawai) }}</p>
+                            <div class="stat-desc">
+                        <i class="fas fa-users me-1"></i> Pegawai dan Guru aktif saat ini
+                    </div>
                         </div>
                     </div>
                     <div class="col-12 col-sm-6 col-lg-3">
@@ -489,41 +524,126 @@
                     </div>
                 </section>
 
-                <!-- Charts Section -->
+                <!-- Attendance Charts Section -->
                 <section class="row g-3 mb-4">
+                    <!-- Employee Attendance -->
                     <div class="col-12 col-lg-6">
                         <div class="chart-container">
                             <h5 class="chart-title">
-                                <i class="fas fa-chart-pie"></i> Presensi Pegawai Hari Ini
+                                <i class="fas fa-user-tie"></i> Presensi Pegawai
                             </h5>
-                            <canvas id="employeeChart"></canvas>
-                            <div class="chart-legend mt-3">
-                                @foreach(array_keys($employeeChartData ?? []) as $i => $status)
-                                <span class="status-badge"
-                                      style="background-color: {{ ['#4caf50', '#2196f3', '#ff9800', '#f44336'][$i % 4] }}20;
-                                             color: {{ ['#4caf50', '#2196f3', '#ff9800', '#f44336'][$i % 4] }};">
-                                    <i class="fas fa-circle" style="font-size: 8px;"></i>
-                                    {{ $status }}: {{ $employeeChartData[$status] ?? 0 }}
-                                </span>
-                                @endforeach
+                            <div class="chart-tabs">
+                                <div class="chart-tab active" onclick="switchTab('employee', 'daily')">Hari Ini</div>
+                                <div class="chart-tab" onclick="switchTab('employee', 'monthly')">Bulan Ini</div>
+                            </div>
+
+                            <div id="employee-daily" class="chart-tab-content active">
+                                <canvas id="employeeTodayChart"></canvas>
+                                <div class="chart-legend mt-3">
+                                    @foreach($employeeChartToday as $status => $count)
+                                    <span class="status-badge"
+                                          style="background-color: {{ [
+                                              'Hadir' => '#4CAF50',
+                                              'Izin/Sakit' => '#2196F3',
+                                              'Alpa' => '#F44336',
+                                              'Terlambat' => '#FF9800'
+                                          ][$status] ?? '#9C27B0' }}20;
+                                                 color: {{ [
+                                                     'Hadir' => '#4CAF50',
+                                                     'Izin/Sakit' => '#2196F3',
+                                                     'Alpa' => '#F44336',
+                                                     'Terlambat' => '#FF9800'
+                                                 ][$status] ?? '#9C27B0' }};">
+                                        <i class="fas fa-circle"></i>
+                                        {{ $status }}: {{ $count }}
+                                    </span>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <div id="employee-monthly" class="chart-tab-content">
+                                <canvas id="employeeMonthChart"></canvas>
+                                <div class="chart-legend mt-3">
+                                    @foreach($employeeChartMonth as $status => $count)
+                                    <span class="status-badge"
+                                          style="background-color: {{ [
+                                              'Hadir' => '#4CAF50',
+                                              'Izin/Sakit' => '#2196F3',
+                                              'Alpa' => '#F44336',
+                                              'Terlambat' => '#FF9800'
+                                          ][$status] ?? '#9C27B0' }}20;
+                                                 color: {{ [
+                                                     'Hadir' => '#4CAF50',
+                                                     'Izin/Sakit' => '#2196F3',
+                                                     'Alpa' => '#F44336',
+                                                     'Terlambat' => '#FF9800'
+                                                 ][$status] ?? '#9C27B0' }};">
+                                        <i class="fas fa-circle"></i>
+                                        {{ $status }}: {{ $count }}
+                                    </span>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Student Attendance -->
                     <div class="col-12 col-lg-6">
                         <div class="chart-container">
                             <h5 class="chart-title">
-                                <i class="fas fa-chart-pie"></i> Presensi Siswa Hari Ini
+                                <i class="fas fa-user-graduate"></i> Presensi Siswa
                             </h5>
-                            <canvas id="studentChart"></canvas>
-                            <div class="chart-legend mt-3">
-                                @foreach(array_keys($studentChartData ?? []) as $i => $status)
-                                <span class="status-badge"
-                                      style="background-color: {{ ['#4caf50', '#2196f3', '#ff9800', '#f44336'][$i % 4] }}20;
-                                             color: {{ ['#4caf50', '#2196f3', '#ff9800', '#f44336'][$i % 4] }};">
-                                    <i class="fas fa-circle" style="font-size: 8px;"></i>
-                                    {{ $status }}: {{ $studentChartData[$status] ?? 0 }}
-                                </span>
-                                @endforeach
+                            <div class="chart-tabs">
+                                <div class="chart-tab active" onclick="switchTab('student', 'daily')">Hari Ini</div>
+                                <div class="chart-tab" onclick="switchTab('student', 'monthly')">Bulan Ini</div>
+                            </div>
+
+                            <div id="student-daily" class="chart-tab-content active">
+                                <canvas id="studentTodayChart"></canvas>
+                                <div class="chart-legend mt-3">
+                                    @foreach($studentChartToday as $status => $count)
+                                    <span class="status-badge"
+                                          style="background-color: {{ [
+                                              'Hadir' => '#4CAF50',
+                                              'Izin/Sakit' => '#2196F3',
+                                              'Alpa' => '#F44336',
+                                              'Terlambat' => '#FF9800'
+                                          ][$status] ?? '#9C27B0' }}20;
+                                                 color: {{ [
+                                                     'Hadir' => '#4CAF50',
+                                                     'Izin/Sakit' => '#2196F3',
+                                                     'Alpa' => '#F44336',
+                                                     'Terlambat' => '#FF9800'
+                                                 ][$status] ?? '#9C27B0' }};">
+                                        <i class="fas fa-circle"></i>
+                                        {{ $status }}: {{ $count }}
+                                    </span>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <div id="student-monthly" class="chart-tab-content">
+                                <canvas id="studentMonthChart"></canvas>
+                                <div class="chart-legend mt-3">
+                                    @foreach($studentChartMonth as $status => $count)
+                                    <span class="status-badge"
+                                          style="background-color: {{ [
+                                              'Hadir' => '#4CAF50',
+                                              'Izin/Sakit' => '#2196F3',
+                                              'Alpa' => '#F44336',
+                                              'Terlambat' => '#FF9800'
+                                          ][$status] ?? '#9C27B0' }}20;
+                                                 color: {{ [
+                                                     'Hadir' => '#4CAF50',
+                                                     'Izin/Sakit' => '#2196F3',
+                                                     'Alpa' => '#F44336',
+                                                     'Terlambat' => '#FF9800'
+                                                 ][$status] ?? '#9C27B0' }};">
+                                        <i class="fas fa-circle"></i>
+                                        {{ $status }}: {{ $count }}
+                                    </span>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -539,38 +659,37 @@
                             <div class="table-responsive">
                                 <table class="table activity-table">
                                     <thead>
-    <tr>
-        <th width="20%">Program</th>
-        <th width="30%">Aktivitas</th>
-        <th width="30%">Oleh</th>
-        <th width="20%">Waktu</th>
-    </tr>
-</thead>
-<tbody>
-    @forelse($activities as $activity)
-    <tr>
-        <td>{{ $activity['program'] ?? 'Sistem' }}</td>
-        <td>{{ $activity['aktivitas'] ?? 'Aktivitas tidak diketahui' }}</td>
-        <td>
-             <span class="badge bg-primary">{{ $activity['role'] ?? 'Tidak diketahui' }}</span>
-        </td>
-        <td class="text-nowrap">
-            @if(isset($activity['waktu']))
-                {{ \Carbon\Carbon::parse($activity['waktu'])->locale('id')->diffForHumans() }}
-            @else
-                -
-            @endif
-        </td>
-    </tr>
-    @empty
-    <tr>
-        <td colspan="4" class="text-center py-4 text-muted">
-            Tidak ada aktivitas terbaru.
-        </td>
-    </tr>
-    @endforelse
-</tbody>
-
+                                        <tr>
+                                            <th width="20%">Program</th>
+                                            <th width="30%">Aktivitas</th>
+                                            <th width="30%">Oleh</th>
+                                            <th width="20%">Waktu</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($activities as $activity)
+                                        <tr>
+                                            <td>{{ $activity['program'] ?? 'Sistem' }}</td>
+                                            <td>{{ $activity['aktivitas'] ?? 'Aktivitas tidak diketahui' }}</td>
+                                            <td>
+                                                <span class="badge bg-primary">{{ $activity['role'] ?? 'Tidak diketahui' }}</span>
+                                            </td>
+                                            <td class="text-nowrap">
+                                                @if(isset($activity['waktu']))
+                                                    {{ \Carbon\Carbon::parse($activity['waktu'])->locale('id')->diffForHumans() }}
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        @empty
+                                        <tr>
+                                            <td colspan="4" class="text-center py-4 text-muted">
+                                                Tidak ada aktivitas terbaru.
+                                            </td>
+                                        </tr>
+                                        @endforelse
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
@@ -609,6 +728,7 @@
             </div>
         </div>
     </div>
+</main>
 </div>
 
 <!-- JavaScript Libraries -->
@@ -618,7 +738,7 @@
 
 <script>
 // Global variables to store chart instances
-let employeeChart, studentChart;
+let employeeTodayChart, studentTodayChart, employeeMonthChart, studentMonthChart;
 
 document.addEventListener('DOMContentLoaded', function() {
     // Update current date and time
@@ -662,11 +782,34 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     calendar.render();
 
-    // Initialize Charts with responsive configuration
-    const employeeCtx = document.getElementById('employeeChart').getContext('2d');
-    const studentCtx = document.getElementById('studentChart').getContext('2d');
+    // Initialize all charts
+    initCharts();
 
-    const chartOptions = {
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        if (employeeTodayChart) employeeTodayChart.resize();
+        if (studentTodayChart) studentTodayChart.resize();
+        if (employeeMonthChart) employeeMonthChart.resize();
+        if (studentMonthChart) studentMonthChart.resize();
+    });
+});
+
+// Helper function to get color based on status
+function getStatusColor(status) {
+    const colorMap = {
+        'Hadir': '#4CAF50',
+        'Izin': '#2196F3',
+        'Sakit': '#2196F3',
+        'Izin/Sakit': '#2196F3',
+        'Alpa': '#F44336',
+        'Terlambat': '#FF9800'
+    };
+    return colorMap[status] || '#9C27B0'; // Default color
+}
+
+// Common chart configuration
+function getChartOptions() {
+    return {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -676,48 +819,123 @@ document.addEventListener('DOMContentLoaded', function() {
             tooltip: {
                 callbacks: {
                     label: function(context) {
-                        return `${context.label}: ${context.raw}`;
+                        const label = context.label || '';
+                        const value = context.raw || 0;
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                        return `${label}: ${value} (${percentage}%)`;
                     }
-                },
-                bodyFont: {
-                    weight: 'bold'
                 }
             }
-        }
+        },
+        cutout: '65%'
     };
+}
 
-    employeeChart = new Chart(employeeCtx, {
-        type: 'doughnut',
-        data: {
-            labels: {!! json_encode(array_keys($employeeChartData)) !!},
-            datasets: [{
-                data: {!! json_encode(array_values($employeeChartData)) !!},
-                backgroundColor: ['#4caf50', '#2196f3', '#ff9800', '#f44336'],
-                borderWidth: 0
-            }]
-        },
-        options: chartOptions
+function initCharts() {
+    initEmployeeTodayChart();
+    initStudentTodayChart();
+    initEmployeeMonthChart();
+    initStudentMonthChart();
+}
+
+function initEmployeeTodayChart() {
+    if (document.getElementById('employeeTodayChart')) {
+        const ctx = document.getElementById('employeeTodayChart').getContext('2d');
+        const labels = {!! json_encode(array_keys($employeeChartToday)) !!};
+        const data = {!! json_encode(array_values($employeeChartToday)) !!};
+
+        employeeTodayChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: labels.map(label => getStatusColor(label)),
+                    borderWidth: 0
+                }]
+            },
+            options: getChartOptions()
+        });
+    }
+}
+
+function initStudentTodayChart() {
+    if (document.getElementById('studentTodayChart')) {
+        const ctx = document.getElementById('studentTodayChart').getContext('2d');
+        const labels = {!! json_encode(array_keys($studentChartToday)) !!};
+        const data = {!! json_encode(array_values($studentChartToday)) !!};
+
+        studentTodayChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: labels.map(label => getStatusColor(label)),
+                    borderWidth: 0
+                }]
+            },
+            options: getChartOptions()
+        });
+    }
+}
+
+function initEmployeeMonthChart() {
+    if (document.getElementById('employeeMonthChart')) {
+        const ctx = document.getElementById('employeeMonthChart').getContext('2d');
+        const labels = {!! json_encode(array_keys($employeeChartMonth)) !!};
+        const data = {!! json_encode(array_values($employeeChartMonth)) !!};
+
+        employeeMonthChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: labels.map(label => getStatusColor(label)),
+                    borderWidth: 0
+                }]
+            },
+            options: getChartOptions()
+        });
+    }
+}
+
+function initStudentMonthChart() {
+    if (document.getElementById('studentMonthChart')) {
+        const ctx = document.getElementById('studentMonthChart').getContext('2d');
+        const labels = {!! json_encode(array_keys($studentChartMonth)) !!};
+        const data = {!! json_encode(array_values($studentChartMonth)) !!};
+
+        studentMonthChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: labels.map(label => getStatusColor(label)),
+                    borderWidth: 0
+                }]
+            },
+            options: getChartOptions()
+        });
+    }
+}
+
+function switchTab(type, period) {
+    // Hide all tabs and remove active class
+    document.querySelectorAll(`#${type}-daily, #${type}-monthly`).forEach(el => {
+        el.classList.remove('active');
+    });
+    document.querySelectorAll(`.chart-tabs .chart-tab`).forEach(el => {
+        el.classList.remove('active');
     });
 
-    studentChart = new Chart(studentCtx, {
-        type: 'doughnut',
-        data: {
-            labels: {!! json_encode(array_keys($studentChartData)) !!},
-            datasets: [{
-                data: {!! json_encode(array_values($studentChartData)) !!},
-                backgroundColor: ['#4caf50', '#2196f3', '#ff9800', '#f44336'],
-                borderWidth: 0
-            }]
-        },
-        options: chartOptions
-    });
-
-    // Handle window resize
-    window.addEventListener('resize', function() {
-        if (employeeChart) employeeChart.resize();
-        if (studentChart) studentChart.resize();
-    });
-});
+    // Show selected tab and add active class
+    document.getElementById(`${type}-${period}`).classList.add('active');
+    document.querySelector(`.chart-tabs [onclick="switchTab('${type}', '${period}')"]`).classList.add('active');
+}
 
 function updateCalendar() {
     const month = document.getElementById('monthSelect').value;

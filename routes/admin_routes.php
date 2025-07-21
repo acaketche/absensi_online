@@ -18,12 +18,16 @@ use App\Http\Controllers\{
     BookLoanController,
     BookCopyController,
     PaymentController,
-    UserController
+    UserController,
+    PositionController,
+    PicketScheduleController
 };
 
 Route::middleware(['web', 'auth:employee', 'role:Super Admin'])->group(function () {
     // Dashboard
     Route::get('/admin/dashboard', [DashboardController::class, 'Superadmin'])->name('dashboard.admin');
+    Route::resource('positions', PositionController::class);
+    Route::resource('picket', PicketScheduleController::class);
 
     // Student Management
     Route::resource('students', StudentController::class);

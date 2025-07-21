@@ -22,7 +22,6 @@
 
         body {
             background-color: #f5f7fb;
-            font-family: 'Poppins', sans-serif;
         }
 
         .card {

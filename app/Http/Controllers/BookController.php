@@ -270,56 +270,50 @@ class BookController extends Controller
     }
 
     public function import(Request $request)
-    {
-        $employee = Auth::guard('employee')->user();
-        $roleName = $employee->role->role_name ?? 'Tidak diketahui';
+{
+    $employee = Auth::guard('employee')->user();
+    $roleName = $employee->role->role_name ?? 'Tidak diketahui';
 
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv'
+    $request->validate([
+        'file' => 'required|mimes:xlsx,xls,csv'
+    ]);
+
+    DB::beginTransaction();
+    try {
+        $import = new BooksImport;
+        Excel::import($import, $request->file('file'));
+
+        DB::commit();
+
+        Log::info('Import data buku', [
+            'program' => 'Perpustakaan',
+            'aktivitas' => 'Import data buku',
+            'waktu' => now()->toDateTimeString(),
+            'id_employee' => $employee->id_employee,
+            'role' => $roleName,
+            'ip' => $request->ip(),
         ]);
 
-        DB::beginTransaction();
-        try {
-            $import = new BooksImport;
-            Excel::import($import, $request->file('file'));
+        return redirect()->route('books.index')
+            ->with('success', 'Data buku dan salinan berhasil diimport.');
 
-            DB::commit();
+    } catch (\Exception $e) {
+        DB::rollBack();
 
-            Log::info('Import data buku', [
-                'program' => 'Perpustakaan',
-                'aktivitas' => 'Import data buku',
-                'waktu' => now()->toDateTimeString(),
-                'id_employee' => $employee->id_employee,
-                'role' => $roleName,
-                'ip' => $request->ip(),
-                'hasil' => [
-                    'buku_baru' => $import->getNewBooksCount(),
-                    'salinan_baru' => $import->getNewCopiesCount()
-                ]
-            ]);
+        Log::error('Gagal import data buku', [
+            'program' => 'Perpustakaan',
+            'aktivitas' => 'Import data buku',
+            'waktu' => now()->toDateTimeString(),
+            'id_employee' => $employee->id_employee,
+            'role' => $roleName,
+            'ip' => $request->ip(),
+            'error' => $e->getMessage()
+        ]);
 
-            return redirect()->route('books.index')
-                ->with('success', 'Data buku dan salinan berhasil diimport.
-                    Buku baru: ' . $import->getNewBooksCount() . ',
-                    Salinan baru: ' . $import->getNewCopiesCount());
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('Gagal import data buku', [
-                'program' => 'Perpustakaan',
-                'aktivitas' => 'Import data buku',
-                'waktu' => now()->toDateTimeString(),
-                'id_employee' => $employee->id_employee,
-                'role' => $roleName,
-                'ip' => $request->ip(),
-                'error' => $e->getMessage()
-            ]);
-
-            return redirect()->back()
-                ->with('error', 'Gagal mengimport data: ' . $e->getMessage());
-        }
+        return redirect()->back()
+            ->with('error', 'Gagal mengimport data: ' . $e->getMessage());
     }
+}
 
     public function downloadTemplate(Request $request)
     {

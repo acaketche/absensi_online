@@ -1,277 +1,579 @@
+:root {
+    --primary-color: #4266B9;
+    --secondary-color: #3A5A9A;
+    --accent-color: #4CC9F0;
+    --success-color: #28A745;
+    --warning-color: #FFC107;
+    --danger-color: #DC3545;
+    --info-color: #17A2B8;
+    --light-color: #F8F9FA;
+    --dark-color: #343A40;
+    --text-color: #2B2D42;
+    --text-muted: #6C757D;
+}
+
 body {
-    background-color: #f8f9fa;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--light-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    padding-bottom: 20px;
 }
-.main-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-.header {
-    background-color: #fff;
+
+/* Header Section */
+.student-header {
+    background-color: white;
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin-bottom: 20px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
 }
-.student-info {
+
+.student-avatar-container {
     display: flex;
     align-items: center;
-    gap: 15px;
+    margin-bottom: 10px;
 }
+
 .student-avatar {
     width: 60px;
     height: 60px;
-    border-radius: 50%;
-    background-color: #0d6efd;
+    background-color: var(--primary-color);
     color: white;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
-    font-weight: bold;
-}
-.student-details h2 {
-    margin: 0;
     font-size: 1.5rem;
+    font-weight: bold;
+    margin-right: 1rem;
+    flex-shrink: 0;
 }
-.student-details p {
-    margin: 0;
-    color: #6c757d;
-}
-.nav-pills .nav-link {
-    color: #495057;
-    font-weight: 500;
-    border-radius: 5px;
-    padding: 10px 15px;
-    margin-right: 5px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.nav-pills .nav-link.active {
-    background-color: #0d6efd;
-    color: white;
-}
-.nav-pills .nav-link:hover:not(.active) {
-    background-color: #e9ecef;
-}
-.content-section {
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin-bottom: 20px;
-}
-.section-title {
+
+.student-info h2 {
     font-size: 1.25rem;
     font-weight: 600;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #dee2e6;
+    margin-bottom: 0.25rem;
+    word-break: break-word;
 }
-.badge-hadir {
-    background-color: #28a745;
-    color: white;
-}
-.badge-sakit {
-    background-color: #ffc107;
-    color: black;
-}
-.badge-izin {
-    background-color: #17a2b8;
-    color: white;
-}
-.badge-alpa {
-    background-color: #dc3545;
-    color: white;
-}
-.badge-lunas {
-    background-color: #28a745;
-    color: white;
-}
-.badge-belum-lunas {
-    background-color: #dc3545;
-    color: white;
-}
-.badge-jatuh-tempo {
-    background-color: #ffc107;
-    color: black;
-}
-.badge-dipinjam {
-    background-color: #17a2b8;
-    color: white;
-}
-.badge-dikembalikan {
-    background-color: #28a745;
-    color: white;
-}
-.badge-terlambat {
-    background-color: #dc3545;
-    color: white;
-}
-.stat-card {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 15px;
-    border-left: 4px solid #0d6efd;
-}
-.stat-card .stat-value {
-    font-size: 1.8rem;
-    font-weight: 600;
-    margin-bottom: 5px;
-}
-.stat-card .stat-label {
-    color: #6c757d;
-    font-size: 0.9rem;
-}
-.document-card {
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 15px;
-    transition: all 0.3s ease;
-}
-.document-card:hover {
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
-}
-.document-icon {
-    font-size: 2rem;
-    margin-bottom: 10px;
-}
-.document-title {
-    font-weight: 600;
-    margin-bottom: 5px;
-}
-.document-date {
+
+.student-info p {
     font-size: 0.8rem;
-    color: #6c757d;
-    margin-bottom: 10px;
+    color: var(--text-muted);
+    margin-bottom: 0;
 }
-.book-item {
+
+.student-actions {
     display: flex;
-    margin-bottom: 15px;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    overflow: hidden;
+    gap: 10px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
 }
-.book-cover {
-    width: 80px;
-    height: 120px;
-    object-fit: cover;
-    background-color: #e9ecef;
+
+/* Navigation Tabs */
+.nav-tabs-container {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+    padding-bottom: 5px;
+}
+
+.nav-tabs-container::-webkit-scrollbar {
+    display: none;
+}
+
+.student-tabs {
+    background-color: white;
+    border-radius: 10px;
+    padding: 0.5rem;
+    display: inline-flex;
+    min-width: 100%;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.student-tabs .nav-link {
+    color: var(--text-muted);
+    border-radius: 5px;
+    padding: 0.5rem 1rem;
+    margin: 0 0.25rem;
     display: flex;
     align-items: center;
-    justify-content: center;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    transition: all 0.2s ease;
 }
-.book-details {
-    padding: 10px 15px;
-    flex: 1;
+
+.student-tabs .nav-link i {
+    margin-right: 0.5rem;
+    font-size: 1rem;
 }
-.book-title {
+
+.student-tabs .nav-link.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Content Sections */
+.content-section {
+    background-color: white;
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.section-title {
+    font-size: 1.1rem;
     font-weight: 600;
-    margin-bottom: 5px;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #EEE;
+    color: var(--primary-color);
 }
-.book-author {
-    font-size: 0.9rem;
-    color: #6c757d;
-    margin-bottom: 10px;
+
+/* Stats Cards */
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 1.5rem;
 }
-.book-status {
-    margin-bottom: 5px;
-}
-.payment-item {
-    padding: 15px;
-    border: 1px solid #dee2e6;
+
+.stat-card {
+    background-color: var(--light-color);
     border-radius: 8px;
-    margin-bottom: 15px;
+    padding: 1rem;
+    height: 100%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    text-align: center;
+    transition: transform 0.2s ease;
 }
-.payment-month {
-    font-weight: 600;
-    margin-bottom: 5px;
+
+.stat-card:hover {
+    transform: translateY(-3px);
 }
-.payment-amount {
-    font-size: 1.2rem;
-    margin-bottom: 10px;
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
 }
-.payment-date {
+
+.stat-label {
+    color: var(--text-muted);
     font-size: 0.8rem;
-    color: #6c757d;
 }
-.tab-pane {
-    padding-top: 20px;
-}
+
+/* Attendance Calendar */
 .attendance-calendar {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 5px;
-    margin-bottom: 20px;
+    margin-bottom: 1.5rem;
 }
+
 .calendar-header {
     text-align: center;
     font-weight: 600;
-    padding: 5px;
-    background-color: #f8f9fa;
-}
-.calendar-day {
-    text-align: center;
-    padding: 10px 5px;
-    border: 1px solid #dee2e6;
+    padding: 0.5rem;
+    font-size: 0.7rem;
+    background-color: #F0F0F0;
     border-radius: 5px;
+}
+
+.calendar-day {
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    background-color: #F8F9FA;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.calendar-day.empty {
+    background-color: transparent;
+}
+
+.calendar-day.weekend {
+    background-color: #F0F0F0;
+    color: #999;
+}
+
+.calendar-day.hadir {
+    background-color: #D4EDDA;
+    color: #155724;
+}
+
+.calendar-day.sakit {
+    background-color: #FFF3CD;
+    color: #856404;
+}
+
+.calendar-day.izin {
+    background-color: #D1ECF1;
+    color: #0C5460;
+}
+
+.calendar-day.alpa {
+    background-color: #F8D7DA;
+    color: #721C24;
+}
+
+.calendar-day.today {
+    border: 2px solid var(--primary-color);
+    font-weight: bold;
+}
+
+/* Badges */
+.badge {
+    padding: 0.35rem 0.6rem;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+}
+
+.badge i {
+    margin-right: 0.25rem;
+}
+
+.badge-hadir {
+    background-color: #D4EDDA;
+    color: #155724;
+}
+
+.badge-sakit {
+    background-color: #FFF3CD;
+    color: #856404;
+}
+
+.badge-izin {
+    background-color: #D1ECF1;
+    color: #0C5460;
+}
+
+.badge-alpa {
+    background-color: #F8D7DA;
+    color: #721C24;
+}
+
+.badge-lunas {
+    background-color: #D4EDDA;
+    color: #155724;
+}
+
+.badge-jatuh-tempo {
+    background-color: #FFF3CD;
+    color: #856404;
+}
+
+.badge-belum-lunas {
+    background-color: #F8D7DA;
+    color: #721C24;
+}
+
+.badge-dipinjam {
+    background-color: #D1ECF1;
+    color: #0C5460;
+}
+
+/* Payment Items */
+.payments-container {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 15px;
+}
+
+.payment-item {
+    background-color: var(--light-color);
+    border-radius: 8px;
+    padding: 1rem;
+    height: 100%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    transition: transform 0.2s ease;
+}
+
+.payment-item:hover {
+    transform: translateY(-3px);
+}
+
+.payment-month {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--primary-color);
+}
+
+.payment-amount {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.payment-date {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Book Items */
+.book-item {
+    display: flex;
+    background-color: var(--light-color);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    transition: transform 0.2s ease;
+}
+
+.book-item:hover {
+    transform: translateY(-3px);
+}
+
+.book-cover {
+    width: 50px;
+    height: 70px;
+    background-color: #E9ECEF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    margin-right: 1rem;
+    flex-shrink: 0;
+    color: var(--primary-color);
+}
+
+.book-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
     font-size: 0.9rem;
 }
-.calendar-day.today {
-    background-color: #e9ecef;
+
+.book-author {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+/* Buttons */
+.btn-action {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.btn-action i {
+    margin-right: 0.5rem;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Document Viewer */
+.document-viewer {
+    background-color: #f8f9fa;
+    min-height: 400px;
+    position: relative;
+}
+
+.pdf-container {
+    background: #525659;
+    padding: 20px 0;
+}
+
+.image-container {
+    background: repeating-conic-gradient(#f8f9fa 0% 25%, #e9ecef 0% 50%) 50% / 20px 20px;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Modal */
+.modal-xl {
+    max-width: 95%;
+}
+
+.modal-content {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: none;
+}
+
+.modal-header {
+    border-bottom: none;
+    padding: 1rem 1.5rem;
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.modal-footer {
+    border-top: none;
+    padding: 0.75rem 1.5rem;
+    background-color: #f8f9fa;
+}
+
+/* Tables */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.table th {
     font-weight: 600;
-}
-.calendar-day.hadir {
-    background-color: rgba(40, 167, 69, 0.2);
-    border-color: #28a745;
-}
-.calendar-day.sakit {
-    background-color: rgba(255, 193, 7, 0.2);
-    border-color: #ffc107;
-}
-.calendar-day.izin {
-    background-color: rgba(23, 162, 184, 0.2);
-    border-color: #17a2b8;
-}
-.calendar-day.alpa {
-    background-color: rgba(220, 53, 69, 0.2);
-    border-color: #dc3545;
-}
-.calendar-day.weekend {
     background-color: #f8f9fa;
-    color: #adb5bd;
 }
-.calendar-day.empty {
-    background-color: #f8f9fa;
-    border-color: #f8f9fa;
-}
-@media (max-width: 768px) {
-    .student-info {
-        flex-direction: column;
-        text-align: center;
+
+/* Responsive Adjustments */
+@media (min-width: 576px) {
+    .student-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
     }
-    .student-avatar {
-        margin: 0 auto;
+
+    .student-avatar-container {
+        margin-bottom: 0;
     }
-    .nav-pills {
-        overflow-x: auto;
-        white-space: nowrap;
-        flex-wrap: nowrap;
-        padding-bottom: 5px;
+
+    .stats-container {
+        grid-template-columns: repeat(4, 1fr);
     }
-    .nav-pills .nav-link {
-        display: inline-block;
+
+    .payments-container {
+        grid-template-columns: repeat(2, 1fr);
     }
-    .attendance-calendar {
-        grid-template-columns: repeat(7, 1fr);
-        font-size: 0.8rem;
-    }
+
     .calendar-day {
-        padding: 5px 2px;
+        height: 40px;
+    }
+}
+
+@media (min-width: 768px) {
+    .student-info h2 {
+        font-size: 1.5rem;
+    }
+
+    .student-info p {
+        font-size: 0.9rem;
+    }
+
+    .student-tabs .nav-link {
+        font-size: 0.9rem;
+        padding: 0.75rem 1.25rem;
+        margin: 0 0.5rem;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+    }
+
+    .stat-value {
+        font-size: 1.8rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+    }
+
+    .calendar-day {
+        height: 45px;
+        font-size: 0.9rem;
+    }
+
+    .payment-month {
+        font-size: 1rem;
+    }
+
+    .payment-amount {
+        font-size: 1.25rem;
+    }
+
+    .book-title {
+        font-size: 1rem;
+    }
+
+    .payments-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 992px) {
+    .container {
+        max-width: 960px;
+    }
+
+    .payments-container {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1140px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    body {
+        background-color: white;
+        font-size: 12pt;
+        padding: 0;
+    }
+
+    .container {
+        padding: 0;
+        max-width: 100%;
+    }
+
+    .student-header, .content-section {
+        box-shadow: none;
+        border: 1px solid #DDD;
+        page-break-inside: avoid;
+        margin-bottom: 10pt;
+    }
+
+    .student-header {
+        flex-direction: row !important;
+    }
+
+    .btn-action, .nav-tabs-container {
+        display: none;
+    }
+
+    .tab-pane {
+        display: block !important;
+        opacity: 1 !important;
+        margin-bottom: 20pt;
+    }
+
+    .stat-card, .payment-item, .book-item {
+        box-shadow: none;
+        border: 1px solid #EEE;
+    }
+
+    .badge {
+        border: 1px solid currentColor;
+    }
+
+    a[href]:after {
+        content: none !important;
     }
 }

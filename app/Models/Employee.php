@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use Illuminate\Auth\Passwords\CanResetPassword as CanResetPasswordTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
-class Employee extends Authenticatable
+class Employee extends Authenticatable implements CanResetPasswordContract
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, CanResetPasswordTrait;
 
     protected $table = 'employees';
     protected $guard = 'employee';
@@ -26,21 +28,23 @@ class Employee extends Authenticatable
         'password',
     ];
 
-    // Relasi dengan Role
     public function role()
     {
         return $this->belongsTo(Role::class, 'role_id');
     }
 
-
-public function position()
-{
-    return $this->belongsTo(Position::class, 'position_id', 'id');
-}
- public function attendances()
+    public function position()
     {
+        return $this->belongsTo(Position::class, 'position_id', 'id');
+    }
 
+    public function attendances()
+    {
         return $this->hasMany(EmployeeAttendance::class, 'id_employee', 'id_employee');
     }
 
+    public function kelasAsuh()
+    {
+        return $this->hasOne(Classes::class, 'id_employee', 'id_employee');
+    }
 }

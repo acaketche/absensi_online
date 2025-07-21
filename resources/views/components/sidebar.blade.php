@@ -1,229 +1,409 @@
 <div class="sidebar">
+    <!-- Logo Section -->
     <div class="logo">
-        <div class="logo-icon">E</div>
-        <div class="logo-text">SCHOOL</div>
+        <div class="logo-icon">
+            <img src="{{ asset('img/sma5.png') }}" alt="Logo Sekolah">
+        </div>
+        <div class="logo-text">E-SCHOOL</div>
     </div>
-    <nav>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
         @php
             use App\Models\Classes;
             use Illuminate\Support\Facades\Auth;
-
             $employee = Auth::guard('employee')->user();
             $class = Classes::where('id_employee', $employee->id_employee)->first();
             $role = Auth::guard('employee')->user()->role->role_name ?? '';
         @endphp
-        {{--  Super Admin --}}
+
+        {{-- Super Admin --}}
         @if($role === 'Super Admin')
-            <a href="{{ route('dashboard.admin') }}" class="nav-item text-white d-block mb-2" data-page="dashboard">
-                <i class="fas fa-home me-2"></i>
+            <!-- Group Title -->
+            <div class="nav-group-title">Main Menu</div>
+
+            <!-- Dashboard -->
+            <a href="{{ route('dashboard.admin') }}" class="nav-item" data-page="dashboard" data-tooltip="Dashboard">
+                <div class="nav-icon">
+                    <i class="fas fa-home"></i>
+                </div>
                 <span class="nav-text">Dashboard</span>
             </a>
-            <a href="{{ route('users.index')}}" class="nav-item text-white d-block mb-2" data-page="data-user">
-                <i class="fas fa-users me-2"></i>
+
+            <!-- Data User -->
+            <a href="{{ route('users.index') }}" class="nav-item" data-page="data-user" data-tooltip="Data User">
+                <div class="nav-icon">
+                    <i class="fas fa-users"></i>
+                </div>
                 <span class="nav-text">Data User</span>
             </a>
-            <a href="{{ route('students.index')}}" class="nav-item text-white d-block mb-2" data-page="data-siswa">
-                <i class="fas fa-user-graduate me-2"></i>
+
+            <!-- Data Siswa -->
+            <a href="{{ route('students.index') }}" class="nav-item" data-page="data-siswa" data-tooltip="Data Siswa">
+                <div class="nav-icon">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
                 <span class="nav-text">Data Siswa</span>
             </a>
-            <a href="{{ route('employees.index')}}" class="nav-item text-white d-block mb-2" data-page="data-pegawai">
-                <i class="fas fa-chalkboard-teacher me-2"></i>
-                <span class="nav-text">Data Pegawai</span>
+
+            <!-- Data Pegawai -->
+            <a href="{{ route('employees.index') }}" class="nav-item" data-page="data-pegawai" data-tooltip="Data Pegawai dan Guru">
+                <div class="nav-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <span class="nav-text">Data Pegawai dan Guru</span>
             </a>
 
-            {{-- Dropdown Absensi --}}
+            <!-- Dropdown Absensi -->
             <div class="dropdown-container">
-                <a href="#" class="nav-item text-white d-block mb-2 sidebar-dropdown-toggle" data-bs-toggle="dropdown-sidebar" data-target="absensi-dropdown">
-                    <i class="fas fa-calendar-check me-2"></i>
-                    <span class="nav-text">Absensi</span>
-                    <i class="fas fa-chevron-down dropdown-icon"></i>
-                </a>
+                <button class="sidebar-dropdown-toggle" data-target="absensi-dropdown" data-tooltip="Absensi">
+                    <div class="dropdown-main-content">
+                        <div class="nav-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <span class="nav-text">Absensi</span>
+                    </div>
+                    <div class="dropdown-icon">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </button>
+
                 <div class="dropdown-menu-sidebar" id="absensi-dropdown">
-                    <a href="{{ route('student-attendance.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="absensi-siswa">
-                        <i class="fas fa-user-check me-2"></i>
-                        <span class="nav-text">Absensi Siswa</span>
+                    <a href="{{ route('student-attendance.index') }}" class="submenu-item" data-page="absensi-siswa">
+                        <div class="submenu-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <span>Absensi Siswa</span>
                     </a>
-                    <a href="{{ route('attendance.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="absensi-pegawai">
-                        <i class="fas fa-user-tie me-2"></i>
-                        <span class="nav-text">Absensi Pegawai</span>
-                    </a>
-                </div>
-            </div>
-
-            {{-- Dropdown Master Data --}}
-            <div class="dropdown-container">
-                <a href="#" class="nav-item text-white d-block mb-2 sidebar-dropdown-toggle" data-bs-toggle="dropdown-sidebar" data-target="master-data-dropdown">
-                    <i class="fas fa-database me-2"></i>
-                    <span class="nav-text">Master Data</span>
-                    <i class="fas fa-chevron-down dropdown-icon"></i>
-                </a>
-                <div class="dropdown-menu-sidebar" id="master-data-dropdown">
-                    <a href="{{ route('academicyear.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="tahun-ajaran">
-                        <i class="fas fa-calendar-alt me-2"></i>
-                        <span class="nav-text">Tahun Ajaran & Semester</span>
-                    </a>
-                    <a href="{{ route('classes.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="kelas">
-                        <i class="fas fa-school me-2"></i>
-                        <span class="nav-text">Kelas</span>
-                    </a>
-                    <a href="{{ route('holidays.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="hari-libur">
-                        <i class="fas fa-calendar-day me-2"></i>
-                        <span class="nav-text">Hari Libur</span>
+                    <a href="{{ route('attendance.index') }}" class="submenu-item" data-page="absensi-pegawai">
+                        <div class="submenu-icon">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <span>Absensi Pegawai dan Guru</span>
                     </a>
                 </div>
             </div>
 
-            <a href="{{ route('payment.listdata')}}" class="nav-item text-white d-block mb-2" data-page="data-spp">
-                <i class="fas fa-money-bill-wave me-2"></i>
+            <!-- Manajemen SPP -->
+            <a href="{{ route('payment.listdata') }}" class="nav-item" data-page="data-spp" data-tooltip="Manajemen SPP">
+                <div class="nav-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
                 <span class="nav-text">Manajemen SPP</span>
             </a>
-                        {{-- Dropdown Manajemen Buku --}}
+
+            <!-- Dropdown Manajemen Buku -->
             <div class="dropdown-container">
-                <a href="#" class="nav-item text-white d-block mb-2 sidebar-dropdown-toggle" data-bs-toggle="dropdown-sidebar" data-target="buku-dropdown">
-                    <i class="fas fa-book me-2"></i>
-                    <span class="nav-text">Manajemen Buku</span>
-                    <i class="fas fa-chevron-down dropdown-icon"></i>
-                </a>
+                <button class="sidebar-dropdown-toggle" data-target="buku-dropdown" data-tooltip="Manajemen Buku">
+                    <div class="dropdown-main-content">
+                        <div class="nav-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <span class="nav-text">Manajemen Buku</span>
+                    </div>
+                    <div class="dropdown-icon">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </button>
+
                 <div class="dropdown-menu-sidebar" id="buku-dropdown">
-                    <a href="{{ route('books.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="buku-paket">
-                        <i class="fas fa-book-open me-2"></i>
-                        <span class="nav-text">Buku Paket</span>
+                    <a href="{{ route('books.index') }}" class="submenu-item" data-page="buku-paket">
+                        <div class="submenu-icon">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <span>Buku Paket</span>
                     </a>
-                    <a href="{{ route('book-loans.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="peminjaman-buku">
-                        <i class="fas fa-exchange-alt me-2"></i>
-                        <span class="nav-text">Peminjaman</span>
+                    <a href="{{ route('book-loans.index') }}" class="submenu-item" data-page="peminjaman-buku">
+                        <div class="submenu-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <span>Peminjaman</span>
                     </a>
                 </div>
             </div>
-            <a href="{{ route('rapor.classes')}}" class="nav-item text-white d-block mb-2" data-page="data-nilai">
-                <i class="fas fa-chart-bar me-2"></i>
+
+            <!-- Data Rapor -->
+            <a href="{{ route('rapor.classes') }}" class="nav-item" data-page="data-nilai" data-tooltip="Data Rapor Siswa">
+                <div class="nav-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
                 <span class="nav-text">Data Rapor Siswa</span>
             </a>
-        @endif
 
-            {{--  Admin Tata Usaha --}}
-    @if($role === 'Admin Tata Usaha')
-        <a href="{{ route('dashboard.TU') }}" class="nav-item text-white d-block mb-2" data-page="dashboard">
-            <i class="fas fa-home me-2"></i>
-            <span class="nav-text">Dashboard</span>
-        </a>
-        <a href="{{ route('students.index')}}" class="nav-item text-white d-block mb-2" data-page="data-siswa">
-            <i class="fas fa-user-graduate me-2"></i>
-            <span class="nav-text">Data Siswa</span>
-        </a>
-        <a href="{{ route('employees.index')}}" class="nav-item text-white d-block mb-2" data-page="data-pegawai">
-            <i class="fas fa-chalkboard-teacher me-2"></i>
-            <span class="nav-text">Data Pegawai</span>
-        </a>
-    {{-- Dropdown Master Data --}}
-    <div class="dropdown-container">
-        <a href="#" class="nav-item text-white d-block mb-2 sidebar-dropdown-toggle" data-bs-toggle="dropdown-sidebar" data-target="master-data-dropdown">
-            <i class="fas fa-database me-2"></i>
-            <span class="nav-text">Master Data</span>
-            <i class="fas fa-chevron-down dropdown-icon"></i>
-        </a>
-        <div class="dropdown-menu-sidebar" id="master-data-dropdown">
-            <a href="{{ route('academicyear.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="tahun-ajaran">
-                <i class="fas fa-calendar-alt me-2"></i>
-                <span class="nav-text">Tahun Ajaran & Semester</span>
-            </a>
-            <a href="{{ route('classes.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="kelas">
-                <i class="fas fa-school me-2"></i>
-                <span class="nav-text">Kelas</span>
-            </a>
-            <a href="{{ route('holidays.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="hari-libur">
-                <i class="fas fa-calendar-day me-2"></i>
-                <span class="nav-text">Hari Libur</span>
-            </a>
-        </div>
-    </div>
-        <a href="{{ route('payment.listdata')}}" class="nav-item text-white d-block mb-2" data-page="data-spp">
-            <i class="fas fa-money-bill-wave me-2"></i>
-            <span class="nav-text">Manajemen SPP</span>
-        </a>
-    @endif
+            <!-- Separator -->
+            <div class="nav-separator"></div>
 
-         {{--  Admin Pegawai Piket --}}
-        @if($role === 'Admin Pegawai Piket')
-            <a href="{{ route('dashboard.piket') }}" class="nav-item text-white d-block mb-2" data-page="dashboard">
-                <i class="fas fa-home me-2"></i>
-                <span class="nav-text">Dashboard</span>
-            </a>
-            <a href="{{ route('students.index')}}" class="nav-item text-white d-block mb-2" data-page="data-siswa">
-                <i class="fas fa-user-graduate me-2"></i>
-                <span class="nav-text">Data Siswa</span>
-            </a>
-            {{-- Dropdown Absensi --}}
+            <!-- Group Title -->
+            <div class="nav-group-title">Master Data</div>
+
+            <!-- Dropdown Master Data -->
             <div class="dropdown-container">
-                <a href="#" class="nav-item text-white d-block mb-2 sidebar-dropdown-toggle" data-bs-toggle="dropdown-sidebar" data-target="absensi-dropdown">
-                    <i class="fas fa-calendar-check me-2"></i>
-                    <span class="nav-text">Absensi</span>
-                    <i class="fas fa-chevron-down dropdown-icon"></i>
-                </a>
-                <div class="dropdown-menu-sidebar" id="absensi-dropdown">
-                    <a href="{{ route('student-attendance.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="absensi-siswa">
-                        <i class="fas fa-user-check me-2"></i>
-                        <span class="nav-text">Absensi Siswa</span>
+                <button class="sidebar-dropdown-toggle" data-target="master-data-dropdown" data-tooltip="Master Data">
+                    <div class="dropdown-main-content">
+                        <div class="nav-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <span class="nav-text">Master Data</span>
+                    </div>
+                    <div class="dropdown-icon">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </button>
+
+                <div class="dropdown-menu-sidebar" id="master-data-dropdown">
+                    <a href="{{ route('positions.index') }}" class="submenu-item" data-page="data-jabatan">
+                        <div class="submenu-icon">
+                            <i class="fas fa-sitemap"></i>
+                        </div>
+                        <span>Data Jabatan</span>
                     </a>
-                    <a href="{{ route('attendance.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="absensi-pegawai">
-                        <i class="fas fa-user-tie me-2"></i>
-                        <span class="nav-text">Absensi Pegawai</span>
+                    <a href="{{ route('picket.index') }}" class="submenu-item" data-page="piket">
+                        <div class="submenu-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <span>Jadwal Piket</span>
+                    </a>
+                    <a href="{{ route('classes.index') }}" class="submenu-item" data-page="kelas">
+                        <div class="submenu-icon">
+                            <i class="fas fa-school"></i>
+                        </div>
+                        <span>Kelas</span>
+                    </a>
+                    <a href="{{ route('holidays.index') }}" class="submenu-item" data-page="hari-libur">
+                        <div class="submenu-icon">
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                        <span>Hari Libur</span>
+                    </a>
+                    <a href="{{ route('academicyear.index') }}" class="submenu-item" data-page="tahun-ajaran">
+                        <div class="submenu-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <span>Tahun Ajaran & Semester</span>
                     </a>
                 </div>
             </div>
+        @endif
+
+        {{-- Admin Tata Usaha --}}
+        @if($role === 'Admin Tata Usaha')
+            <!-- Group Title -->
+            <div class="nav-group-title">Main Menu</div>
+
+            <!-- Dashboard -->
+            <a href="{{ route('dashboard.TU') }}" class="nav-item" data-page="dashboard" data-tooltip="Dashboard">
+                <div class="nav-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <span class="nav-text">Dashboard</span>
+            </a>
+
+            <!-- Data Siswa -->
+            <a href="{{ route('students.index') }}" class="nav-item" data-page="data-siswa" data-tooltip="Data Siswa">
+                <div class="nav-icon">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <span class="nav-text">Data Siswa</span>
+            </a>
+
+            <!-- Data Pegawai -->
+            <a href="{{ route('employees.index') }}" class="nav-item" data-page="data-pegawai" data-tooltip="Data Pegawai dan Guru">
+                <div class="nav-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <span class="nav-text">Data Pegawai dan Guru</span>
+            </a>
+
+            <!-- Dropdown Absensi -->
+            <div class="dropdown-container">
+                <button class="sidebar-dropdown-toggle" data-target="absensi-dropdown-tu" data-tooltip="Absensi">
+                    <div class="dropdown-main-content">
+                        <div class="nav-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <span class="nav-text">Absensi</span>
+                    </div>
+                    <div class="dropdown-icon">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </button>
+
+                <div class="dropdown-menu-sidebar" id="absensi-dropdown-tu">
+                    <a href="{{ route('student-attendance.index') }}" class="submenu-item" data-page="absensi-siswa">
+                        <div class="submenu-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <span>Absensi Siswa</span>
+                    </a>
+                    <a href="{{ route('attendance.index') }}" class="submenu-item" data-page="absensi-pegawai">
+                        <div class="submenu-icon">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <span>Absensi Pegawai dan Guru</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Manajemen SPP -->
+            <a href="{{ route('payment.listdata') }}" class="nav-item" data-page="data-spp" data-tooltip="Manajemen SPP">
+                <div class="nav-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <span class="nav-text">Manajemen SPP</span>
+            </a>
+
+            <!-- Separator -->
+            <div class="nav-separator"></div>
+
+            <!-- Group Title -->
+            <div class="nav-group-title">Master Data</div>
+
+            <!-- Dropdown Master Data -->
+            <div class="dropdown-container">
+                <button class="sidebar-dropdown-toggle" data-target="master-data-dropdown-tu" data-tooltip="Master Data">
+                    <div class="dropdown-main-content">
+                        <div class="nav-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <span class="nav-text">Master Data</span>
+                    </div>
+                    <div class="dropdown-icon">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </button>
+
+                <div class="dropdown-menu-sidebar" id="master-data-dropdown-tu">
+                    <a href="{{ route('positions.index') }}" class="submenu-item" data-page="data-jabatan">
+                        <div class="submenu-icon">
+                            <i class="fas fa-sitemap"></i>
+                        </div>
+                        <span>Data Jabatan</span>
+                    </a>
+                    <a href="{{ route('picket.index') }}" class="submenu-item" data-page="piket">
+                        <div class="submenu-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <span>Jadwal Piket</span>
+                    </a>
+                    <a href="{{ route('classes.index') }}" class="submenu-item" data-page="kelas">
+                        <div class="submenu-icon">
+                            <i class="fas fa-school"></i>
+                        </div>
+                        <span>Kelas</span>
+                    </a>
+                    <a href="{{ route('holidays.index') }}" class="submenu-item" data-page="hari-libur">
+                        <div class="submenu-icon">
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                        <span>Hari Libur</span>
+                    </a>
+                </div>
+            </div>
+        @endif
+
+        {{-- Admin Pegawai Piket --}}
+        @if($role === 'Admin Pegawai Piket')
+            <!-- Group Title -->
+            <div class="nav-group-title">Main Menu</div>
+
+            <!-- Dashboard -->
+            <a href="{{ route('dashboard.piket') }}" class="nav-item" data-page="dashboard" data-tooltip="Dashboard">
+                <div class="nav-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <span class="nav-text">Dashboard</span>
+            </a>
+
+            <!-- Data Siswa -->
+            <a href="{{ route('students.index') }}" class="nav-item" data-page="data-siswa" data-tooltip="Data Siswa">
+                <div class="nav-icon">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <span class="nav-text">Data Siswa</span>
+            </a>
+
+            <!-- Absensi Siswa -->
+            <a href="{{ route('student-attendance.index') }}" class="nav-item" data-page="absensi-siswa" data-tooltip="Absensi Siswa">
+                <div class="nav-icon">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <span class="nav-text">Absensi Siswa</span>
+            </a>
         @endif
 
         {{-- Admin Perpustakaan --}}
         @if($role === 'Admin Perpustakaan')
-            <a href="{{ route('dashboard.perpus') }}" class="nav-item text-white d-block mb-2" data-page="dashboard">
-                <i class="fas fa-home me-2"></i>
+            <!-- Group Title -->
+            <div class="nav-group-title">Main Menu</div>
+
+            <!-- Dashboard -->
+            <a href="{{ route('dashboard.perpus') }}" class="nav-item" data-page="dashboard" data-tooltip="Dashboard">
+                <div class="nav-icon">
+                    <i class="fas fa-home"></i>
+                </div>
                 <span class="nav-text">Dashboard</span>
             </a>
-                    {{-- Dropdown Manajemen Buku --}}
+
+            <!-- Dropdown Manajemen Buku -->
             <div class="dropdown-container">
-                <a href="#" class="nav-item text-white d-block mb-2 sidebar-dropdown-toggle" data-bs-toggle="dropdown-sidebar" data-target="buku-dropdown">
-                    <i class="fas fa-book me-2"></i>
-                    <span class="nav-text">Manajemen Buku</span>
-                    <i class="fas fa-chevron-down dropdown-icon"></i>
-                </a>
-                <div class="dropdown-menu-sidebar" id="buku-dropdown">
-                    <a href="{{ route('books.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="buku-paket">
-                        <i class="fas fa-book-open me-2"></i>
-                        <span class="nav-text">Buku Paket</span>
+                <button class="sidebar-dropdown-toggle" data-target="buku-dropdown-perpus" data-tooltip="Manajemen Buku">
+                    <div class="dropdown-main-content">
+                        <div class="nav-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <span class="nav-text">Manajemen Buku</span>
+                    </div>
+                    <div class="dropdown-icon">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </button>
+
+                <div class="dropdown-menu-sidebar" id="buku-dropdown-perpus">
+                    <a href="{{ route('books.index') }}" class="submenu-item" data-page="buku-paket">
+                        <div class="submenu-icon">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <span>Buku Paket</span>
                     </a>
-                    <a href="{{ route('book-loans.index')}}" class="nav-item text-white d-block mb-2 ps-4" data-page="peminjaman-buku">
-                        <i class="fas fa-exchange-alt me-2"></i>
-                        <span class="nav-text">Peminjaman</span>
+                    <a href="{{ route('book-loans.index') }}" class="submenu-item" data-page="peminjaman-buku">
+                        <div class="submenu-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <span>Peminjaman</span>
                     </a>
                 </div>
             </div>
-            <a href="{{ route('book-loans.index')}}" class="nav-item text-white d-block mb-2" data-page="peminjaman-buku">
-                <i class="fas fa-exchange-alt me-2"></i>
-                <span class="nav-text">Peminjaman Buku</span>
-            </a>
         @endif
 
-         {{--  Wali Kelas --}}
-@if($role === 'Wali Kelas')
-    <a href="{{ route('dashboard.walas') }}" class="nav-item text-white d-block mb-2" data-page="dashboard">
-        <i class="fas fa-home me-2"></i>
-        <span class="nav-text">Dashboard</span>
-    </a>
+        {{-- Wali Kelas --}}
+        @if($role === 'Wali Kelas')
+            <!-- Group Title -->
+            <div class="nav-group-title">Main Menu</div>
 
-    @if($class)
-        <a href="{{ route('rapor.students', ['classId' => $class->class_id]) }}" class="nav-item text-white d-block mb-2" data-page="data-nilai">
-            <i class="fas fa-chart-bar me-2"></i>
-            <span class="nav-text">Data Rapor Siswa</span>
-        </a>
-    @endif
-@endif
+            <!-- Dashboard -->
+            <a href="{{ route('dashboard.walas') }}" class="nav-item" data-page="dashboard" data-tooltip="Dashboard">
+                <div class="nav-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <span class="nav-text">Dashboard</span>
+            </a>
+
+            @if($class)
+                <!-- Data Rapor -->
+                <a href="{{ route('rapor.students', ['classId' => $class->class_id]) }}" class="nav-item" data-page="data-nilai" data-tooltip="Data Rapor Siswa">
+                    <div class="nav-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <span class="nav-text">Data Rapor Siswa</span>
+                </a>
+            @endif
+        @endif
     </nav>
 </div>
-
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
     // Handle dropdown toggles
-    const dropdownToggles = document.querySelectorAll('[data-bs-toggle="dropdown-sidebar"]');
+    const dropdownToggles = document.querySelectorAll('.sidebar-dropdown-toggle');
 
     dropdownToggles.forEach(toggle => {
         toggle.addEventListener('click', function(e) {
@@ -233,6 +413,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const targetDropdown = document.getElementById(targetId);
 
             if (targetDropdown) {
+                // Toggle dropdown
                 targetDropdown.classList.toggle('show');
                 this.classList.toggle('show');
 
@@ -247,7 +428,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Handle active state for nav items
-    const navItems = document.querySelectorAll('.nav-item');
+    const navItems = document.querySelectorAll('.nav-item, .submenu-item');
 
     navItems.forEach(item => {
         item.addEventListener('click', function() {
@@ -265,7 +446,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Set status dropdown dari localStorage
+    // Restore dropdown states dari localStorage
     dropdownToggles.forEach(toggle => {
         const targetId = toggle.getAttribute('data-target');
         if (localStorage.getItem(`dropdown-${targetId}`) === 'open') {
@@ -280,7 +461,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set item aktif dari localStorage
     const activePage = localStorage.getItem('activePage');
     if (activePage) {
-        const activeNavItem = document.querySelector(`.nav-item[data-page="${activePage}"]`);
+        const activeNavItem = document.querySelector(`[data-page="${activePage}"]`);
         if (activeNavItem) {
             activeNavItem.classList.add('active');
 
@@ -288,12 +469,28 @@ document.addEventListener('DOMContentLoaded', function() {
             const parentDropdown = activeNavItem.closest('.dropdown-menu-sidebar');
             if (parentDropdown) {
                 parentDropdown.classList.add('show');
-                const parentToggle = parentDropdown.previousElementSibling;
+                const parentToggle = document.querySelector(`[data-target="${parentDropdown.id}"]`);
                 if (parentToggle) {
                     parentToggle.classList.add('show');
                 }
             }
         }
     }
+
+    // Handle responsive sidebar collapse
+    function handleResize() {
+        const sidebar = document.querySelector('.sidebar');
+        if (window.innerWidth <= 768) {
+            sidebar.classList.add('collapsed');
+        } else {
+            sidebar.classList.remove('collapsed');
+        }
+    }
+
+    // Initial check
+    handleResize();
+
+    // Listen for resize events
+    window.addEventListener('resize', handleResize);
 });
 </script>

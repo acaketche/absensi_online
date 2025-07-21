@@ -10,12 +10,6 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
   <style>
-    .table-container {
-      max-height: 600px;
-      overflow-y: auto;
-      border: 1px solid #dee2e6;
-      border-radius: 0.25rem;
-    }
 
     .table-container thead th {
       position: sticky;
@@ -47,6 +41,30 @@
       justify-content: center;
       color: #6c757d;
     }
+    .table thead th,
+.table tbody td {
+  vertical-align: middle;
+  text-align: left;
+}
+
+.table-bordered th,
+.table-bordered td {
+  border: 3px solid #dee2e6 !important;
+}
+
+.table-container {
+  max-height: 800px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+}
+
+.teacher-photo {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+}
+
   </style>
 </head>
 <body class="bg-light">
@@ -112,92 +130,84 @@
       </div>
     </div>
 
-    <!-- Data Kelas -->
     <div class="card border-0 shadow-sm">
-      <div class="card-header bg-primary text-white">
-        <i class="fas fa-list me-2"></i>Daftar Kelas
+  <div class="card-header bg-primary text-white">
+    <i class="fas fa-list me-2"></i>Daftar Kelas
+  </div>
+  <div class="card-body p-0">
+    @if($classes->isEmpty())
+      <div class="empty-state">
+        <i class="fas fa-chalkboard-teacher fa-3x mb-3"></i>
+        <h5 class="mb-2">Tidak Ada Data Kelas</h5>
+        <p class="text-muted mb-4">Silahkan tambahkan kelas baru menggunakan tombol di atas</p>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addClassModal">
+          <i class="fas fa-plus me-1"></i> Tambah Kelas
+        </button>
       </div>
-      <div class="card-body p-0">
-        @if($classes->isEmpty())
-          <div class="empty-state">
-            <i class="fas fa-chalkboard-teacher fa-3x mb-3"></i>
-            <h5 class="mb-2">Tidak Ada Data Kelas</h5>
-            <p class="text-muted mb-4">Silahkan tambahkan kelas baru menggunakan tombol di atas</p>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addClassModal">
-              <i class="fas fa-plus me-1"></i> Tambah Kelas
-            </button>
-          </div>
-        @else
-          <div class="table-container">
-            <table class="table table-hover mb-0" id="classTable">
-              <thead class="table-light">
-                <tr>
-                  <th width="5%">No</th>
-                  <th width="25%">Nama Kelas</th>
-                  <th width="40%">Wali Kelas</th>
-                  <th width="15%">Tahun Ajaran</th>
-                  <th width="15%">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                @foreach($classes as $class)
-                <tr>
-                  <td>{{ $loop->iteration }}</td>
-                  <td>
-                    {{ $class->class_name }}
-                  </td>
-                  <td>
-                    <div class="d-flex align-items-center">
-                      <img src="{{ $class->employee?->photo ? asset('storage/' . $class->employee->photo) : asset('images/default-profile.png') }}"
-                        alt="Foto {{ $class->employee?->fullname ?? 'Tidak Ada Data' }}"
-                        class="teacher-photo rounded-circle me-3">
-                      <div>
-                        <p class="mb-0 fw-medium">
-                          {{ $class->employee?->fullname ?? 'Belum Ada Wali Kelas' }}
-                        </p>
-                        <small class="text-muted">
-                          <i class="fas fa-id-card me-1"></i>{{ $class->employee?->id_employee ?? '-' }}
-                        </small>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span class="badge bg-light text-dark">
-                      {{ $class->academicYear->year_name ?? '-' }}
-                    </span>
-                  </td>
-                  <td>
-                    <div class="d-flex gap-2">
-                      <a href="{{ route('classes.show', $class->class_id) }}"
-                        class="btn btn-sm btn-info" title="Detail">
-                        <i class="fas fa-eye"></i>
-                      </a>
-
-                        <!-- Tombol Edit -->
-                                <button class="btn btn-sm btn-warning"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editClassModal"
-                                        data-class-id="{{ $class->class_id }}">
-                                    <i class="fas fa-edit me-1"></i>
-                                </button>
-
-                      <button class="btn btn-sm btn-danger delete-class"
-                        data-class-id="{{ $class->class_id }}"
-                        data-class-name="{{ $class->class_name }}"
-                        title="Hapus">
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                @endforeach
-              </tbody>
-            </table>
-          </div>
-        @endif
+    @else
+      <div class="table-container">
+        <table class="table table-hover table-bordered mb-0" id="classTable">
+          <thead class="table-light">
+            <tr>
+              <th width="5%">No</th>
+              <th width="25%">Nama Kelas</th>
+              <th width="40%">Wali Kelas</th>
+              <th width="15%">Tahun Ajaran</th>
+              <th width="15%">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach($classes as $class)
+            <tr>
+              <td>{{ $loop->iteration }}</td>
+              <td>{{ $class->class_name }}</td>
+              <td>
+                <div class="d-flex align-items-center">
+                  <img src="{{ $class->employee?->photo ? asset('storage/' . $class->employee->photo) : asset('images/default-profile.png') }}"
+                    alt="Foto {{ $class->employee?->fullname ?? 'Tidak Ada Data' }}"
+                    class="teacher-photo rounded-circle me-3">
+                  <div>
+                    <p class="mb-0 fw-medium teacher-name">
+                      {{ $class->employee?->fullname ?? 'Belum Ada Wali Kelas' }}
+                    </p>
+                    <small class="text-muted">
+                      <i class="fas fa-id-card me-1"></i>{{ $class->employee?->id_employee ?? '-' }}
+                    </small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark">
+                  {{ $class->academicYear->year_name ?? '-' }}
+                </span>
+              </td>
+              <td>
+                <div class="d-flex gap-2">
+                  <a href="{{ route('classes.show', $class->class_id) }}" class="btn btn-sm btn-info" title="Detail">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editClassModal" data-class-id="{{ $class->class_id }}">
+                    <i class="fas fa-edit me-1"></i>
+                  </button>
+                  <form method="POST" action="{{ route('classes.destroy', $class->class_id) }}" class="delete-class-form d-inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" class="btn btn-sm btn-danger delete-class"
+                      data-class-id="{{ $class->class_id }}"
+                      data-class-name="{{ $class->class_name }}"
+                      title="Hapus">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            @endforeach
+          </tbody>
+        </table>
       </div>
-    </div>
-  </main>
+    @endif
+  </div>
 </div>
 
 <!-- Modal Tambah Kelas -->
@@ -221,7 +231,7 @@
                         <option value="">-- Pilih Wali Kelas --</option>
                         @foreach ($waliKelas as $wali)
                             <option value="{{ $wali->id_employee}}">
-                                {{ $wali->fullname }} (NIP: {{ $wali->id_employee }})
+                                {{ $wali->fullname }} (NIP: {{ $wali->id_employee }}) - {{ $wali->position->name ?? '-' }}
                             </option>
                         @endforeach
                     </select>

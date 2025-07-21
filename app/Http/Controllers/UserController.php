@@ -9,15 +9,27 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    // Menampilkan daftar user dari Employee
-    public function index()
-    {
-        $users = Employee::select('id_employee', 'email', 'fullname', 'role_id')
-            ->whereIn('role_id', [1, 2, 3, 4, 5])
-            ->get();
+    // Controller
+public function index()
+{
+    $users = Employee::with(['role', 'position']) // Tambahkan 'position'
+        ->select('id_employee', 'email', 'fullname', 'role_id', 'position_id')
+        ->whereIn('role_id', [2, 3, 4, 5, 1])
+        ->orderByRaw("FIELD(role_id, 2, 3, 4, 5, 1)")
+        ->orderBy('fullname')
+        ->get();
 
-        return view('auth.user', compact('users'));
-    }
+    // Hitung jumlah per role
+$roleCounts = [
+    'Wali Kelas' => Employee::where('role_id', 1)->count(),
+    'Super Admin' => Employee::where('role_id', 2)->count(),
+    'Admin Tata Usaha' => Employee::where('role_id', 3)->count(),
+    'Admin Pegawai Piket' => Employee::where('role_id', 4)->count(),
+    'Admin Perpustakaan' => Employee::where('role_id', 5)->count()
+];
+
+    return view('auth.user', compact('users', 'roleCounts'));
+}
 
     // Form Tambah User
     public function create()

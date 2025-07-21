@@ -25,6 +25,14 @@
             font-size: 40px;
             color: #7950F2;
         }
+
+        .delete-checkbox {
+            margin-top: 5px;
+        }
+
+        .current-file {
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -56,7 +64,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="id_employee" class="form-label">ID Pegawai</label>
-                                <input type="text" class="form-control" id="id_employee" name="id_employee" value="{{ $employee->id_employee }}" readonly>
+                                <input type="text" class="form-control" id="id_employee" name="id_employee" value="{{ $employee->id_employee }}">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="fullname" class="form-label">Nama Lengkap</label>
@@ -161,10 +169,16 @@
                                 <input type="file" class="form-control @error('photo') is-invalid @enderror" id="photo" name="photo" accept="image/jpeg,image/png,image/jpg">
                                 <small class="form-text text-muted">Upload foto dalam format JPEG, PNG, atau JPG. Maksimal 2MB.</small>
                                 @if($employee->photo)
-                                <div class="mt-2">
+                                <div class="current-file mt-2">
                                     <small class="text-muted">Foto saat ini:</small>
                                     <div class="mt-1">
                                         <img src="{{ asset('storage/' . $employee->photo) }}" alt="Foto Pegawai" width="100" height="100" style="object-fit: cover; border-radius: 5px;">
+                                    </div>
+                                    <div class="form-check delete-checkbox">
+                                        <input class="form-check-input" type="checkbox" id="delete_photo" name="delete_photo">
+                                        <label class="form-check-label text-danger" for="delete_photo">
+                                            Hapus foto saat ini
+                                        </label>
                                     </div>
                                 </div>
                                 @endif
@@ -177,10 +191,16 @@
                                 <input type="file" class="form-control @error('qr_code') is-invalid @enderror" id="qr_code" name="qr_code" accept="image/png">
                                 <small class="form-text text-muted">Upload QR code dalam format PNG. Maksimal 1MB.</small>
                                 @if($employee->qr_code)
-                                <div class="mt-2">
+                                <div class="current-file mt-2">
                                     <small class="text-muted">QR Code saat ini:</small>
                                     <div class="mt-1">
                                         <img src="{{ asset('storage/' . $employee->qr_code) }}" alt="QR Code" width="100">
+                                    </div>
+                                    <div class="form-check delete-checkbox">
+                                        <input class="form-check-input" type="checkbox" id="delete_qr_code" name="delete_qr_code">
+                                        <label class="form-check-label text-danger" for="delete_qr_code">
+                                            Hapus QR code saat ini
+                                        </label>
                                     </div>
                                 </div>
                                 @endif

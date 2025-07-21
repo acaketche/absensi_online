@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-School - Login</title>
+    <title>E-School - Reset Password</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,23 +32,22 @@
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--bg-light);
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%234266b9' fill-opacity='0.05'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%234266b9' fill-opacity='0.05'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
 
-        .login-card {
+        .reset-card {
             background: var(--white);
             border-radius: 16px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
             overflow: hidden;
             width: 900px;
-            display: flex;
             max-width: 95%;
             margin: 20px;
-            position: relative;
+            display: flex;
         }
 
         .logo-section {
@@ -58,9 +57,9 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            width: 50%;
             position: relative;
             overflow: hidden;
+            width: 50%;
         }
 
         .logo-section::before {
@@ -81,11 +80,6 @@
             filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
             position: relative;
             z-index: 2;
-            transition: transform 0.3s ease;
-        }
-
-        .logo-section img:hover {
-            transform: scale(1.05);
         }
 
         .logo-text {
@@ -109,21 +103,21 @@
         }
 
         .form-section {
-            padding: 50px 40px;
-            width: 50%;
+            padding: 50px;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            width: 50%;
         }
 
-        .login-title {
+        .reset-title {
             font-size: 28px;
             font-weight: 600;
             color: var(--text-dark);
             margin-bottom: 10px;
         }
 
-        .login-subtitle {
+        .reset-subtitle {
             font-size: 14px;
             color: var(--text-light);
             margin-bottom: 30px;
@@ -151,7 +145,7 @@
             box-shadow: 0 0 0 3px rgba(66, 102, 185, 0.15);
         }
 
-        .btn-login {
+        .btn-primary {
             background-color: var(--primary);
             border: none;
             border-radius: 8px;
@@ -161,39 +155,18 @@
             width: 100%;
             margin-top: 10px;
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
         }
 
-        .btn-login::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: all 0.6s ease;
-        }
-
-        .btn-login:hover {
+        .btn-primary:hover {
             background-color: var(--primary-dark);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(66, 102, 185, 0.2);
         }
 
-        .btn-login:hover::after {
-            left: 100%;
-        }
-
-        .btn-login:active {
-            transform: translateY(0);
-        }
-
-        .forgot-password {
-            text-align: right;
+        .back-to-login {
+            text-align: center;
             display: block;
-            margin-bottom: 20px;
+            margin-top: 20px;
             color: var(--primary);
             text-decoration: none;
             font-size: 14px;
@@ -201,57 +174,9 @@
             transition: color 0.3s ease;
         }
 
-        .forgot-password:hover {
+        .back-to-login:hover {
             color: var(--primary-dark);
             text-decoration: underline;
-        }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 30px 0;
-            color: var(--text-light);
-            font-size: 14px;
-        }
-
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background-color: #E2E8F0;
-        }
-
-        .divider::before {
-            margin-right: 15px;
-        }
-
-        .divider::after {
-            margin-left: 15px;
-        }
-
-        .social-login {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .social-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 50px;
-            height: 50px;
-            border-radius: 8px;
-            border: 1px solid #E2E8F0;
-            background-color: var(--white);
-            color: var(--text-dark);
-            transition: all 0.3s ease;
-        }
-
-        .social-btn:hover {
-            background-color: #F8FAFC;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
         .alert {
@@ -272,16 +197,24 @@
             color: #16A34A;
         }
 
-        .input-group-text {
-            background-color: transparent;
-            border-left: none;
-            cursor: pointer;
+        .password-strength {
+            margin-top: 5px;
+            font-size: 13px;
             color: var(--text-light);
         }
 
-        .password-toggle {
-            border-left: none;
-            background-color: transparent;
+        .strength-meter {
+            height: 5px;
+            background-color: #E2E8F0;
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .strength-meter-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
         }
 
         .decoration-circle {
@@ -303,8 +236,9 @@
             top: 50px;
             left: -30px;
         }
+
         @media (max-width: 768px) {
-            .login-card {
+            .reset-card {
                 flex-direction: column;
                 width: 95%;
                 max-width: 450px;
@@ -315,11 +249,6 @@
                 padding: 30px;
             }
 
-            .logo-section {
-                padding-top: 40px;
-                padding-bottom: 40px;
-            }
-
             .logo-section img {
                 width: 100px;
             }
@@ -328,14 +257,14 @@
                 font-size: 24px;
             }
 
-            .login-title {
+            .reset-title {
                 font-size: 24px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="login-card">
+    <div class="reset-card">
         <div class="logo-section">
             <div class="decoration-circle circle-1"></div>
             <div class="decoration-circle circle-2"></div>
@@ -344,15 +273,8 @@
             <p class="logo-tagline">Sistem Informasi Akademik Terpadu</p>
         </div>
         <div class="form-section">
-            <h2 class="login-title">Selamat Datang</h2>
-            <p class="login-subtitle">Silakan masuk untuk mengakses sistem</p>
-
-            @if(session('loginError'))
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-circle me-2"></i>
-                    {{ session('loginError') }}
-                </div>
-            @endif
+            <h2 class="reset-title">Reset Password</h2>
+            <p class="reset-subtitle">Masukkan password baru untuk akun Anda.</p>
 
             @if(session('status'))
                 <div class="alert alert-success">
@@ -361,62 +283,119 @@
                 </div>
             @endif
 
-            <form action="{{ route('login.employee') }}" method="POST">
+            <form action="{{ route('password.update') }}" method="POST">
                 @csrf
-                <div class="form-floating mb-3">
-                    <input type="text" name="id_employee" class="form-control @error('id_employee') is-invalid @enderror"
-                        id="id_employee" placeholder="NIP" value="{{ old('id_employee') }}" required>
-                    <label for="id_employee">NIP</label>
-                    @error('id_employee')
+                <input type="hidden" name="token" value="{{ $token }}">
+
+                <div class="form-floating mb-4">
+                    <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
+                        id="email" placeholder="Email" value="{{ $email ?? old('email') }}" required autocomplete="email" autofocus>
+                    <label for="email">Email</label>
+                    @error('email')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
-                <div class="form-floating mb-3">
+                <div class="form-floating mb-4">
                     <input type="password" name="password" class="form-control @error('password') is-invalid @enderror"
-                        id="password" placeholder="Password" required>
-                    <label for="password">Password</label>
-                    <span class="password-toggle" onclick="togglePassword()" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer;">
-                        <i id="toggleIcon" class="fas fa-eye"></i>
-                    </span>
+                        id="password" placeholder="Password Baru" required autocomplete="new-password">
+                    <label for="password">Password Baru</label>
                     @error('password')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="remember" name="remember"
-                            {{ old('remember') ? 'checked' : '' }}>
-                        <label class="form-check-label" for="remember" style="font-size: 14px; color: var(--text-light);">
-                            Ingat saya
-                        </label>
+                    <div class="password-strength">
+                        <div id="strength-text">Kekuatan password: <span id="strength-level">-</span></div>
+                        <div class="strength-meter">
+                            <div class="strength-meter-fill" id="strength-meter"></div>
+                        </div>
                     </div>
-                   <a href="{{ route('password.request') }}" class="forgot-password">Lupa Password?</a>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-login">
-                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                <div class="form-floating mb-4">
+                    <input type="password" name="password_confirmation" class="form-control"
+                        id="password-confirm" placeholder="Konfirmasi Password Baru" required autocomplete="new-password">
+                    <label for="password-confirm">Konfirmasi Password Baru</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sync-alt me-2"></i>Reset Password
                 </button>
             </form>
+
+            <a href="{{ route('login.employee') }}" class="back-to-login">
+                <i class="fas fa-arrow-left me-2"></i>Kembali ke halaman login
+            </a>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function togglePassword() {
-            let passwordInput = document.getElementById("password");
-            let toggleIcon = document.getElementById("toggleIcon");
+        // Password strength indicator
+        const passwordInput = document.getElementById('password');
+        const strengthMeter = document.getElementById('strength-meter');
+        const strengthText = document.getElementById('strength-level');
 
-            if (passwordInput.type === "password") {
-                passwordInput.type = "text";
-                toggleIcon.classList.remove("fa-eye");
-                toggleIcon.classList.add("fa-eye-slash");
-            } else {
-                passwordInput.type = "password";
-                toggleIcon.classList.remove("fa-eye-slash");
-                toggleIcon.classList.add("fa-eye");
+        passwordInput.addEventListener('input', updateStrengthMeter);
+
+        function updateStrengthMeter() {
+            const password = passwordInput.value;
+            let strength = 0;
+
+            // Check password length
+            if (password.length >= 8) strength += 1;
+            if (password.length >= 12) strength += 1;
+
+            // Check for uppercase letters
+            if (/[A-Z]/.test(password)) strength += 1;
+
+            // Check for numbers
+            if (/[0-9]/.test(password)) strength += 1;
+
+            // Check for special characters
+            if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+
+            // Update the strength meter
+            let width = 0;
+            let text = '';
+            let color = '';
+
+            switch(strength) {
+                case 0:
+                    width = 0;
+                    text = 'Lemah';
+                    color = '#EF4444';
+                    break;
+                case 1:
+                    width = 25;
+                    text = 'Lemah';
+                    color = '#EF4444';
+                    break;
+                case 2:
+                    width = 50;
+                    text = 'Sedang';
+                    color = '#F59E0B';
+                    break;
+                case 3:
+                    width = 75;
+                    text = 'Kuat';
+                    color = '#10B981';
+                    break;
+                case 4:
+                case 5:
+                    width = 100;
+                    text = 'Sangat Kuat';
+                    color = '#10B981';
+                    break;
+                default:
+                    width = 0;
+                    text = '-';
+                    color = '#E2E8F0';
             }
+
+            strengthMeter.style.width = width + '%';
+            strengthMeter.style.backgroundColor = color;
+            strengthText.textContent = text;
+            strengthText.style.color = color;
         }
     </script>
 </body>

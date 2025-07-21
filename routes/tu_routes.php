@@ -7,6 +7,9 @@ use App\Http\Controllers\{
     ClassesController,
     SemesterController,
     PaymentController,
+    AttendanceStatusController,
+    HolidaysController,
+    StudentAttendanceController,
     EmployeesController
 };
 
@@ -23,6 +26,17 @@ Route::middleware(['web', 'auth:employee', 'role:Admin Tata Usaha'])->group(func
     Route::post('/students/upload-media', [StudentController::class, 'uploadMediaZip'])->name('students.uploadMediaZip');
     Route::get('/get-semesters/{academicYearId}', [SemesterController::class, 'getSemesters'])->name('ajax.semesters');
     Route::get('/get-classes/{academicYearId}', [ClassesController::class, 'getClasses'])->name('ajax.classes');
+
+    Route::get('/student/search', [StudentAttendanceController::class, 'search']);
+    Route::get('/student-attendance/export/pdf', [StudentAttendanceController::class, 'exportPdf'])->name('student-attendance.export.pdf');
+
+    // Class Management
+    Route::resource('classes', ClassesController::class);
+    Route::get('/classes/json/{id}', [ClassesController::class, 'getClassData'])->name('classes.json');
+
+    // Holidays & Attendance Status
+    Route::resource('holidays', HolidaysController::class);
+    Route::resource('attendance-status', AttendanceStatusController::class);
 
     // Payment Management
     Route::get('/payment/listdata', [PaymentController::class, 'listData'])->name('payment.listdata');

@@ -14,13 +14,14 @@ use Illuminate\Support\Facades\Auth;
 class EmployeesController extends Controller
 {
     // Menampilkan daftar employee
-    public function index()
-    {
-        $roles = Role::all();
-        $positions = Position::all(); // kalau ada posisi juga
-        $employees = Employee::all(); // misal untuk list pegawai
-        return view('employee.index', compact('roles', 'positions', 'employees'));
-    }
+public function index()
+{
+    $roles = Role::all();
+    $positions = Position::all(); // kalau ada posisi juga
+    $employees = Employee::orderBy('fullname', 'asc')->get(); // urut abjad A-Z
+
+    return view('employee.index', compact('roles', 'positions', 'employees'));
+}
 
     // Menampilkan form tambah employee dengan daftar posisi
     public function create()
@@ -54,7 +55,7 @@ class EmployeesController extends Controller
             'email' => 'required|email|unique:employees,email',
             'role_id' => 'nullable|exists:roles,id',
             'position_id' => 'nullable|integer',
-            'password' => 'required|min:6',
+            'password' => 'nullable|min:6',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'qr_code' => 'nullable|image|mimes:png|max:1024'
         ]);
@@ -116,69 +117,83 @@ class EmployeesController extends Controller
         return view('employee.edit', compact('employee', 'positions','roles')); // Kirim data posisi ke view
     }
 
-    // Mengupdate data employee
-     public function update(Request $request, $id)
-    {
-        $employee = Employee::findOrFail($id);
+   public function update(Request $request, $id)
+{
+    $employee = Employee::findOrFail($id);
 
-        $request->validate([
-            'fullname' => 'required|string|max:100',
-            'birth_place' => 'required|string|max:100',
-            'birth_date' => 'required|date',
-            'gender' => 'required|in:L,P',
-            'phone_number' => 'required|string|max:20',
-            'email' => 'required|email|unique:employees,email,' . $id . ',id_employee',
-            'role_id' => 'nullable|integer',
-            'position_id' => 'nullable|integer',
-            'password' => 'nullable|min:6',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'qr_code' => 'nullable|image|mimes:png|max:1024'
-        ]);
+    $request->validate([
+        'id_employee' => 'required|string|max:20|unique:employees,id_employee,' . $id . ',id_employee',
+        'fullname' => 'required|string|max:100',
+        'birth_place' => 'required|string|max:100',
+        'birth_date' => 'required|date',
+        'gender' => 'required|in:L,P',
+        'phone_number' => 'required|string|max:20',
+        'email' => 'required|email|unique:employees,email,' . $id . ',id_employee',
+        'role_id' => 'nullable|integer',
+        'position_id' => 'nullable|integer',
+        'password' => 'nullable|min:6',
+        'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        'qr_code' => 'nullable|image|mimes:png|max:1024'
+    ]);
 
-        $oldData = $employee->toArray();
+    $oldData = $employee->toArray();
 
-        $data = $request->only(['fullname', 'birth_place', 'birth_date', 'gender', 'phone_number', 'email', 'role_id', 'position_id']);
+    $data = $request->only(['id_employee','fullname', 'birth_place', 'birth_date', 'gender', 'phone_number', 'email', 'role_id', 'position_id']);
 
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
-        }
-
-        if ($request->hasFile('photo')) {
-            if ($employee->photo && Storage::disk('public')->exists($employee->photo)) {
-                Storage::disk('public')->delete($employee->photo);
-            }
-
-            $photoName = $request->file('photo')->getClientOriginalName();
-            $data['photo'] = $request->file('photo')->storeAs('photo_pegawai', $photoName, 'public');
-        }
-
-        if ($request->hasFile('qr_code')) {
-            if ($employee->qr_code && Storage::disk('public')->exists($employee->qr_code)) {
-                Storage::disk('public')->delete($employee->qr_code);
-            }
-
-            $qrName = $request->file('qr_code')->getClientOriginalName();
-            $data['qr_code'] = $request->file('qr_code')->storeAs('qrcode_pegawai', $qrName, 'public');
-        }
-
-        $employee->update($data);
-
-        $user = Auth::guard('employee')->user();
-        $roleName = $user->role->role_name ?? 'Tidak diketahui';
-
-        Log::info('Mengedit data pegawai', [
-            'program' => 'Pegawai',
-            'aktivitas' => 'Mengupdate data pegawai',
-            'waktu' => now()->toDateTimeString(),
-            'id_employee' => $user->id_employee,
-            'role' => $roleName,
-            'ip' => $request->ip(),
-            'data_lama' => $oldData,
-            'data_baru' => $employee->fresh()->toArray()
-        ]);
-
-        return redirect()->route('employees.index')->with('success', 'Employee updated successfully');
+    if ($request->filled('password')) {
+        $data['password'] = Hash::make($request->password);
     }
+
+    // Handle photo deletion or update
+    if ($request->has('delete_photo') && $request->delete_photo) {
+        // Delete existing photo
+        if ($employee->photo && Storage::disk('public')->exists($employee->photo)) {
+            Storage::disk('public')->delete($employee->photo);
+        }
+        $data['photo'] = null;
+    } elseif ($request->hasFile('photo')) {
+        // Upload new photo
+        if ($employee->photo && Storage::disk('public')->exists($employee->photo)) {
+            Storage::disk('public')->delete($employee->photo);
+        }
+        $photoName = $request->file('photo')->getClientOriginalName();
+        $data['photo'] = $request->file('photo')->storeAs('photo_pegawai', $photoName, 'public');
+    }
+
+    // Handle QR code deletion or update
+    if ($request->has('delete_qr_code') && $request->delete_qr_code) {
+        // Delete existing QR code
+        if ($employee->qr_code && Storage::disk('public')->exists($employee->qr_code)) {
+            Storage::disk('public')->delete($employee->qr_code);
+        }
+        $data['qr_code'] = null;
+    } elseif ($request->hasFile('qr_code')) {
+        // Upload new QR code
+        if ($employee->qr_code && Storage::disk('public')->exists($employee->qr_code)) {
+            Storage::disk('public')->delete($employee->qr_code);
+        }
+        $qrName = $request->file('qr_code')->getClientOriginalName();
+        $data['qr_code'] = $request->file('qr_code')->storeAs('qrcode_pegawai', $qrName, 'public');
+    }
+
+    $employee->update($data);
+
+    $user = Auth::guard('employee')->user();
+    $roleName = $user->role->role_name ?? 'Tidak diketahui';
+
+    Log::info('Mengedit data pegawai', [
+        'program' => 'Pegawai',
+        'aktivitas' => 'Mengupdate data pegawai',
+        'waktu' => now()->toDateTimeString(),
+        'id_employee' => $user->id_employee,
+        'role' => $roleName,
+        'ip' => $request->ip(),
+        'data_lama' => $oldData,
+        'data_baru' => $employee->fresh()->toArray()
+    ]);
+
+    return redirect()->route('employees.index')->with('success', 'Data pegawai berhasil diperbarui');
+}
 
     // Menghapus employee
     public function destroy(Request $request, $id)

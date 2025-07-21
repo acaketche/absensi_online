@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-School - Login Siswa</title>
+    <title>Login Siswa | E-School</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -12,333 +12,319 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
+            --primary-color: #4266B9;
+            --primary-light: #5a7fd1;
+            --secondary-color: #3A5A9A;
             --accent-color: #4cc9f0;
             --text-color: #2b2d42;
+            --text-light: #6c757d;
             --light-gray: #f8f9fa;
             --white: #ffffff;
+            --border-color: #e0e0e0;
+            --dark-blue: #1E3A8A;
+            --error-color: #dc3545;
         }
 
         body {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background: linear-gradient(135deg, var(--primary-color), var(--dark-blue));
             font-family: 'Poppins', sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--text-color);
-            padding: 20px;
+            padding: 1rem;
+            margin: 0;
+            line-height: 1.6;
         }
 
         .login-container {
-            max-width: 450px;
+            max-width: 420px;
             width: 100%;
-            padding: 40px;
+            padding: 2.5rem;
             background-color: var(--white);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            transition: all 0.3s ease;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
             position: relative;
             overflow: hidden;
+            border: none;
         }
 
-        .login-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
-        }
-
-        .login-logo {
+        .login-header {
             text-align: center;
-            margin-bottom: 30px;
+            position: relative;
         }
 
-        .login-logo .logo-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+        .login-header::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            margin: 1.5rem auto 0;
+            border-radius: 2px;
+        }
+
+        .school-logo {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            margin: 0 auto 1.25rem;
+            display: block;
             border-radius: 50%;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+            border: 3px solid var(--primary-color);
+            padding: 8px;
+            background-color: var(--white);
+            box-shadow: 0 4px 12px rgba(66, 102, 185, 0.15);
         }
 
-        .login-logo i {
-            font-size: 2.5rem;
-            color: var(--white);
+        .login-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
         }
 
-        .login-logo h2 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--text-color);
-            margin-bottom: 5px;
-        }
-
-        .login-logo p {
-            color: #6c757d;
+        .login-subtitle {
+            color: var(--text-light);
             font-weight: 400;
+            margin-bottom: 0;
+            font-size: 0.95rem;
         }
 
-        .form-floating {
-            margin-bottom: 20px;
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-color);
+            font-size: 0.9rem;
         }
 
         .form-control {
-            height: 50px;
+            height: 48px;
             border-radius: 8px;
-            border: 1px solid #e0e0e0;
-            padding: 10px 15px;
-            transition: all 0.3s;
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            width: 100%;
         }
 
         .form-control:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(66, 102, 185, 0.15);
+            outline: none;
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 1rem;
+            top: 70%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            cursor: pointer;
         }
 
         .btn-login {
+            width: 100%;
+            height: 48px;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             border: none;
-            height: 50px;
             border-radius: 8px;
             font-weight: 600;
             letter-spacing: 0.5px;
             transition: all 0.3s;
+            font-size: 1rem;
+            color: var(--white);
+            margin-top: 0.5rem;
         }
 
         .btn-login:hover {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+            box-shadow: 0 4px 12px rgba(66, 102, 185, 0.3);
         }
 
-        .form-check-input:checked {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+        }
+
+        .form-check-input {
+            margin-right: 0.5rem;
+            width: 1.1em;
+            height: 1.1em;
+        }
+
+        .form-check-label {
+            color: var(--text-light);
+        }
+
+        .forgot-password {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .forgot-password:hover {
+            text-decoration: underline;
+            color: var(--secondary-color);
         }
 
         .login-footer {
             text-align: center;
-            margin-top: 25px;
-            color: #6c757d;
-            font-size: 0.9rem;
-        }
-
-        .login-footer a {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .login-footer a:hover {
-            color: var(--secondary-color);
-            text-decoration: underline;
-        }
-
-        .school-info {
-            text-align: center;
-            margin-top: 40px;
-            color: rgba(255, 255, 255, 0.7);
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-light);
             font-size: 0.85rem;
         }
 
-        .alert {
-            border-radius: 8px;
-            margin-top: 20px;
+        .error-message {
+            color: var(--error-color);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+            display: flex;
+            align-items: center;
         }
 
-        /* Animation */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .error-message i {
+            margin-right: 0.5rem;
         }
 
-        .login-container {
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        /* Mobile Responsiveness */
-        @media (max-width: 576px) {
-            .login-container {
-                padding: 30px 20px;
-            }
-
-            .login-logo .logo-icon {
-                width: 70px;
-                height: 70px;
-            }
-
-            .login-logo i {
-                font-size: 2rem;
-            }
-
-            .login-logo h2 {
-                font-size: 1.5rem;
-            }
-
-            body {
-                padding: 15px;
-                background: var(--white);
-            }
-
-            .school-info {
-                color: #6c757d;
-                margin-top: 30px;
-            }
-        }
-
-        /* Dark mode toggle */
-        .dark-mode-toggle {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            cursor: pointer;
-            color: var(--text-color);
-            font-size: 1.2rem;
-        }
-
+        /* Dark mode styles */
         body.dark-mode {
-            background: #121212;
-            color: #f5f5f5;
+            background: linear-gradient(135deg, #1a2e5a, #0d1a3d);
         }
 
         body.dark-mode .login-container {
             background: #1e1e1e;
-            color: #f5f5f5;
-        }
-
-        body.dark-mode .login-logo h2,
-        body.dark-mode .form-floating label {
-            color: #f5f5f5;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
         }
 
         body.dark-mode .form-control {
-            background-color: #2d2d2d;
-            border-color: #444;
-            color: #f5f5f5;
+            background-color: #2a2a2a;
+            border-color: #3a3a3a;
+            color: #f0f0f0;
+        }
+
+        body.dark-mode .form-control:focus {
+            background-color: #2a2a2a;
+        }
+
+        body.dark-mode .form-label,
+        body.dark-mode .login-title {
+            color: #f0f0f0;
+        }
+
+        body.dark-mode .login-subtitle,
+        body.dark-mode .form-check-label,
+        body.dark-mode .login-footer {
+            color: #aaa;
+        }
+
+        body.dark-mode .login-footer {
+            border-top-color: #3a3a3a;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 576px) {
+            .login-container {
+                padding: 1.75rem;
+            }
+
+            .school-logo {
+                width: 80px;
+                height: 80px;
+            }
+
+            .login-title {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
 
     <div class="login-container">
-        <div class="dark-mode-toggle" id="darkModeToggle">
-            <i class="fas fa-moon"></i>
+        <div class="login-header">
+            <img src="{{ asset('img/sma5.png') }}" alt="Logo Sekolah" class="school-logo">
+            <h1 class="login-title">E-School Portal</h1>
+            <p class="login-subtitle">Masuk ke akun siswa Anda</p>
         </div>
 
-        <div class="login-logo">
-            <div class="logo-icon">
-                <i class="fas fa-user-graduate"></i>
-            </div>
-            <h2>E-School Portal</h2>
-            <p>Masuk ke akun siswa Anda</p>
-        </div>
-
-        <form method="POST" action="{{ route('login.student.post') }}">
+        <form method="POST" action="{{ route('login.student') }}">
             @csrf
-            <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="id_student" name="id_student" placeholder="NIS / Username" required>
-                <label for="id_student"><i class="fas fa-id-card me-2"></i>NIPD</label>
+
+            <div class="form-group">
+                <label for="id_student" class="form-label">NIPD</label>
+                <input type="text" class="form-control" id="id_student" name="id_student" placeholder="Masukkan NIPD" required>
             </div>
-            <div class="form-floating mb-3">
-                <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
-                <label for="password"><i class="fas fa-lock me-2"></i>Password</label>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="Masukkan password" required>
+                <i class="fas fa-eye input-icon" id="togglePassword"></i>
             </div>
-            <div class="d-flex justify-content-between align-items-center mb-3">
+
+            <div class="form-options">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="rememberMe">
-                    <label class="form-check-label" for="rememberMe">
-                        Ingat saya
-                    </label>
+                    <input class="form-check-input" type="checkbox" id="rememberMe" name="remember">
+                    <label class="form-check-label" for="rememberMe">Ingat saya</label>
                 </div>
-                <a href="#" class="text-decoration-none small">Lupa password?</a>
+                <a href="#" class="forgot-password">Lupa password?</a>
             </div>
-            <div class="d-grid">
-                <button type="submit" class="btn btn-primary btn-login">
-                    <i class="fas fa-sign-in-alt me-2"></i>Masuk
-                </button>
-            </div>
+
+            <button type="submit" class="btn btn-login">
+                <i class="fas fa-sign-in-alt me-2"></i>MASUK
+            </button>
+
+            @error('login')
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ $message }}
+                </div>
+            @enderror
         </form>
-
-        <div class="login-footer">
-            <p>&copy; 2025 E-School Portal. All rights reserved.</p>
-        </div>
-
-        @error('login')
-            <div class="alert alert-danger mt-3" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i>{{ $message }}
-            </div>
-        @enderror
-        </div>
+    </div>
 
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Dark mode toggle
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        const body = document.body;
+        // Toggle password visibility
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
 
-        // Check for saved user preference
-        if (localStorage.getItem('darkMode') === 'enabled') {
-            body.classList.add('dark-mode');
-            darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-        }
-
-        darkModeToggle.addEventListener('click', () => {
-            body.classList.toggle('dark-mode');
-
-            if (body.classList.contains('dark-mode')) {
-                localStorage.setItem('darkMode', 'enabled');
-                darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-            } else {
-                localStorage.setItem('darkMode', 'disabled');
-                darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-            }
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.classList.toggle('fa-eye-slash');
         });
 
-        // Input focus effects
+        // Add focus effects
         const inputs = document.querySelectorAll('.form-control');
         inputs.forEach(input => {
             input.addEventListener('focus', function() {
-                this.parentElement.classList.add('input-focused');
+                this.parentNode.querySelector('.form-label').style.color = 'var(--primary-color)';
             });
 
             input.addEventListener('blur', function() {
-                this.parentElement.classList.remove('input-focused');
+                this.parentNode.querySelector('.form-label').style.color = 'var(--text-color)';
             });
-        });
-
-        // Show password toggle (optional)
-        const passwordInput = document.getElementById('password');
-        const showPassword = document.createElement('span');
-        showPassword.innerHTML = '<i class="far fa-eye"></i>';
-        showPassword.style.position = 'absolute';
-        showPassword.style.right = '15px';
-        showPassword.style.top = '50%';
-        showPassword.style.transform = 'translateY(-50%)';
-        showPassword.style.cursor = 'pointer';
-        showPassword.style.color = '#6c757d';
-
-        passwordInput.parentElement.style.position = 'relative';
-        passwordInput.parentElement.appendChild(showPassword);
-
-        showPassword.addEventListener('click', function() {
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                this.innerHTML = '<i class="far fa-eye-slash"></i>';
-            } else {
-                passwordInput.type = 'password';
-                this.innerHTML = '<i class="far fa-eye"></i>';
-            }
         });
     </script>
 </body>

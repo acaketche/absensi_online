@@ -1,39 +1,53 @@
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fs-4 fw-bold mb-0"></h2>
-    <div class="dropdown">
-        <button class="btn p-0 border-0 bg-transparent" type="button" id="adminDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
-            <div class="admin-profile">
-                <div class="admin-info text-end me-2">
-                    <span class="admin-name">{{ Auth::guard('employee')->user()->fullname }}</span>
-                    <small class="admin-role">
+<div class="profile-container d-flex justify-content-between align-items-center mb-5 mt-3">
+    <h2 class="profile-title fs-4 fw-bold mb-0"></h2>
+    <div class="profile-dropdown dropdown">
+        <button class="profile-toggle btn p-0 border-0 bg-transparent" type="button" id="profileDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <div class="profile-header">
+                <div class="profile-info text-end me-3">
+                    <span class="profile-name">{{ Auth::guard('employee')->user()->fullname }}</span>
+                    <small class="profile-role">
                         {{ Auth::guard('employee')->user()->role->role_name ?? 'Tidak ada role' }}
                     </small>
                 </div>
-                <div class="admin-avatar">
-                    <img src="{{ Auth::guard('employee')->user()->photo ? asset('storage/' . Auth::guard('employee')->user()->photo) : asset('images/default-avatar.png') }}"
-                         alt="Admin Profile" class="w-100 h-100 object-fit-cover">
-                </div>
-                <i class="fas fa-chevron-down text-muted ms-2"></i>
+               @if(Auth::guard('employee')->user()->photo)
+    <div class="profile-avatar">
+        <img src="{{ asset('storage/' . Auth::guard('employee')->user()->photo) }}"
+             alt="Profile Picture" class="w-100 h-100 object-fit-cover">
+    </div>
+@endif
+                <i class="profile-caret fas fa-chevron-down text-muted ms-2"></i>
             </div>
         </button>
 
-        <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="adminDropdownToggle">
+        <ul class="profile-menu dropdown-menu dropdown-menu-end mt-3" aria-labelledby="profileDropdownToggle">
             <li>
-                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                    <i class="fas fa-user-edit me-2"></i>Edit Profil
+                <a class="profile-item dropdown-item d-flex align-items-center py-3" href="#" data-bs-toggle="modal" data-bs-target="#profileEditModal">
+                    <i class="profile-icon fas fa-user-edit me-3 fs-5"></i>
+                    <div>
+                        <div class="profile-item-title fw-semibold">Edit Profil</div>
+                        <small class="profile-item-desc text-muted">Ubah data pribadi Anda</small>
+                    </div>
                 </a>
             </li>
             <li>
-                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
-                    <i class="fas fa-key me-2"></i>Ubah Password
+                <a class="profile-item dropdown-item d-flex align-items-center py-3" href="#" data-bs-toggle="modal" data-bs-target="#profilePasswordModal">
+                    <i class="profile-icon fas fa-key me-3 fs-5"></i>
+                    <div>
+                        <div class="profile-item-title fw-semibold">Ubah Password</div>
+                        <small class="profile-item-desc text-muted">Ganti kata sandi akun</small>
+                    </div>
                 </a>
             </li>
-            <li><hr class="dropdown-divider"></li>
+            <li><hr class="profile-divider dropdown-divider my-2"></li>
             <li>
-                <form id="logout-form" action="{{ route('logout.employee') }}" method="POST">
+                <form id="profile-logout-form" action="{{ route('logout.employee') }}" method="POST">
                     @csrf
-                    <button type="submit" class="dropdown-item">
-                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    <button type="submit" class="profile-item dropdown-item d-flex align-items-center py-3">
+                        <i class="profile-icon fas fa-sign-out-alt me-3 fs-5"></i>
+                        <div>
+                            <div class="profile-item-title fw-semibold">Logout</div>
+                            <small class="profile-item-desc text-muted">Keluar dari sistem</small>
+                        </div>
                     </button>
                 </form>
             </li>
@@ -42,55 +56,57 @@
 </div>
 
 <!-- Modal Edit Profil -->
-<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <form method="POST" action="{{ route('employees.profile.update') }}" enctype="multipart/form-data">
+<div class="profile-modal modal fade" id="profileEditModal" tabindex="-1" aria-labelledby="profileEditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <form method="POST" action="{{ route('employees.profile.update') }}" enctype="multipart/form-data" class="profile-form">
                 @csrf
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="editProfileModalLabel">Edit Profil</h5>
+                <div class="modal-header bg-primary text-white py-3">
+                    <h5 class="modal-title fs-5" id="profileEditModalLabel">Edit Profil</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-4 text-center">
-                           <div class="mb-3 position-relative mx-auto" style="width: 150px;">
-                            <img id="profileImagePreview"
-                                src="{{ Auth::guard('employee')->user()->photo ? asset('storage/'.Auth::guard('employee')->user()->photo) : asset('images/default-avatar.png') }}"
-                                class="rounded-circle img-thumbnail w-100" style="height: 150px;" alt="Profile Photo">
+                <div class="modal-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 text-center mb-4 mb-md-0">
+                         <div class="profile-image-container position-relative mx-auto">
+    @if(Auth::guard('employee')->user()->photo)
+        <img id="profileImagePreview"
+            src="{{ asset('storage/' . Auth::guard('employee')->user()->photo) }}"
+            class="profile-image-preview rounded-circle w-100"
+            alt="Profile Photo">
+    @endif
 
-                            <label for="photo-profile" class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-circle" style="cursor: pointer;">
-                                <i class="fas fa-camera"></i>
-                                <input type="file" id="photo-profile" name="photo" class="d-none" accept="image/*">
-                            </label>
-                        </div>
-                        <small class="text-muted">Klik ikon kamera untuk mengubah foto</small>
+    <label for="profile-photo-input"
+        class="profile-image-upload-btn btn btn-primary btn-sm position-absolute bottom-0 end-0 rounded-circle p-2">
+        <i class="fas fa-camera m-0"></i>
+        <input type="file" id="profile-photo-input" name="photo" class="d-none" accept="image/*">
+    </label>
+</div>
+                            <small class="profile-image-hint text-muted mt-2 d-block">Ukuran maksimal 2MB (JPG/PNG)</small>
                         </div>
                         <div class="col-md-8">
-                            <div class="row mb-3">
+                            <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="fullname" class="form-label">Nama Lengkap</label>
-                                    <input id="fullname" type="text"
+                                    <label for="profile-fullname" class="form-label fw-medium">Nama Lengkap <span class="text-danger">*</span></label>
+                                    <input id="profile-fullname" type="text"
                                            class="form-control @error('fullname') is-invalid @enderror"
-                                           name="fullname" value="{{ old('fullname', Auth::guard('employee')->user()->fullname) }}" >
+                                           name="fullname" value="{{ old('fullname', Auth::guard('employee')->user()->fullname) }}" required>
                                     @error('fullname')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="email" class="form-label">Email</label>
-                                    <input id="email" type="email"
+                                    <label for="profile-email" class="form-label fw-medium">Email <span class="text-danger">*</span></label>
+                                    <input id="profile-email" type="email"
                                            class="form-control @error('email') is-invalid @enderror"
-                                           name="email" value="{{ old('email', Auth::guard('employee')->user()->email) }}">
+                                           name="email" value="{{ old('email', Auth::guard('employee')->user()->email) }}" required>
                                     @error('email')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                            </div>
-                            <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <label for="birth_place" class="form-label">Tempat Lahir</span></label>
-                                    <input id="birth_place" type="text"
+                                    <label for="profile-birth-place" class="form-label fw-medium">Tempat Lahir</label>
+                                    <input id="profile-birth-place" type="text"
                                            class="form-control @error('birth_place') is-invalid @enderror"
                                            name="birth_place" value="{{ old('birth_place', Auth::guard('employee')->user()->birth_place) }}">
                                     @error('birth_place')
@@ -98,19 +114,17 @@
                                     @enderror
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="birth_date" class="form-label">Tanggal Lahir </span></label>
-                                    <input id="birth_date" type="date"
+                                    <label for="profile-birth-date" class="form-label fw-medium">Tanggal Lahir</label>
+                                    <input id="profile-birth-date" type="date"
                                            class="form-control @error('birth_date') is-invalid @enderror"
-                                           name="birth_date" value="{{ old('birth_date', Auth::guard('employee')->user()->birth_date) }}" >
+                                           name="birth_date" value="{{ old('birth_date', Auth::guard('employee')->user()->birth_date) }}">
                                     @error('birth_date')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                            </div>
-                            <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <label for="gender" class="form-label">Jenis Kelamin</label>
-                                    <select id="gender" class="form-select @error('gender') is-invalid @enderror" name="gender">
+                                    <label for="profile-gender" class="form-label fw-medium">Jenis Kelamin</label>
+                                    <select id="profile-gender" class="form-select @error('gender') is-invalid @enderror" name="gender">
                                         <option value="L" {{ old('gender', Auth::guard('employee')->user()->gender) == 'L' ? 'selected' : '' }}>Laki-laki</option>
                                         <option value="P" {{ old('gender', Auth::guard('employee')->user()->gender) == 'P' ? 'selected' : '' }}>Perempuan</option>
                                     </select>
@@ -119,8 +133,8 @@
                                     @enderror
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="phone_number" class="form-label">Nomor Telepon </label>
-                                    <input id="phone_number" type="tel"
+                                    <label for="profile-phone" class="form-label fw-medium">Nomor Telepon</label>
+                                    <input id="profile-phone" type="tel"
                                            class="form-control @error('phone_number') is-invalid @enderror"
                                            name="phone_number" value="{{ old('phone_number', Auth::guard('employee')->user()->phone_number) }}">
                                     @error('phone_number')
@@ -131,9 +145,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                <div class="modal-footer bg-light py-3">
+                    <button type="button" class="profile-cancel-btn btn btn-outline-secondary px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="profile-save-btn btn btn-primary px-4">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
@@ -141,22 +155,22 @@
 </div>
 
 <!-- Modal Ubah Password -->
-<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+<div class="profile-modal modal fade" id="profilePasswordModal" tabindex="-1" aria-labelledby="profilePasswordModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form id="changePasswordForm" method="POST" action="{{ route('employees.profile.update-password') }}">
+        <div class="modal-content border-0 shadow">
+            <form id="profile-password-form" method="POST" action="{{ route('employees.profile.update-password') }}" class="profile-form">
                 @csrf
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="changePasswordModalLabel">Ubah Password</h5>
+                <div class="modal-header bg-primary text-white py-3">
+                    <h5 class="modal-title fs-5" id="profilePasswordModalLabel">Ubah Password</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="current_password" class="form-label">Password Lama <span class="text-danger">*</span></label>
+                <div class="modal-body p-4">
+                    <div class="profile-password-field mb-4">
+                        <label for="profile-current-password" class="form-label fw-medium">Password Lama <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <input type="password" name="current_password" id="current_password"
+                            <input type="password" name="current_password" id="profile-current-password"
                                    class="form-control @error('current_password') is-invalid @enderror" required>
-                            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="current_password">
+                            <button type="button" class="profile-password-toggle btn btn-outline-secondary" data-target="profile-current-password">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </div>
@@ -165,27 +179,27 @@
                         @enderror
                     </div>
 
-                    <div class="mb-3">
-                        <label for="new_password" class="form-label">Password Baru <span class="text-danger">*</span></label>
+                    <div class="profile-password-field mb-4">
+                        <label for="profile-new-password" class="form-label fw-medium">Password Baru <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <input type="password" name="new_password" id="new_password"
+                            <input type="password" name="new_password" id="profile-new-password"
                                    class="form-control @error('new_password') is-invalid @enderror" required>
-                            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="new_password">
+                            <button type="button" class="profile-password-toggle btn btn-outline-secondary" data-target="profile-new-password">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </div>
                         @error('new_password')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                        <small class="text-muted">Minimal 8 karakter, kombinasi huruf dan angka</small>
+                        <small class="profile-password-hint text-muted">Minimal 8 karakter, kombinasi huruf dan angka</small>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="new_password_confirmation" class="form-label">Konfirmasi Password Baru <span class="text-danger">*</span></label>
+                    <div class="profile-password-field mb-0">
+                        <label for="profile-confirm-password" class="form-label fw-medium">Konfirmasi Password Baru <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <input type="password" name="new_password_confirmation" id="new_password_confirmation"
+                            <input type="password" name="new_password_confirmation" id="profile-confirm-password"
                                    class="form-control @error('new_password_confirmation') is-invalid @enderror" required>
-                            <button type="button" class="btn btn-outline-secondary toggle-password" data-target="new_password_confirmation">
+                            <button type="button" class="profile-password-toggle btn btn-outline-secondary" data-target="profile-confirm-password">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </div>
@@ -195,14 +209,15 @@
                     </div>
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+                <div class="modal-footer bg-light py-3">
+                    <button type="button" class="profile-cancel-btn btn btn-outline-secondary px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="profile-save-btn btn btn-primary px-4">Simpan</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @if(session('success'))
@@ -211,7 +226,10 @@
         icon: 'success',
         title: 'Berhasil!',
         text: '{{ session('success') }}',
-        confirmButtonText: 'OK'
+        confirmButtonText: 'OK',
+        customClass: {
+            popup: 'rounded-lg'
+        }
     });
 </script>
 @endif
@@ -221,45 +239,53 @@
         icon: 'error',
         title: 'Gagal!',
         text: '{{ $errors->first() }}',
-        confirmButtonText: 'OK'
+        confirmButtonText: 'OK',
+        customClass: {
+            popup: 'rounded-lg'
+        }
     });
 </script>
 @endif
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Preview image before upload
-     // Preview image before upload
-    const photoInput = document.getElementById('photo-profile');
+    // Profile image preview
+    const profilePhotoInput = document.getElementById('profile-photo-input');
     const profileImagePreview = document.getElementById('profileImagePreview');
 
-    if (photoInput && profileImagePreview) {
-        photoInput.addEventListener('change', function () {
+    if (profilePhotoInput && profileImagePreview) {
+        profilePhotoInput.addEventListener('change', function () {
             const file = this.files[0];
             if (file) {
-                // Cek ukuran file maksimal 2MB
+                // Check file size (max 2MB)
                 if (file.size > 2 * 1024 * 1024) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Ukuran file terlalu besar',
-                        text: 'Maksimal ukuran file adalah 2MB'
+                        text: 'Maksimal ukuran file adalah 2MB',
+                        customClass: {
+                            popup: 'rounded-lg'
+                        }
                     });
                     this.value = '';
                     return;
                 }
 
-                // Cek format file
+                // Check file format
                 const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
                 if (!validTypes.includes(file.type)) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Format tidak valid',
-                        text: 'Format file harus JPG, PNG, atau GIF'
+                        text: 'Format file harus JPG, PNG, atau GIF',
+                        customClass: {
+                            popup: 'rounded-lg'
+                        }
                     });
                     this.value = '';
                     return;
                 }
 
-                // Tampilkan preview
+                // Show preview
                 const reader = new FileReader();
                 reader.onload = function (e) {
                     profileImagePreview.src = e.target.result;
@@ -268,8 +294,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
     // Toggle password visibility
-    document.querySelectorAll('.toggle-password').forEach(button => {
+    document.querySelectorAll('.profile-password-toggle').forEach(button => {
         button.addEventListener('click', function () {
             const targetId = this.getAttribute('data-target');
             const input = document.getElementById(targetId);
@@ -288,155 +315,273 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Reset form when modal is closed
-    $('#editProfileModal').on('hidden.bs.modal', function () {
-        $('#photo').val('');
+    $('#profileEditModal').on('hidden.bs.modal', function () {
+        $('#profile-photo-input').val('');
         profileImagePreview.src = "{{ Auth::guard('employee')->user()->photo ? asset('storage/'.Auth::guard('employee')->user()->photo) : asset('images/default-avatar.png') }}";
     });
-});
- // Handle form submission for profile update
-    $('#editProfileModal form').on('submit', function(e) {
+
+    // Handle form submission for profile update
+    $('.profile-form').on('submit', function(e) {
         e.preventDefault();
         const form = this;
-        const formData = new FormData(form);
+        const isProfileForm = form.id === 'profile-password-form' ? false : true;
+        const formData = isProfileForm ? new FormData(form) : $(form).serialize();
 
         $.ajax({
             url: form.action,
             method: form.method,
             data: formData,
-            processData: false,
-            contentType: false,
+            processData: isProfileForm ? false : true,
+            contentType: isProfileForm ? false : 'application/x-www-form-urlencoded',
             success: function(response) {
-                $('#editProfileModal').modal('hide');
+                $(form).closest('.modal').modal('hide');
                 Swal.fire({
                     icon: 'success',
                     title: 'Sukses',
                     text: response.message,
                     confirmButtonColor: '#3085d6',
+                    customClass: {
+                        popup: 'rounded-lg'
+                    }
                 }).then(() => {
-                    // Optional: reload page or update UI
-                    window.location.reload();
+                    if (isProfileForm) {
+                        window.location.reload();
+                    } else {
+                        form.reset();
+                    }
                 });
             },
             error: function(xhr) {
-                $('#editProfileModal').modal('hide');
+                $(form).closest('.modal').modal('hide');
                 let errorMessage = xhr.responseJSON?.message || 'Terjadi kesalahan';
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
                     text: errorMessage,
                     confirmButtonColor: '#d33',
+                    customClass: {
+                        popup: 'rounded-lg'
+                    }
                 });
             }
         });
     });
-
-    // Handle form submission for password change
-    $('#changePasswordForm').on('submit', function(e) {
-        e.preventDefault();
-        const form = this;
-
-        $.ajax({
-            url: form.action,
-            method: form.method,
-            data: $(form).serialize(),
-            success: function(response) {
-                $('#changePasswordModal').modal('hide');
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Sukses',
-                    text: response.message,
-                    confirmButtonColor: '#3085d6',
-                }).then(() => {
-                    form.reset();
-                });
-            },
-            error: function(xhr) {
-                $('#changePasswordModal').modal('hide');
-                let errorMessage = xhr.responseJSON?.message || 'Terjadi kesalahan';
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: errorMessage,
-                    confirmButtonColor: '#d33',
-                });
-            }
-        });
-    });
+});
 </script>
 
 <style>
-.admin-profile {
+/* Profile Container */
+.profile-container {
+    position: relative;
+    z-index: 1000;
+}
+
+/* Profile Header */
+.profile-header {
     display: flex;
     align-items: center;
     cursor: pointer;
-    padding: 5px;
+    padding: 8px 12px;
     border-radius: 50px;
+    transition: all 0.3s ease;
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.profile-header:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+}
+
+.profile-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #e9ecef;
     transition: all 0.3s ease;
 }
 
-.admin-profile:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-}
-
-.admin-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 2px solid #dee2e6;
-    transition: border-color 0.3s ease;
-}
-
-.admin-profile:hover .admin-avatar {
-    border-color: #adb5bd;
-}
-
-.admin-name {
-    display: block;
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: #212529;
-}
-
-.admin-role {
-    display: block;
-    font-size: 0.75rem;
-    color: #6c757d;
-}
-
-.img-thumbnail {
-    object-fit: cover;
-    border: 2px solid #dee2e6;
-}
-
-.dropdown-menu {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.dropdown-item {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    transition: background-color 0.2s;
-}
-
-.dropdown-item:hover {
-    background-color: #f8f9fa;
-}
-
-.dropdown-divider {
-    margin: 0.3rem 0;
-}
-
-#profileImagePreview {
-    transition: transform 0.3s ease;
-}
-
-#profileImagePreview:hover {
+.profile-header:hover .profile-avatar {
+    border-color: #ced4da;
     transform: scale(1.05);
 }
 
-.swal2-popup {
-    font-family: 'Poppins', sans-serif;
+.profile-name {
+    display: block;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #212529;
+    line-height: 1.2;
+}
+
+.profile-role {
+    display: block;
+    font-size: 0.85rem;
+    color: #6c757d;
+    line-height: 1.3;
+}
+
+.profile-caret {
+    transition: transform 0.3s ease;
+}
+
+.profile-dropdown.show .profile-caret {
+    transform: rotate(180deg);
+}
+
+/* Profile Dropdown Menu */
+.profile-menu {
+    width: 280px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    border-radius: 12px;
+    overflow: hidden;
+    padding: 8px 0;
+}
+
+.profile-item {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 0 8px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.profile-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(4px);
+}
+
+.profile-icon {
+    width: 24px;
+    text-align: center;
+    font-size: 1.1rem;
+    color: #495057;
+}
+
+.profile-item-title {
+    font-size: 0.95rem;
+}
+
+.profile-item-desc {
+    font-size: 0.8rem;
+    display: block;
+    line-height: 1.3;
+}
+
+.profile-divider {
+    margin: 4px 0;
+    border-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Profile Modals */
+.profile-modal .modal-content {
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.profile-modal .modal-header {
+    padding: 16px 24px;
+}
+
+.profile-modal .modal-title {
+    font-weight: 600;
+}
+
+/* Profile Image Upload */
+.profile-image-container {
+    width: 180px;
+}
+
+.profile-image-preview {
+    width: 180px;
+    height: 180px;
+    object-fit: cover;
+    border: 3px solid #e9ecef;
+    transition: all 0.3s;
+}
+
+.profile-image-preview:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.profile-image-upload-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-image-hint {
+    font-size: 0.8rem;
+}
+
+/* Profile Form Elements */
+.profile-form .form-label {
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.profile-form .form-control,
+.profile-form .form-select {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    transition: all 0.3s;
+    font-size: 0.95rem;
+}
+
+.profile-form .form-control:focus,
+.profile-form .form-select:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+/* Profile Password Fields */
+.profile-password-field {
+    position: relative;
+}
+
+.profile-password-toggle {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    padding: 0 12px;
+}
+
+.profile-password-hint {
+    font-size: 0.8rem;
+    display: block;
+    margin-top: 6px;
+}
+
+/* Profile Buttons */
+.profile-cancel-btn,
+.profile-save-btn {
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 500;
+    transition: all 0.3s;
+    font-size: 0.95rem;
+}
+
+.profile-save-btn {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.profile-save-btn:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.profile-cancel-btn {
+    border-color: #dee2e6;
+}
+
+.profile-cancel-btn:hover {
+    background-color: #f8f9fa;
 }
 </style>

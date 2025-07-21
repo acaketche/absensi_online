@@ -114,10 +114,10 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="col-md-6 mb-3">
+                           <div class="col-md-6 mb-3">
                                 <label for="password" class="form-label">Password</label>
                                 <div class="input-group">
-                                    <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password"  class="form-control @error('password') is-invalid @enderror" id="password" name="password" required>
+                                    <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password"  class="form-control @error('password') is-invalid @enderror" id="password" name="password">
                                     <button type="button" class="btn btn-outline-secondary toggle-password" data-target="password">
                                         <i class="fas fa-eye-slash"></i>
                                     </button>
@@ -127,7 +127,6 @@
                                 @enderror
                             </div>
                         </div>
-
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="role_id" class="form-label">Role</label>
@@ -189,23 +188,25 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Toggle password visibility
-        document.querySelectorAll('.toggle-password').forEach(button => {
-            button.addEventListener('click', function() {
-                const targetId = this.getAttribute('data-target');
-                const passwordInput = document.getElementById(targetId);
+    document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.toggle-password').forEach(button => {
+        button.addEventListener('click', function () {
+            const targetSelector = this.getAttribute('data-target');
+            const input = document.querySelector(targetSelector);
+            const icon = this.querySelector('i');
 
-                if (passwordInput.type === 'password') {
-                    passwordInput.type = 'text';
-                    this.innerHTML = '<i class="fas fa-eye"></i>';
-                } else {
-                    passwordInput.type = 'password';
-                    this.innerHTML = '<i class="fas fa-eye-slash"></i>';
-                }
-            });
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
         });
     });
+});
     </script>
 </body>
 </html>
