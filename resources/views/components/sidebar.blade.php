@@ -229,12 +229,12 @@
                 </button>
 
                 <div class="dropdown-menu-sidebar" id="absensi-dropdown-tu">
-                    <a href="{{ route('student-attendance.index') }}" class="submenu-item" data-page="absensi-siswa">
+                    {{-- <a href="{{ route('student-attendance.index') }}" class="submenu-item" data-page="absensi-siswa">
                         <div class="submenu-icon">
                             <i class="fas fa-user-check"></i>
                         </div>
                         <span>Absensi Siswa</span>
-                    </a>
+                    </a> --}}
                     <a href="{{ route('attendance.index') }}" class="submenu-item" data-page="absensi-pegawai">
                         <div class="submenu-icon">
                             <i class="fas fa-user-tie"></i>

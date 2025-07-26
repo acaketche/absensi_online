@@ -151,7 +151,7 @@
                 <thead class="table-light">
                     <tr>
                         <th width="3%">No</th>
-                        <th width="12%">NIS</th>
+                        <th width="12%">NIPD</th>
                         <th width="25%">Nama Siswa</th>
                         <th width="12%">Jenis Kelamin</th>
                         <th width="12%">Buku Dipinjam</th>

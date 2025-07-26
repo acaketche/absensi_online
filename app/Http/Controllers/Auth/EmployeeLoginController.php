@@ -30,48 +30,58 @@ class EmployeeLoginController extends Controller
         'password' => 'required|string',
     ]);
 
-  if (Auth::guard('employee')->attempt([
-    'id_employee' => $request->id_employee,
-    'password' => $request->password
-], $request->has('remember'))) {
+    if (Auth::guard('employee')->attempt([
+        'id_employee' => $request->id_employee,
+        'password' => $request->password
+    ], $request->has('remember'))) {
 
-    $employee = Auth::guard('employee')->user();
-    $roleName = $employee->role->role_name ?? 'Tidak diketahui';
+        $employee = Auth::guard('employee')->user();
+        $roleName = $employee->role->role_name ?? null;
 
-    Log::info('Aktivitas login berhasil', [
-        'program' => 'Login',
-        'aktivitas' => 'Login ke aplikasi',
-        'waktu' => now()->toDateTimeString(),
-        'id_employee' => auth('employee')->id(),
-        'role' => $roleName,
+        Log::info('Aktivitas login berhasil', [
+            'program' => 'Login',
+            'aktivitas' => 'Login ke aplikasi',
+            'waktu' => now()->toDateTimeString(),
+            'id_employee' => auth('employee')->id(),
+            'role' => $roleName ?? 'Tidak ada role',
+            'ip' => $request->ip(),
+        ]);
+
+        // Cek berdasarkan role
+        if ($roleName === 'Super Admin') {
+            return redirect()->route('dashboard.admin');
+        } elseif ($roleName === 'Admin Tata Usaha') {
+            return redirect()->route('dashboard.TU');
+        } elseif ($roleName === 'Admin Pegawai Piket') {
+            return redirect()->route('dashboard.piket');
+        } elseif ($roleName === 'Admin Perpustakaan') {
+            return redirect()->route('dashboard.perpus');
+        } elseif ($roleName === 'Wali Kelas') {
+            return redirect()->route('dashboard.walas');
+        }
+
+        // Jika tidak memiliki role, cek apakah ada di jadwal piket
+        $hasPiketSchedule = \App\Models\PicketSchedule::where('employee_id', $employee->id_employee)->exists();
+
+        if ($hasPiketSchedule) {
+            return redirect()->route('dashboard.piket');
+        }
+
+        // Jika tidak memiliki role dan tidak ada di jadwal piket
+        return redirect()->route('dashboard.default')->with('warning', 'Role tidak dikenali dan tidak memiliki jadwal piket.');
+    }
+
+    Log::warning('Login gagal', [
+        'id_employee' => $request->id_employee,
         'ip' => $request->ip(),
+        'waktu' => now()->toDateTimeString(),
     ]);
 
-    if ($roleName === 'Super Admin') {
-        return redirect()->route('dashboard.admin');
-    } elseif ($roleName === 'Admin Tata Usaha') {
-        return redirect()->route('dashboard.TU');
-    } elseif ($roleName === 'Admin Pegawai Piket') {
-        return redirect()->route('dashboard.piket');
-    } elseif ($roleName === 'Admin Perpustakaan') {
-        return redirect()->route('dashboard.perpus');
-    } elseif ($roleName === 'Wali Kelas') {
-        return redirect()->route('dashboard.walas');
-    } else {
-        return redirect()->route('dashboard.default')->with('warning', 'Role tidak dikenali.');
-    }
+    return back()->withErrors([
+        'id_employee' => 'NIP atau password salah.'
+    ])->withInput();
 }
 
-Log::warning('Login gagal', [
-    'id_employee' => $request->id_employee,
-    'ip' => $request->ip(),
-    'waktu' => now()->toDateTimeString(),
-]);
-
-return back()->withErrors([
-    'id_employee' => 'NIP atau password salah.'
-])->withInput();
-}
 
  public function logout(Request $request)
     {

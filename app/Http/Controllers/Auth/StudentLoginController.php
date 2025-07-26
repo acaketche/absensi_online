@@ -32,6 +32,16 @@ public function authenticate(Request $request)
 
         $student = Auth::guard('student')->user();
 
+        // Log aktivitas login siswa
+        Log::info('Login siswa berhasil', [
+            'program' => 'Login',
+            'aktivitas' => 'Login ke portal siswa',
+            'waktu' => now()->toDateTimeString(),
+            'id_student' => $student->id_student,
+            'nama' => $student->fullname ?? null,
+            'ip' => $request->ip(),
+        ]);
+
         return redirect()->route('students.portal.siswa', ['id' => $student->id_student]);
     }
 

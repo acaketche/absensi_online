@@ -34,7 +34,7 @@ class BooksSheet implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
     public function collection()
     {
-        return Book::with('class')->get();
+        return Book::with(['class'])->get();
     }
 
     public function headings(): array
@@ -46,7 +46,6 @@ class BooksSheet implements FromCollection, WithHeadings, WithMapping, WithTitle
             'Nama Penerbit',
             'Tahun Terbit',
             'Kelas',
-            'Jumlah Stok Tersedia',
         ];
     }
 
@@ -59,7 +58,6 @@ class BooksSheet implements FromCollection, WithHeadings, WithMapping, WithTitle
             $book->publisher,
             $book->year_published,
             $book->class ? $this->formatClassLevel($book->class->class_level) : '-',
-            $book->stock,
         ];
     }
 
@@ -91,33 +89,26 @@ class BooksSheet implements FromCollection, WithHeadings, WithMapping, WithTitle
     {
         return [
             AfterSheet::class => function(AfterSheet $event) {
-                $sheet = $event->sheet;
-                $lastRow = $sheet->getHighestRow();
-
-                // Apply styles
                 $this->applyStyles($event);
-
-                // Setup class dropdown
-                $this->setupClassDropdown($event, $lastRow);
+                $this->setupClassDropdown($event);
+                $this->adjustColumnWidths($event->sheet);
             },
         ];
     }
 
     private function applyStyles(AfterSheet $event): void
     {
-        $sheet = $event->sheet;
+        $sheet = $event->sheet->getDelegate();
         $lastRow = $sheet->getHighestRow();
 
-        // Header style
         $headerStyle = [
             'font' => ['bold' => true, 'color' => ['rgb' => Color::COLOR_WHITE]],
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '3490dc']],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
         ];
-        $sheet->getStyle('A1:G1')->applyFromArray($headerStyle);
+        $sheet->getStyle('A1:F1')->applyFromArray($headerStyle);
 
-        // Data style
         $dataStyle = [
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
             'alignment' => [
@@ -125,39 +116,47 @@ class BooksSheet implements FromCollection, WithHeadings, WithMapping, WithTitle
                 'vertical' => Alignment::VERTICAL_CENTER,
             ],
         ];
-        $sheet->getStyle('A2:G'.$lastRow)->applyFromArray($dataStyle);
+        $sheet->getStyle('A2:F'.$lastRow)->applyFromArray($dataStyle);
 
-        // Alternate row colors
         for ($i = 2; $i <= $lastRow; $i++) {
             $fillColor = $i % 2 == 0 ? 'f8f9fa' : 'e9ecef';
-            $sheet->getStyle('A'.$i.':G'.$i)
+            $sheet->getStyle("A{$i}:F{$i}")
                 ->getFill()
                 ->setFillType(Fill::FILL_SOLID)
                 ->getStartColor()
                 ->setRGB($fillColor);
         }
-
-        // Auto-size and center columns
-        foreach (range('A', 'G') as $column) {
-            $sheet->getColumnDimension($column)->setAutoSize(true);
-            if (in_array($column, ['A', 'E', 'F', 'G'])) {
-                $sheet->getStyle($column)
-                    ->getAlignment()
-                    ->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            }
-        }
     }
 
-    private function setupClassDropdown(AfterSheet $event, int $lastRow): void
+    private function adjustColumnWidths(\Maatwebsite\Excel\Sheet $sheet): void
     {
-        $sheet = $event->sheet;
+        $worksheet = $sheet->getDelegate();
+
+        // Set custom column widths
+        $worksheet->getColumnDimension('A')->setWidth(20);  // Kode Buku
+        $worksheet->getColumnDimension('B')->setWidth(50);  // Judul Buku (wider)
+        $worksheet->getColumnDimension('C')->setWidth(30);  // Nama Penulis
+        $worksheet->getColumnDimension('D')->setWidth(30);  // Nama Penerbit
+        $worksheet->getColumnDimension('E')->setWidth(15);  // Tahun Terbit
+        $worksheet->getColumnDimension('F')->setWidth(15);  // Kelas
+
+        // Enable text wrapping for long text
+        $worksheet->getStyle('B')->getAlignment()->setWrapText(true);
+        $worksheet->getStyle('C')->getAlignment()->setWrapText(true);
+        $worksheet->getStyle('D')->getAlignment()->setWrapText(true);
+    }
+
+    private function setupClassDropdown(AfterSheet $event): void
+    {
+        $sheet = $event->sheet->getDelegate();
+        $lastRow = $sheet->getHighestRow();
+
         $classLevels = Classes::pluck('class_level')
             ->map(fn($level) => $this->formatClassLevel($level))
             ->unique()
             ->values()
             ->toArray();
 
-        // Add dropdown validation
         $validation = $sheet->getDataValidation('F2:F'.$lastRow);
         $validation->setType(DataValidation::TYPE_LIST);
         $validation->setErrorStyle(DataValidation::STYLE_STOP);
@@ -171,13 +170,13 @@ class BooksSheet implements FromCollection, WithHeadings, WithMapping, WithTitle
         $validation->setPrompt('Silakan pilih kelas dari daftar yang tersedia');
         $validation->setFormula1('"'.implode(',', $classLevels).'"');
 
-        // Add hidden sheet with class values
-        $classSheet = new Worksheet($sheet->getParent(), 'Class_Data');
-        $sheet->getParent()->addSheet($classSheet);
+        $spreadsheet = $sheet->getParent();
+        $classSheet = new Worksheet($spreadsheet, 'Class_Data');
+        $spreadsheet->addSheet($classSheet);
         $classSheet->setSheetState(Worksheet::SHEETSTATE_HIDDEN);
 
         foreach ($classLevels as $index => $level) {
-            $classSheet->setCellValue('A'.($index+1), $level);
+            $classSheet->setCellValue('A'.($index + 1), $level);
         }
     }
 }
@@ -216,10 +215,9 @@ class CopiesSheet implements FromCollection, WithHeadings, WithMapping, WithTitl
     {
         return [
             AfterSheet::class => function(AfterSheet $event) {
-                $sheet = $event->sheet;
+                $sheet = $event->sheet->getDelegate();
                 $lastRow = $sheet->getHighestRow();
 
-                // Header style
                 $headerStyle = [
                     'font' => ['bold' => true, 'color' => ['rgb' => Color::COLOR_WHITE]],
                     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '38a169']],
@@ -228,14 +226,12 @@ class CopiesSheet implements FromCollection, WithHeadings, WithMapping, WithTitl
                 ];
                 $sheet->getStyle('A1:C1')->applyFromArray($headerStyle);
 
-                // Data style
                 $dataStyle = [
                     'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
                     'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
                 ];
                 $sheet->getStyle('A2:C'.$lastRow)->applyFromArray($dataStyle);
 
-                // Alternate row colors
                 for ($i = 2; $i <= $lastRow; $i++) {
                     $fillColor = $i % 2 == 0 ? 'f0fff4' : 'e6ffed';
                     $sheet->getStyle("A{$i}:C{$i}")
@@ -243,18 +239,7 @@ class CopiesSheet implements FromCollection, WithHeadings, WithMapping, WithTitl
                         ->setFillType(Fill::FILL_SOLID)
                         ->getStartColor()
                         ->setRGB($fillColor);
-                }
 
-                // Auto-size and center columns
-                foreach (['A', 'B', 'C'] as $column) {
-                    $sheet->getColumnDimension($column)->setAutoSize(true);
-                    $sheet->getStyle($column)
-                        ->getAlignment()
-                        ->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                }
-
-                // Status column coloring
-                for ($i = 2; $i <= $lastRow; $i++) {
                     $status = $sheet->getCell('C'.$i)->getValue();
                     $color = $status == 'Tersedia' ? '2f855a' : 'c53030';
                     $sheet->getStyle("C{$i}")
@@ -262,7 +247,26 @@ class CopiesSheet implements FromCollection, WithHeadings, WithMapping, WithTitl
                         ->getColor()
                         ->setRGB($color);
                 }
+
+                $this->adjustColumnWidths($event->sheet);
             },
         ];
+    }
+
+    private function adjustColumnWidths(\Maatwebsite\Excel\Sheet $sheet): void
+    {
+        $worksheet = $sheet->getDelegate();
+
+        // Set wider columns for better readability
+        $worksheet->getColumnDimension('A')->setWidth(30);  // Kode Buku Induk
+        $worksheet->getColumnDimension('B')->setWidth(30);  // Kode Salinan Buku
+        $worksheet->getColumnDimension('C')->setWidth(20);  // Status Ketersediaan
+
+        // Center align all columns
+        foreach (['A', 'B', 'C'] as $column) {
+            $worksheet->getStyle($column)
+                ->getAlignment()
+                ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        }
     }
 }

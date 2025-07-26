@@ -163,10 +163,12 @@
               <td>{{ $class->class_name }}</td>
               <td>
                 <div class="d-flex align-items-center">
-                  <img src="{{ $class->employee?->photo ? asset('storage/' . $class->employee->photo) : asset('images/default-profile.png') }}"
-                    alt="Foto {{ $class->employee?->fullname ?? 'Tidak Ada Data' }}"
-                    class="teacher-photo rounded-circle me-3">
-                  <div>
+    @if($class->employee?->photo)
+        <img src="{{ asset('storage/' . $class->employee->photo) }}"
+             alt="Foto {{ $class->employee->fullname ?? 'Tidak Ada Data' }}"
+             class="teacher-photo rounded-circle me-3">
+    @endif
+    <div>
                     <p class="mb-0 fw-medium teacher-name">
                       {{ $class->employee?->fullname ?? 'Belum Ada Wali Kelas' }}
                     </p>

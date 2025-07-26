@@ -9,7 +9,7 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: #f8fafc;
 }
 
@@ -21,7 +21,8 @@ body {
 
 /* ===== SIDEBAR STYLES ===== */
 .sidebar {
-    min-width: 300px; /* Diperbesar untuk menampung text yang lebih besar */
+    min-width: 220px; /* Lebar sidebar diperkecil */
+    max-width: 320px; /* Maksimum lebar ditambahkan */
     background: linear-gradient(180deg, #4266B9 0%, #365796 100%);
     color: white;
     padding: 0;

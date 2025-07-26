@@ -73,7 +73,7 @@
 
     /* Scrollable table styles */
     .table-responsive-container {
-      max-height: 500px;
+      max-height: 850px;
       overflow-y: auto;
       position: relative;
     }
@@ -233,7 +233,7 @@
                                             @endif
                                             <div>
                                                 <div class="fw-medium">{{ $student->fullname }}</div>
-                                                <small class="text-muted">{{ $student->religion ?? '-' }}</small>
+                                                <small class="text-muted">{{ $student->parent_phonecell ?? '-' }}</small>
                                             </div>
                                         </div>
                                     </td>

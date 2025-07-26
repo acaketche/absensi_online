@@ -377,6 +377,17 @@ if (File::exists($logFile)) {
 public function piket(Request $request)
 {
     $today = Carbon::today();
+    $user = Auth::guard('employee')->user();
+
+// Cek apakah user sedang bertugas piket hari ini
+$todayPicketSchedule = null;
+
+if ($user) {
+    $todayPicketSchedule = PicketSchedule::with('employee')
+        ->where('employee_id', $user->id_employee)
+        ->whereDate('picket_date', $today)
+        ->first();
+}
 
     $activeAcademicYear = AcademicYear::where('is_active', 1)->first();
     $activeSemester = Semester::where('is_active', 1)->first();
@@ -511,8 +522,7 @@ foreach ($statuses as $status) {
         $studentChartWeek[$status->status_name] = $studentStatusCountsWeek[$status->status_id] ?? 0;
     }
 }
-
-    return view('auth.dashboard_piket', compact(
+return view('auth.dashboard_piket', compact(
     'totalSiswa',
     'siswaHadir',
     'siswaTidakHadir',
@@ -520,7 +530,8 @@ foreach ($statuses as $status) {
     'studentChartToday',
     'studentChartWeek',
     'studentChartMonth',
-    'classAttendanceData'
+    'classAttendanceData',
+    'todayPicketSchedule' // <--- kirim ke view
 ));
 }
 

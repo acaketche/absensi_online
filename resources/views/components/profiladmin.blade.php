@@ -9,12 +9,23 @@
                         {{ Auth::guard('employee')->user()->role->role_name ?? 'Tidak ada role' }}
                     </small>
                 </div>
-               @if(Auth::guard('employee')->user()->photo)
-    <div class="profile-avatar">
-        <img src="{{ asset('storage/' . Auth::guard('employee')->user()->photo) }}"
-             alt="Profile Picture" class="w-100 h-100 object-fit-cover">
-    </div>
-@endif
+                <div class="profile-avatar position-relative" style="width: 48px; height: 48px;">
+                    @if(Auth::guard('employee')->user()->photo)
+                        <img src="{{ asset('storage/' . Auth::guard('employee')->user()->photo) }}"
+                             alt="Profile Picture"
+                             class="w-100 h-100 object-fit-cover rounded-circle lazy-load"
+                             loading="lazy"
+                             style="opacity: 0; transition: opacity 0.3s ease;"
+                             onload="this.style.opacity = '1'">
+                        <div class="placeholder-profile" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #999; font-weight: bold;">
+                            {{ substr(Auth::guard('employee')->user()->fullname, 0, 1) }}
+                        </div>
+                    @else
+                        <div class="w-100 h-100 rounded-circle bg-light d-flex align-items-center justify-content-center" style="background-color: #f0f0f0; color: #999; font-weight: bold;">
+                            {{ substr(Auth::guard('employee')->user()->fullname, 0, 1) }}
+                        </div>
+                    @endif
+                </div>
                 <i class="profile-caret fas fa-chevron-down text-muted ms-2"></i>
             </div>
         </button>
@@ -68,20 +79,30 @@
                 <div class="modal-body p-4">
                     <div class="row align-items-center">
                         <div class="col-md-4 text-center mb-4 mb-md-0">
-                         <div class="profile-image-container position-relative mx-auto">
-    @if(Auth::guard('employee')->user()->photo)
-        <img id="profileImagePreview"
-            src="{{ asset('storage/' . Auth::guard('employee')->user()->photo) }}"
-            class="profile-image-preview rounded-circle w-100"
-            alt="Profile Photo">
-    @endif
+                            <div class="profile-image-container position-relative mx-auto" style="width: 180px; height: 180px;">
+                                @if(Auth::guard('employee')->user()->photo)
+                                    <img id="profileImagePreview"
+                                        src="{{ asset('storage/' . Auth::guard('employee')->user()->photo) }}"
+                                        class="profile-image-preview rounded-circle w-100 h-100 object-fit-cover lazy-load"
+                                        loading="lazy"
+                                        style="opacity: 0; transition: opacity 0.3s ease;"
+                                        onload="this.style.opacity = '1'"
+                                        alt="Profile Photo">
+                                    <div class="placeholder-profile" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #999; font-weight: bold; font-size: 3rem;">
+                                        {{ substr(Auth::guard('employee')->user()->fullname, 0, 1) }}
+                                    </div>
+                                @else
+                                    <div class="w-100 h-100 rounded-circle bg-light d-flex align-items-center justify-content-center" style="background-color: #f0f0f0; color: #999; font-weight: bold; font-size: 3rem;">
+                                        {{ substr(Auth::guard('employee')->user()->fullname, 0, 1) }}
+                                    </div>
+                                @endif
 
-    <label for="profile-photo-input"
-        class="profile-image-upload-btn btn btn-primary btn-sm position-absolute bottom-0 end-0 rounded-circle p-2">
-        <i class="fas fa-camera m-0"></i>
-        <input type="file" id="profile-photo-input" name="photo" class="d-none" accept="image/*">
-    </label>
-</div>
+                                <label for="profile-photo-input"
+                                    class="profile-image-upload-btn btn btn-primary btn-sm position-absolute bottom-0 end-0 rounded-circle p-2">
+                                    <i class="fas fa-camera m-0"></i>
+                                    <input type="file" id="profile-photo-input" name="photo" class="d-none" accept="image/*">
+                                </label>
+                            </div>
                             <small class="profile-image-hint text-muted mt-2 d-block">Ukuran maksimal 2MB (JPG/PNG)</small>
                         </div>
                         <div class="col-md-8">
@@ -289,6 +310,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 const reader = new FileReader();
                 reader.onload = function (e) {
                     profileImagePreview.src = e.target.result;
+                    profileImagePreview.style.opacity = '1';
+                    // Hide placeholder when image is loaded
+                    const placeholder = document.querySelector('.placeholder-profile');
+                    if (placeholder) placeholder.style.display = 'none';
                 };
                 reader.readAsDataURL(file);
             }
@@ -317,7 +342,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // Reset form when modal is closed
     $('#profileEditModal').on('hidden.bs.modal', function () {
         $('#profile-photo-input').val('');
-        profileImagePreview.src = "{{ Auth::guard('employee')->user()->photo ? asset('storage/'.Auth::guard('employee')->user()->photo) : asset('images/default-avatar.png') }}";
+        const preview = document.getElementById('profileImagePreview');
+        if (preview) {
+            preview.src = "{{ Auth::guard('employee')->user()->photo ? asset('storage/'.Auth::guard('employee')->user()->photo) : '' }}";
+            preview.style.opacity = '1';
+        }
     });
 
     // Handle form submission for profile update
@@ -366,6 +395,31 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
+    // Lazy load images with Intersection Observer
+    if ('IntersectionObserver' in window) {
+        const lazyImages = document.querySelectorAll('.lazy-load');
+
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src || img.src;
+                    img.removeAttribute('data-src');
+                    observer.unobserve(img);
+                }
+            });
+        });
+
+        lazyImages.forEach(img => {
+            // Store original src in data-src
+            if (!img.dataset.src) {
+                img.dataset.src = img.src;
+                img.src = '';
+            }
+            imageObserver.observe(img);
+        });
+    }
 });
 </script>
 
@@ -394,15 +448,40 @@ document.addEventListener('DOMContentLoaded', function () {
 .profile-avatar {
     width: 48px;
     height: 48px;
+    min-width: 48px;
+    position: relative;
     border-radius: 50%;
     overflow: hidden;
-    border: 3px solid #e9ecef;
+    border: 2px solid #e9ecef;
     transition: all 0.3s ease;
 }
 
 .profile-header:hover .profile-avatar {
     border-color: #ced4da;
     transform: scale(1.05);
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: relative;
+    z-index: 1;
+}
+
+.profile-avatar .placeholder-profile {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0;
+    color: #999;
+    font-weight: bold;
+    z-index: 0;
 }
 
 .profile-name {
@@ -491,14 +570,36 @@ document.addEventListener('DOMContentLoaded', function () {
 /* Profile Image Upload */
 .profile-image-container {
     width: 180px;
+    height: 180px;
+    position: relative;
+    margin: 0 auto;
 }
 
 .profile-image-preview {
-    width: 180px;
-    height: 180px;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
+    border-radius: 50%;
     border: 3px solid #e9ecef;
     transition: all 0.3s;
+    position: relative;
+    z-index: 1;
+}
+
+.profile-image-container .placeholder-profile {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0;
+    color: #999;
+    font-weight: bold;
+    border-radius: 50%;
+    z-index: 0;
 }
 
 .profile-image-preview:hover {
@@ -512,6 +613,10 @@ document.addEventListener('DOMContentLoaded', function () {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: 2;
 }
 
 .profile-image-hint {
@@ -583,5 +688,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
 .profile-cancel-btn:hover {
     background-color: #f8f9fa;
+}
+
+/* Lazy loading styles */
+.lazy-load {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.lazy-load.loaded {
+    opacity: 1;
 }
 </style>

@@ -9,16 +9,19 @@ use Illuminate\Http\Request;
 
 class PicketScheduleController extends Controller
 {
-    // Menampilkan semua jadwal piket
-    public function index()
-    {
-        // Hanya role: Wali Kelas (1), Admin Pegawai Piket (4)
-        $employees = Employee::with(['position', 'kelasAsuh'])
-        ->whereIn('role_id', [1, 4])
+  public function index()
+{
+    $employees = Employee::with(['position', 'kelasAsuh'])
+        ->where(function ($query) {
+            $query->whereIn('role_id', [1, 4])
+                  ->orWhereNotNull('position_id');
+        })
+        ->orderBy('fullname') // Urutkan berdasarkan nama (A-Z)
         ->get();
 
-        $schedules = PicketSchedule::with('employee')->orderBy('picket_date')->get();
-        return view('piketschedule.piket', compact('schedules','employees'));
+    $schedules = PicketSchedule::with('employee')->orderBy('picket_date')->get();
+
+    return view('piketschedule.piket', compact('schedules', 'employees'));
     }
 
     // Form tambah jadwal

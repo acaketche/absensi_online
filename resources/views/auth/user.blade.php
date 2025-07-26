@@ -36,7 +36,7 @@
 
         .table-container {
             overflow-y: auto;
-            max-height: 700px;
+            max-height: 800px;
             border: 1px solid var(--border-color);
             border-radius: 0.5rem;
         }

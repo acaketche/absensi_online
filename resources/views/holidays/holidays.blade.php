@@ -10,11 +10,18 @@
   <style>
     .main-content { flex: 1; padding: 30px; background: #f5f5f5; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-    .table-responsive { overflow-y: auto; max-height: 500px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-    .table { table-layout: auto; width: 100%; margin-bottom: 0; }
+    .table-responsive { overflow-y: auto; max-height: 900px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+    .table { table-layout: auto; width: 100%; margin-bottom: 0; border-collapse: separate; border-spacing: 0; }
     .table th { background-color: #4266B9; color: white; position: sticky; top: 0; }
-    .table th, .table td { padding: 12px 15px; vertical-align: middle; }
-    .table td { border-bottom: 1px solid #e0e0e0; }
+    .table th, .table td {
+      padding: 12px 15px;
+      vertical-align: middle;
+      border-right: 1px solid #dee2e6; /* Garis vertikal antar kolom */
+      border-bottom: 1px solid #dee2e6; /* Garis horizontal antar baris */
+    }
+    .table th:last-child, .table td:last-child {
+      border-right: none; /* Hilangkan garis di kolom terakhir */
+    }
     .table tr:last-child td { border-bottom: none; }
     .table tr:hover { background-color: rgba(66, 102, 185, 0.05); }
     .filter-section { background-color: white; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
@@ -134,7 +141,7 @@
               </tr>
             @empty
               <tr>
-                <td colspan="5">
+                <td colspan="4">
                   <div class="no-data">
                     <i class="far fa-calendar-alt"></i>
                     <p class="mb-0">Tidak ada data hari libur</p>

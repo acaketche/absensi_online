@@ -236,7 +236,7 @@
                                     <tr>
                                         <td>{{ \Carbon\Carbon::parse($attendance->attendance_date)->format('d/m/Y') }}</td>
                                         <td>
-                                            <span class="badge badge-{{ strtolower($attendance->status->status_name) }}">
+                                            <span class="badge{{ strtolower($attendance->status->status_name) }}">
                                                 {{ $attendance->status->status_name }}
                                             </span>
                                         </td>
@@ -315,7 +315,7 @@
                     <!-- Payment Info -->
                     <div class="alert alert-info mt-3">
                         <h6><i class="fas fa-info-circle me-1"></i>Informasi Pembayaran</h6>
-                        <p class="mb-1">Transfer ke BNI 0123456789 a.n. SMA Negeri 1</p>
+                        <p class="mb-1">Transfer ke ###</p>
                         <p class="mb-0">Loket sekolah: Senin-Jumat, 08.00-15.00</p>
                     </div>
                 </div>

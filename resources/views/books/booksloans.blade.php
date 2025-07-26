@@ -7,130 +7,110 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
-
+    <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
   <style>
     :root {
       --primary-color: #4266B9;
       --secondary-color: #3a0ca3;
       --light-bg: #f8f9fa;
-      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
     body {
       background-color: var(--light-bg);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Inter', sans-serif;
     }
 
+    /* Card Sederhana */
     .class-card {
-      border-radius: 12px;
-      background-color: #fff;
-      box-shadow: var(--card-shadow);
-      cursor: pointer;
-      transition: all 0.2s ease;
+      border-radius: 8px;
+      background-color: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+      border: none;
       overflow: hidden;
-      width: 280px;
-      display: flex;
-      flex-direction: column;
-      border: 1px solid #e9ecef;
+      width: 240px;
+      cursor: pointer;
     }
 
     .class-card:hover {
       transform: translateY(-3px);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
-    .class-card-header {
-      background: linear-gradient(135deg, #3f37c9, #4266B9);
-      color: #fff;
-      padding: 16px;
-      position: relative;
-    }
-
-    .class-icon {
-      width: 40px;
-      height: 40px;
-      background-color: rgba(255,255,255,0.2);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 12px;
-      font-size: 1rem;
-    }
-
-    .class-header-content {
-      display: flex;
-      align-items: center;
+    .class-header {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 12px;
     }
 
     .class-name {
       font-weight: 600;
-      font-size: 1.05rem;
+      font-size: 1rem;
       margin-bottom: 2px;
     }
 
     .class-meta {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       opacity: 0.9;
+    }
+
+    .class-body {
+      padding: 12px;
     }
 
     .class-stats {
       display: flex;
-      justify-content: space-around;
-      background-color: white;
-      padding: 12px 0;
-      border-bottom: 1px solid #f1f3f5;
+      justify-content: space-between;
+      margin-bottom: 10px;
     }
 
     .stat-item {
       text-align: center;
+      flex: 1;
     }
 
     .stat-value {
-      font-size: 1.1rem;
-      font-weight: 700;
+      font-weight: 600;
       color: var(--primary-color);
     }
 
     .stat-label {
       font-size: 0.7rem;
       color: #6c757d;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
     .teacher-info {
       display: flex;
       align-items: center;
-      padding: 12px 16px;
-      background-color: #f8fafb;
+      padding-top: 8px;
+      border-top: 1px solid #eee;
     }
 
-    .teacher-avatar,
-    .teacher-initial {
-      width: 32px;
-      height: 32px;
+    .teacher-avatar {
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
-      margin-right: 10px;
+      margin-right: 8px;
       object-fit: cover;
-      font-size: 0.9rem;
+    }
+
+    .teacher-initial {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
       background-color: #4895ef;
       color: white;
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
+      margin-right: 8px;
+      font-size: 0.8rem;
       font-weight: 500;
-    }
-
-    .teacher-details {
-      flex-grow: 1;
     }
 
     .teacher-name {
+      font-size: 0.8rem;
       font-weight: 500;
-      font-size: 0.85rem;
-      color: #343a40;
     }
 
     .teacher-role {
@@ -138,83 +118,24 @@
       color: #6c757d;
     }
 
-    .page-header h2 {
-      color: var(--secondary-color);
-      font-weight: 700;
+    /* Responsive Grid */
+    .class-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
     }
 
-    .search-box {
-      position: relative;
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 16px;
-      top: 12px;
-      color: var(--primary-color);
-    }
-
-    .search-input {
-      padding-left: 48px;
-      border-radius: 50px;
-      border: 1px solid #e0e0e0;
-      height: 48px;
-    }
-
-    .filter-section {
-      background-color: white;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 24px;
-      box-shadow: var(--card-shadow);
-    }
-
+    /* Empty State */
     .empty-state {
-      padding: 60px 0;
+      padding: 40px;
       text-align: center;
       background-color: white;
-      border-radius: 16px;
-      box-shadow: var(--card-shadow);
-    }
-
-    /* List View */
-    #classList.list-view {
-      flex-direction: column;
-    }
-
-    #classList.list-view .class-card {
-      flex-direction: row;
-      width: 100%;
-      max-width: 100%;
-    }
-
-    #classList.list-view .class-card-header {
-      width: 200px;
-      min-width: 200px;
-      border-right: 1px solid #e9ecef;
-    }
-
-    #classList.list-view .class-stats {
-      flex-direction: column;
-      justify-content: center;
-      padding: 8px 16px;
-      width: 120px;
-      min-width: 120px;
-    }
-
-    #classList.list-view .teacher-info {
-      flex-grow: 1;
-      justify-content: space-between;
-    }
-
-    .btn-group .btn.active {
-      background-color: var(--primary-color);
-      color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
   </style>
 </head>
 
-@if(Auth::guard('employee')->check())
 <body class="bg-light">
 <div class="d-flex">
   @include('components.sidebar')
@@ -222,176 +143,165 @@
   <main class="flex-grow-1 p-4">
     @include('components.profiladmin')
 
-    <header class="d-flex justify-content-between align-items-center mb-4">
-      <div class="page-header">
-        <h2>Peminjaman Buku - Daftar Kelas</h2>
-        <p class="text-muted">
-          Pilih kelas untuk melihat daftar siswa dan peminjaman buku<br>
-          <small>
-            Tahun Ajaran: <strong>{{ $activeAcademicYear->year_name ?? '-' }}</strong> |
-            Semester: <strong>{{ $activeSemester->semester_name ?? '-' }}</strong>
-          </small>
-        </p>
-      </div>
+    <header class="mb-4">
+      <h2 class="text-primary">Peminjaman Buku - Daftar Kelas</h2>
+      <p class="text-muted mb-0">
+        Pilih kelas untuk melihat daftar siswa dan peminjaman buku
+      </p>
+      <small class="text-muted">
+        Tahun Ajaran: <strong>{{ $activeAcademicYear->year_name ?? '-' }}</strong> |
+        Semester: <strong>{{ $activeSemester->semester_name ?? '-' }}</strong>
+      </small>
     </header>
 
-  <!-- Filter, Pencarian, dan Aksi -->
-<div class="filter-section mb-4">
-  <div class="row g-3">
-
-    <!-- Kolom Pencarian -->
-    <div class="col-md-6 col-lg-4">
-      <div class="input-group">
-        <span class="input-group-text bg-white border-end-0">
-          <i class="fas fa-search text-muted"></i>
-        </span>
-        <input type="text" id="searchClass" class="form-control border-start-0" placeholder="Cari kelas atau wali kelas...">
-      </div>
-    </div>
-
-    <!-- Kolom Filter dan Toggle -->
-    <div class="col-md-6 col-lg-8">
-      <form id="filterForm" class="d-flex flex-wrap gap-2 justify-content-lg-end align-items-center">
-        <!-- Filter Tingkat -->
-        <select class="form-select w-auto" id="filterTingkat" name="tingkat">
-          <option value="">Semua Tingkat</option>
-          <option value="X">Kelas 10</option>
-          <option value="XI">Kelas 11</option>
-          <option value="XII">Kelas 12</option>
-        </select>
-
-        <!-- Tombol Filter -->
-        <button type="submit" class="btn btn-primary">
-          <i class="fas fa-filter me-1"></i> Filter
-        </button>
-
-        <!-- Reset Filter -->
-        <button type="button" id="resetFilter" class="btn btn-outline-secondary">
-          <i class="fas fa-redo me-1"></i> Reset
-        </button>
-
-        <!-- Toggle Tampilan -->
-        <div class="btn-group" role="group" aria-label="Tampilan">
-          <button id="gridViewBtn" type="button" class="btn btn-outline-primary active" title="Grid">
-            <i class="fas fa-th-large"></i>
-          </button>
-          <button id="listViewBtn" type="button" class="btn btn-outline-primary" title="List">
-            <i class="fas fa-list"></i>
-          </button>
+    <!-- Filter dan Pencarian -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6 mb-3 mb-md-0">
+            <div class="input-group">
+              <span class="input-group-text bg-white">
+                <i class="fas fa-search text-muted"></i>
+              </span>
+              <input type="text" id="searchClass" class="form-control" placeholder="Cari kelas atau wali kelas...">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="d-flex gap-2">
+              <select class="form-select" id="filterTingkat">
+                <option value="">Semua Tingkat</option>
+                <option value="X">Kelas 10</option>
+                <option value="XI">Kelas 11</option>
+                <option value="XII">Kelas 12</option>
+              </select>
+              <button id="resetFilter" class="btn btn-outline-secondary">
+                <i class="fas fa-redo"></i>
+              </button>
+            </div>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
-  </div>
-</div>
-
 <!-- Section: Download & Import Excel -->
-<div class="card shadow-sm border-0 mb-4">
-  <div class="card-body py-3">
-    <div class="row align-items-center g-3">
+<div class="card mb-4">
+  <div class="card-body">
+    <h5 class="card-title mb-3 text-primary">
+      <i class="fas fa-file-excel me-2"></i>Manajemen Data Excel
+    </h5>
 
+    <div class="row g-3">
       <!-- Download Template -->
-      <div class="col-md-4">
-        <a href="{{ route('book-loans.export') }}" class="btn btn-outline-success w-100">
-          <i class="fas fa-download me-1"></i> Download Template Excel
-        </a>
-        <small class="text-muted d-block mt-2">
-          Unduh format <strong>template pengisian data peminjaman</strong> yang sudah disiapkan. Template ini terdiri dari <strong>3 sheet terpisah</strong> untuk masing-masing tingkat: Kelas <code>X</code>, <code>XI</code>, dan <code>XII</code>.
-        </small>
-      </div>
-
-      <!-- Separator (garis horizontal mobile) -->
-      <div class="col-12 d-md-none">
-        <hr class="my-2">
-      </div>
-
-      <!-- Import Excel Form -->
-      <div class="col-md-8">
-        <form action="{{ route('book-loans.import') }}" method="POST" enctype="multipart/form-data" class="row g-2">
-          @csrf
-
-          <!-- Input File -->
-          <div class="col-sm-8">
-            <input type="file" name="file" class="form-control form-control-sm" accept=".xlsx,.xls" required>
+      <div class="col-md-6">
+        <div class="border p-3 rounded bg-light">
+          <div class="d-flex align-items-center mb-2">
+            <i class="fas fa-file-download text-success me-2 fs-4"></i>
+            <h6 class="mb-0">Download Template</h6>
           </div>
-
-          <!-- Tombol Import -->
-          <div class="col-sm-4 text-end">
-            <button type="submit" class="btn btn-primary w-100">
-              <i class="fas fa-upload me-1"></i> Import Excel
-            </button>
+          <p class="small text-muted mb-3">
+            Unduh template Excel untuk pengisian data peminjaman buku.
+          </p>
+          <a href="{{ route('book-loans.export') }}" class="btn btn-success w-100">
+            <i class="fas fa-download me-2"></i>Download Template
+          </a>
+          <div class="mt-2 small text-muted">
+            <i class="fas fa-info-circle me-1"></i>
+            Template terdiri dari 3 sheet (X, XI, XII) dengan format yang sudah disesuaikan.
           </div>
-        </form>
-
-        <small class="text-muted d-block mt-2">
-          Pastikan file sesuai dengan template yang diunduh, dan memiliki ekstensi <code>.xlsx</code> atau <code>.xls</code>.
-          Data akan diproses secara otomatis sesuai dengan tingkat dan kelas masing-masing.
-        </small>
+        </div>
       </div>
 
+      <!-- Import Excel -->
+      <div class="col-md-6">
+        <div class="border p-3 rounded bg-light">
+          <div class="d-flex align-items-center mb-2">
+            <i class="fas fa-file-upload text-primary me-2 fs-4"></i>
+            <h6 class="mb-0">Import Data</h6>
+          </div>
+          <p class="small text-muted mb-3">
+            Unggah file Excel yang sudah diisi untuk memproses data peminjaman.
+          </p>
+
+          <form action="{{ route('book-loans.import') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="input-group mb-3">
+              <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-upload me-1"></i>Import
+              </button>
+            </div>
+            <div class="small text-muted">
+              <i class="fas fa-exclamation-triangle me-1"></i>
+              Pastikan file sesuai template dan berformat .xlsx/.xls
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
 @if (session('import_errors'))
-    <div class="alert alert-warning">
-        <strong>Beberapa data tidak diproses:</strong>
-        <ul class="mb-0">
-            @foreach (session('import_errors') as $err)
-                <li>{{ $err }}</li>
-            @endforeach
-        </ul>
-    </div>
+<div class="alert alert-warning alert-dismissible fade show">
+  <h5 class="alert-heading">
+    <i class="fas fa-exclamation-triangle me-2"></i>Peringatan Import
+  </h5>
+  <p>Beberapa data tidak dapat diproses:</p>
+  <ul class="mb-0">
+    @foreach (session('import_errors') as $err)
+      <li>{{ $err }}</li>
+    @endforeach
+  </ul>
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
 @endif
 
 @if (session('success'))
-    <div class="alert alert-success">
-        {!! session('success') !!}
-    </div>
+<div class="alert alert-success alert-dismissible fade show">
+  <h5 class="alert-heading">
+    <i class="fas fa-check-circle me-2"></i>Import Berhasil
+  </h5>
+  {!! session('success') !!}
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
 @endif
 
     <!-- Daftar Kelas -->
-    <div id="classList" class="d-flex flex-wrap gap-3">
+    <div id="classList" class="class-grid">
       @foreach($classes as $class)
         @php
           $loanCount = $classLoans[$class->class_id] ?? 0;
           $studentCount = $class->students->count();
         @endphp
 
-        <div class="class-card class-item" onclick="window.location.href='{{ route('book-loans.class-students', $class->class_id) }}'">
-          <div class="class-card-header">
-            <div class="class-header-content">
-              <div class="class-icon">
-                <i class="fas fa-chalkboard-teacher"></i>
+        <div class="class-card" onclick="window.location.href='{{ route('book-loans.class-students', $class->class_id) }}'">
+          <div class="class-header">
+            <div class="class-name">{{ $class->class_name }}</div>
+            <div class="class-meta">{{ $class->academicYear->year_name ?? 'Tahun Ajaran' }}</div>
+          </div>
+
+          <div class="class-body">
+            <div class="class-stats">
+              <div class="stat-item">
+                <div class="stat-value">{{ $studentCount }}</div>
+                <div class="stat-label">Siswa</div>
               </div>
+              <div class="stat-item">
+                <div class="stat-value">{{ $loanCount }}</div>
+                <div class="stat-label">Pinjaman</div>
+              </div>
+            </div>
+
+            <div class="teacher-info">
+              @if($class->employee && $class->employee->photo)
+                <img src="{{ asset('storage/' . $class->employee->photo) }}" class="teacher-avatar" alt="Wali Kelas">
+              @else
+                <div class="teacher-initial">{{ $class->employee ? substr($class->employee->fullname, 0, 1) : '?' }}</div>
+              @endif
               <div>
-                <div class="class-name">{{ $class->class_name }}</div>
-                <div class="class-meta">{{ $class->academicYear->year_name ?? 'Tahun Ajaran' }}</div>
+                <div class="teacher-name">{{ $class->employee->fullname ?? 'Belum ada wali kelas' }}</div>
+                <div class="teacher-role">Wali Kelas</div>
               </div>
             </div>
-          </div>
-
-          <div class="class-stats">
-            <div class="stat-item">
-              <div class="stat-value">{{ $studentCount }}</div>
-              <div class="stat-label">Siswa</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value">{{ $loanCount }}</div>
-              <div class="stat-label">Pinjaman</div>
-            </div>
-          </div>
-
-          <div class="teacher-info">
-            @if($class->employee && $class->employee->photo)
-              <img src="{{ asset('storage/' . $class->employee->photo) }}" class="teacher-avatar" alt="Wali Kelas">
-            @else
-              <div class="teacher-initial">{{ $class->employee ? substr($class->employee->fullname, 0, 1) : '?' }}</div>
-            @endif
-            <div class="teacher-details">
-              <div class="teacher-name">{{ $class->employee->fullname ?? 'Belum ada wali kelas' }}</div>
-              <div class="teacher-role">Wali Kelas</div>
-            </div>
-            <i class="fas fa-chevron-right text-muted ms-2" style="font-size: 0.8rem;"></i>
           </div>
         </div>
       @endforeach
@@ -412,20 +322,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Search
     document.getElementById('searchClass').addEventListener('keyup', function() {
         const val = this.value.toLowerCase();
-        document.querySelectorAll('.class-item').forEach(card => {
+        document.querySelectorAll('.class-card').forEach(card => {
             const name = card.querySelector('.class-name').textContent.toLowerCase();
             const teacher = card.querySelector('.teacher-name').textContent.toLowerCase();
-            card.style.display = (name.includes(val) || teacher.includes(val)) ? 'flex' : 'none';
+            card.style.display = (name.includes(val) || teacher.includes(val)) ? 'block' : 'none';
         });
     });
 
     // Filter
-    document.getElementById('filterForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const tingkat = document.getElementById('filterTingkat').value;
-        document.querySelectorAll('.class-item').forEach(card => {
+    document.getElementById('filterTingkat').addEventListener('change', function() {
+        const tingkat = this.value;
+        document.querySelectorAll('.class-card').forEach(card => {
             const name = card.querySelector('.class-name').textContent;
-            card.style.display = (!tingkat || name.includes(tingkat)) ? 'flex' : 'none';
+            card.style.display = (!tingkat || name.includes(tingkat)) ? 'block' : 'none';
         });
     });
 
@@ -433,23 +342,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('resetFilter').addEventListener('click', function() {
         document.getElementById('searchClass').value = '';
         document.getElementById('filterTingkat').value = '';
-        document.querySelectorAll('.class-item').forEach(card => card.style.display = 'flex');
-    });
-
-    // Toggle View
-    document.getElementById('gridViewBtn').addEventListener('click', function () {
-      document.getElementById('classList').classList.remove('list-view');
-      this.classList.add('active');
-      document.getElementById('listViewBtn').classList.remove('active');
-    });
-
-    document.getElementById('listViewBtn').addEventListener('click', function () {
-      document.getElementById('classList').classList.add('list-view');
-      this.classList.add('active');
-      document.getElementById('gridViewBtn').classList.remove('active');
+        document.querySelectorAll('.class-card').forEach(card => card.style.display = 'block');
     });
 });
 </script>
 </body>
-@endif
 </html>

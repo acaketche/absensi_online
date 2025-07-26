@@ -18,6 +18,7 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
+use Maatwebsite\Excel\Validators\Failure;
 
 class BooksImport implements WithMultipleSheets, WithEvents
 {
@@ -29,45 +30,48 @@ class BooksImport implements WithMultipleSheets, WithEvents
     public function sheets(): array
     {
         return [
+            // Sheet: Books
             'Books' => new class($this) implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailure, SkipsEmptyRows {
                 use SkipsFailures;
 
                 protected $import;
-                public function __construct(BooksImport $import) { $this->import = $import; }
 
-              public function model(array $row)
-{
-    $classLevel = $this->normalizeClassLevel($row['kelas'] ?? '');
-    $class = Classes::firstOrCreate(['class_level' => $classLevel]);
+                public function __construct(BooksImport $import)
+                {
+                    $this->import = $import;
+                }
 
-    $book = Book::where('code', $row['kode_buku'])->first();
+                public function model(array $row)
+                {
+                    $classLevel = $this->normalizeClassLevel($row['kelas'] ?? '');
+                    $class = Classes::firstOrCreate(['class_level' => $classLevel]);
 
-    if ($book) {
-        // Update buku, kecuali cover
-        $book->update([
-            'title' => $row['judul_buku'],
-            'author' => $row['nama_penulis'],
-            'publisher' => $row['nama_penerbit'],
-            'year_published' => (int) $row['tahun_terbit'],
-            'stock' => (int) $row['jumlah_stok_tersedia'],
-            'class_id' => $class->class_id,
-        ]);
-    } else {
-        // Buat baru, cover diset null
-        Book::create([
-            'code' => $row['kode_buku'],
-            'title' => $row['judul_buku'],
-            'author' => $row['nama_penulis'],
-            'publisher' => $row['nama_penerbit'],
-            'year_published' => (int) $row['tahun_terbit'],
-            'stock' => (int) $row['jumlah_stok_tersedia'],
-            'class_id' => $class->class_id,
-            'cover' => null,
-        ]);
-    }
+                    $book = Book::where('code', $row['kode_buku'])->first();
 
-    $this->import->incrementImportedCount();
-}
+                    if ($book) {
+                        $book->update([
+                            'title' => $row['judul_buku'],
+                            'author' => $row['nama_penulis'],
+                            'publisher' => $row['nama_penerbit'],
+                            'year_published' => (int) $row['tahun_terbit'],
+                            'class_id' => $class->class_id,
+                        ]);
+                    } else {
+                        Book::create([
+                            'code' => $row['kode_buku'],
+                            'title' => $row['judul_buku'],
+                            'author' => $row['nama_penulis'],
+                            'publisher' => $row['nama_penerbit'],
+                            'year_published' => (int) $row['tahun_terbit'],
+                            'class_id' => $class->class_id,
+                            'cover' => null,
+                            'stock' => 0, // Default stock 0, will be updated from copies
+                        ]);
+                    }
+
+                    $this->import->incrementImportedCount();
+                }
+
                 public function rules(): array
                 {
                     return [
@@ -77,8 +81,12 @@ class BooksImport implements WithMultipleSheets, WithEvents
                         '*.nama_penerbit' => 'required|string|max:100',
                         '*.tahun_terbit' => 'required|digits:4|integer|min:1900|max:' . (date('Y') + 1),
                         '*.kelas' => 'required|string',
-                        '*.jumlah_stok_tersedia' => 'required|integer|min:0',
                     ];
+                }
+
+                public function onFailure(Failure ...$failures)
+                {
+                    $this->failures = array_merge($this->failures, $failures);
                 }
 
                 private function normalizeClassLevel($level)
@@ -93,11 +101,16 @@ class BooksImport implements WithMultipleSheets, WithEvents
                 }
             },
 
+            // Sheet: Copies
             'Copies' => new class($this) implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailure, SkipsEmptyRows {
                 use SkipsFailures;
 
                 protected $import;
-                public function __construct(BooksImport $import) { $this->import = $import; }
+
+                public function __construct(BooksImport $import)
+                {
+                    $this->import = $import;
+                }
 
                 public function model(array $row)
                 {
@@ -116,6 +129,7 @@ class BooksImport implements WithMultipleSheets, WithEvents
                         ]
                     );
 
+                    // Update stock from available copies count
                     $book->update([
                         'stock' => $book->copies()->where('is_available', true)->count()
                     ]);
@@ -131,7 +145,12 @@ class BooksImport implements WithMultipleSheets, WithEvents
                         '*.status_ketersediaan' => ['required', Rule::in(['Tersedia', 'Dipinjam'])],
                     ];
                 }
-            },
+
+                public function onFailure(Failure ...$failures)
+                {
+                    $this->failures = array_merge($this->failures, $failures);
+                }
+            }
         ];
     }
 

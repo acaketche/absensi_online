@@ -21,7 +21,7 @@
 
     body {
       background-color: var(--light-bg);
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
     .card {

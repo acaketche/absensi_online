@@ -47,4 +47,9 @@ class Employee extends Authenticatable implements CanResetPasswordContract
     {
         return $this->hasOne(Classes::class, 'id_employee', 'id_employee');
     }
+public function picketSchedules()
+{
+    return $this->hasMany(PicketSchedule::class);
+}
+
 }

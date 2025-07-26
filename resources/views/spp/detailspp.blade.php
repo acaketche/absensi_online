@@ -317,7 +317,7 @@
                         <thead class="table-light position-sticky top-0" style="z-index: 1;">
                             <tr>
                                 <th>No</th>
-                                <th>NIS</th>
+                                <th>NIPD</th>
                                 <th>Nama Siswa</th>
                                 <th>Status Pembayaran</th>
                                 <th>Nominal</th>

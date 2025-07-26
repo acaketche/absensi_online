@@ -244,7 +244,7 @@
                         <thead>
                             <tr>
                                 <th>No</th>
-                                <th>NIS</th>
+                                <th>NIPD</th>
                                 <th>Nama Siswa</th>
                                 <th>Status</th>
                                 <th>Nominal</th>

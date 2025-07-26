@@ -405,6 +405,17 @@
                                 <div id="current-time" class="small"></div>
                             </div>
                         </div>
+                        @if($todayPicketSchedule)
+    <div class="alert alert-success">
+        <strong>Hari ini Anda bertugas sebagai pegawai piket.</strong><br>
+        Tanggal: {{ \Carbon\Carbon::parse($todayPicketSchedule->picket_date)->translatedFormat('l, d F Y') }}
+    </div>
+@else
+    <div class="alert alert-warning">
+        <strong>Hari ini Anda tidak dijadwalkan sebagai pegawai piket.</strong>
+    </div>
+@endif
+
                     </div>
                 </header>
 
